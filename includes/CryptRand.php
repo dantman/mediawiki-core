@@ -169,11 +169,19 @@ final class MWCryptRand {
 			// Attempt to read all our random data from urandom
 			// php's fread always does buffered reads based on the stream's chunk_size
 			// so in reality it will usually read more than the amount of data we're
-			// asked for and it doesn't cost anything extra to store that.
-			// We don't have access to the stream's chunk_size, fread maxes out at 8k
-			// so we'll go along with Drupal's decision to read at least 4k
+			// asked for and not storing that risks depleting the system's random pool.
+			// If stream_set_read_buffer is available set the chunk_size to the amount
+			// of data we need. Otherwise read 8k, php's default chunk_size.
 			if ( $urandom ) {
-				$buffer .= fread( $urandom, max( 1024 * 4, $bytes ) );
+				// php's default chunk_size is 8k
+				$chunk_size = 1024 * 8;
+				if ( function_exists( 'stream_set_read_buffer' ) ) {
+					// If possible set the chunk_size to the amount of data we need
+					stream_set_read_buffer( $urandom, $bytes - strlen( $buffer ) );
+					// Let our max() take care of the read size
+					$chunk_size = 0;
+				}
+				$buffer .= fread( $urandom, max( $chunk_size, $bytes - strlen( $buffer ) ) );
 				fclose( $urandom );
 				if ( strlen( $buffer ) >= $bytes ) {
 					// urandom is always strong, set to true if all our data was generated using it
