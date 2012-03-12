@@ -76,12 +76,16 @@ class ContentSecurityPolicy {
 		}
 
 		$policyList = array();
-		if ( isset( $policies['default'] ) ) {
-			$policyList[] = 'default-src ' . implode( ' ', $policies['default'] );
-			unset( $policies['default'] );
+		if ( !isset( $policies['default'] ) || count( $policies['default'] ) <= 0 ) {
+			$policies['default'] = array( self::NONE );
 		}
-		foreach ( $policies as $directive => $policy ) {
-			$policyList[] = "$directive-src " . implode( ' ', $policy );
+		$policyList[] = 'default-src ' . implode( ' ', $policies['default'] );
+		
+		foreach ( self::$directives as $directive ) {
+			if ( !isset( $policies[$directive] ) || count( $policies[$directive] ) <= 0 ) {
+				continue;
+			}
+			$policyList[] = "$directive-src " . implode( ' ', $policies[$directive] );
 		}
 		return implode( '; ', $policyList );
 	}
