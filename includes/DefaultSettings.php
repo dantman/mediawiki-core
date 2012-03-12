@@ -2422,6 +2422,16 @@ $wgBreakFrames = false;
 $wgEditPageFrameOptions = 'DENY';
 
 /**
+ * Use a Content Security Policy header?
+ * Enabling this feature can prevent the loading
+ * Note that everything you use must be compatible with the CSP code. If you have
+ * any extension that does not implement CSP support and tries to load something
+ * from somewhere not already in the CSP the extension will break when the CSP
+ * policy has the extension's resources denied.
+ */
+$wgUseCSP = false;
+
+/**
  * Disable output compression (enabled by default if zlib is available)
  */
 $wgDisableOutputCompression = false;

@@ -232,6 +232,11 @@ class OutputPage extends ContextSource {
 	private $mRedirectedFrom = null;
 
 	/**
+	 * ContentSecurityPolicy for this page
+	 */
+	private $mCSP = null;
+
+	/**
 	 * Constructor for OutputPage. This should not be called directly.
 	 * Instead a new RequestContext should be created and it will implicitly create
 	 * a OutputPage tied to that context.
@@ -571,6 +576,16 @@ class OutputPage extends ContextSource {
 	 */
 	function setETag( $tag ) {
 		$this->mETag = $tag;
+	}
+
+	/**
+	 * Return the Content Security Policy for this page, only used if $wgUseCSP is true
+	 */
+	public function getCSP() {
+		if ( is_null( $this->mCSP ) ) {
+			$this->mCSP = new ContentSecurityPolicy;
+		}
+		return $this->mCSP;
 	}
 
 	/**
@@ -1905,7 +1920,7 @@ class OutputPage extends ContextSource {
 	 * the object, let's actually output it:
 	 */
 	public function output() {
-		global $wgLanguageCode, $wgDebugRedirects, $wgMimeType, $wgVaryOnXFP;
+		global $wgLanguageCode, $wgDebugRedirects, $wgMimeType, $wgVaryOnXFP, $wgUseCSP;
 
 		if( $this->mDoNothing ) {
 			return;
@@ -1965,6 +1980,10 @@ class OutputPage extends ContextSource {
 		$frameOptions = $this->getFrameOptions();
 		if ( $frameOptions ) {
 			$response->header( "X-Frame-Options: $frameOptions" );
+		}
+
+		if ( $wgUseCSP ) {
+			$this->getCSP()->applyToWebResponse( $response );
 		}
 
 		if ( $this->mArticleBodyOnly ) {

@@ -47,6 +47,7 @@ $wgAutoloadLocalClasses = array(
 	'ConfEditor' => 'includes/ConfEditor.php',
 	'ConfEditorParseError' => 'includes/ConfEditor.php',
 	'ConfEditorToken' => 'includes/ConfEditor.php',
+	'ContentSecurityPolicy' => 'includes/ContentSecurityPolicy.php',
 	'Cookie' => 'includes/Cookie.php',
 	'CookieJar' => 'includes/Cookie.php',
 	'CurlHttpRequest' => 'includes/HttpFunctions.php',
