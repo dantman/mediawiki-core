@@ -389,6 +389,7 @@ class OutputPage extends ContextSource {
 		if ( is_null( $version ) )
 			$version = $wgStyleVersion;
 		$this->addScript( Html::linkedScript( wfAppendQuery( $path, $version ) ) );
+		$this->getCSP()->addScript( $url );
 	}
 
 	/**
@@ -398,6 +399,7 @@ class OutputPage extends ContextSource {
 	 */
 	public function addInlineScript( $script ) {
 		$this->mScripts .= Html::inlineScript( "\n$script\n" ) . "\n";
+		$this->getCSP()->addScript( /* inline */ );
 	}
 
 	/**
@@ -1982,10 +1984,6 @@ class OutputPage extends ContextSource {
 			$response->header( "X-Frame-Options: $frameOptions" );
 		}
 
-		if ( $wgUseCSP ) {
-			$this->getCSP()->applyToWebResponse( $response );
-		}
-
 		if ( $this->mArticleBodyOnly ) {
 			$this->out( $this->mBodytext );
 		} else {
@@ -2002,7 +2000,12 @@ class OutputPage extends ContextSource {
 			wfProfileOut( 'Output-skin' );
 		}
 
+		if ( $wgUseCSP ) {
+			$this->getCSP()->applyToWebResponse( $response );
+		}
+
 		$this->sendCacheControl();
+
 		ob_end_flush();
 		wfProfileOut( __METHOD__ );
 	}
@@ -2611,12 +2614,14 @@ $templates
 					$links .= Html::inlineStyle(
 						$resourceLoader->makeModuleResponse( $context, $modules )
 					);
+					$this->getCSP()->addStyle( /* inline */ );
 				} else {
 					$links .= Html::inlineScript(
 						ResourceLoader::makeLoaderConditionalScript(
 							$resourceLoader->makeModuleResponse( $context, $modules )
 						)
 					);
+					$this->getCSP()->addScript( /* inline */ );
 				}
 				$links .= "\n";
 				continue;
@@ -2653,21 +2658,26 @@ $templates
 				$esi = Xml::element( 'esi:include', array( 'src' => $url ) );
 				if ( $only == ResourceLoaderModule::TYPE_STYLES ) {
 					$link = Html::inlineStyle( $esi );
+					$this->getCSP()->addStyle( /* inline */ );
 				} else {
 					$link = Html::inlineScript( $esi );
+					$this->getCSP()->addScript( /* inline */ );
 				}
 			} else {
 				// Automatically select style/script elements
 				if ( $only === ResourceLoaderModule::TYPE_STYLES ) {
 					$link = Html::linkedStyle( $url );
+					$this->getCSP()->addStyle( $url );
 				} else if ( $loadCall ) { 
 					$link = Html::inlineScript(
 						ResourceLoader::makeLoaderConditionalScript(
 							Xml::encodeJsCall( 'mw.loader.load', array( $url, 'text/javascript', true ) )
 						)
 					);
+					$this->getCSP()->addScript( /* inline */ );
 				} else {
 					$link = Html::linkedScript( $url );
+					$this->getCSP()->addScript( $url );
 				}
 			}
 
@@ -2720,7 +2730,9 @@ $templates
 				)
 			);
 		}
-		
+
+		$this->getCSP()->addScript( /* inline */ );
+
 		if ( $wgResourceLoaderExperimentalAsyncLoading ) {
 			$scripts .= $this->getScriptsForBottomQueue( true );
 		}
@@ -2801,6 +2813,8 @@ $templates
 		$scripts .= $this->makeResourceLoaderLink( $userScripts, ResourceLoaderModule::TYPE_COMBINED,
 			/* $useESI = */ false, /* $extraQuery = */ array(), /* $loadCall = */ $inHead
 		);
+
+		$this->getCSP()->addScript( /* inline */ );
 
 		return $scripts;
 	}
@@ -3234,6 +3248,8 @@ $templates
 			$style_css = CSSJanus::transform( $style_css, true, false );
 		}
 		$this->mInlineStyles .= Html::inlineStyle( $style_css );
+		$this->getCSP()->addStyle( /* inline */ );
+
 	}
 
 	/**
@@ -3282,6 +3298,7 @@ $templates
 					$previewedCSS = CSSJanus::transform( $previewedCSS, true, false );
 				}
 				$otherTags .= Html::inlineStyle( $previewedCSS );
+				$this->getCSP()->addStyle( /* inline */ );
 			} else {
 				// Load the user styles normally
 				$moduleStyles[] = 'user';
@@ -3384,6 +3401,7 @@ $templates
 		}
 
 		$link = Html::linkedStyle( $url, $media );
+		$this->getCSP()->addStyle( $url );
 
 		if( isset( $options['condition'] ) ) {
 			$condition = htmlspecialchars( $options['condition'] );

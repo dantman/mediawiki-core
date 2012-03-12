@@ -36,13 +36,26 @@ class ContentSecurityPolicy {
 	}
 
 	/**
+	 * Cleanup a source we are provided
+	 *
+	 * @param $source The source to clean up
+	 */
+	protected function fixSource( $source ) {
+
+		// If a full URI is specified as a source trim it down just to a legal origin
+		$source = preg_replace( '!^([a-z][-+.a-z0-9]*://.+?)/.*$!iu', '$1', $source );
+
+		return $source;
+	}
+
+	/**
 	 * Whitelist a source for a specific directive
 	 *
 	 * @param $directive The directive (without -src) to whitelist the source in
 	 * @param $source The source to whitelist (ContentSecurityPolicy::SELF, domain, schema:, origin, etc...)
 	 */
 	public function allow( $directive, $source ) {
-		$this->src[$directive][] = $source;
+		$this->src[$directive][] = self::fixSource( $source );
 	}
 
 	/**
@@ -51,7 +64,43 @@ class ContentSecurityPolicy {
 	 * @param $source The source to whitelist (ContentSecurityPolicy::SELF, domain, schema:, origin, etc...)
 	 */
 	public function globalAllow( $source ) {
-		$this->global[] = $source;
+		$this->global[] = self::fixSource( $source );
+	}
+
+	/**
+	 * Quick helper when you add a script to update policies to allow the script
+	 *
+	 * @param $uri The uri of the script. Leave out if inline.
+	 */
+	public function addScript( $uri = null ) {
+		if ( $uri ) {
+			// Allow scripts from the uri's origin
+			$this->allow( 'script', $uri );
+		} else {
+			// Allow inline scripts
+			$this->allow( 'script', self::UNSAFE_INLINE );
+		}
+	}
+
+	/**
+	 * Quick helper when you add a style to update policies to allow the style
+	 *
+	 * @param $uri The uri of the style. Leave out if inline.
+	 */
+	public function addStyle( $uri = null ) {
+		if ( $uri ) {
+			// Allow styles from the uri's origin
+			$this->allow( 'style', $uri );
+			// Allow images in the stylesheet from the same origin
+			$this->allow( 'img', $uri );
+		} else {
+			// Allow inline styles
+			$this->allow( 'style', self::UNSAFE_INLINE );
+			// Allow images in the stylesheet from our origin
+			$this->allow( 'img', self::SELF );
+		}
+		// In case this was loaded by ResourceLoader allow inline data: images
+		$this->allow( 'img', 'data:' );
 	}
 
 	protected static function sort( $policy ) {
