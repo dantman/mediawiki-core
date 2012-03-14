@@ -776,6 +776,13 @@ $wgAutoloadLocalClasses = array(
 	'SqliteSearchResultSet' => 'includes/search/SearchSqlite.php',
 	'SqlSearchResultSet' => 'includes/search/SearchEngine.php',
 
+	# includes/skin
+	'SkinTemplateParser' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Comment' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Node' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Root' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Tag' => 'includes/skin/SkinTemplateParser.php',
+
 	# includes/specials
 	'ActiveUsersPager' => 'includes/specials/SpecialActiveusers.php',
 	'AllmessagesTablePager' => 'includes/specials/SpecialAllmessages.php',
