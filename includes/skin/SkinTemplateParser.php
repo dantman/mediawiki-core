@@ -5,7 +5,7 @@
  * @file
  */
 
-abstract class STP_Node {
+abstract class STP_Node implements IteratorAggregate {
 
 	protected $children;
 
@@ -36,6 +36,14 @@ abstract class STP_Node {
 	}
 
 	/** Children **/
+	public function getIterator() {
+		return $this->children;
+	}
+
+	public function hasChildren() {
+		return !$this->children->isEmpty();
+	}
+
 	public function pushChild( $node ) {
 		if ( !($node instanceof STP_Node) && !is_string( $node ) ) {
 			throw new Exception( "Tried to push an invalid node type (" . gettype( $node ) . ") into the tree." );
@@ -93,6 +101,10 @@ class STP_Tag extends STP_Node {
 			$this->blankFirstAttribute = $name;
 		}
 		$this->attributes[$name] = $value;
+	}
+
+	public function attributes() {
+		return $this->attributes;
 	}
 
 	public function toString_startExt( $ind ) {

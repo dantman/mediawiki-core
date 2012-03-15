@@ -115,6 +115,14 @@ class Html {
 	);
 
 	/**
+	 * Returns whether or not an element is a html self-closing void element
+	 * @return bool
+	 */
+	public static function isVoid( $element ) {
+		return in_array( $element, self::$voidElements );
+	}
+
+	/**
 	 * Returns an HTML element in a string.  The major advantage here over
 	 * manually typing out the HTML is that it will escape all attribute
 	 * values.  If you're hardcoding all the attributes, or there are none, you
@@ -137,7 +145,7 @@ class Html {
 	public static function rawElement( $element, $attribs = array(), $contents = '' ) {
 		global $wgWellFormedXml;
 		$start = self::openElement( $element, $attribs );
-		if ( in_array( $element, self::$voidElements ) ) {
+		if ( self::isVoid( $element ) ) {
 			if ( $wgWellFormedXml ) {
 				# Silly XML.
 				return substr( $start, 0, -1 ) . ' />';
