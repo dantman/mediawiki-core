@@ -432,7 +432,7 @@ class ManualLogEntry extends LogEntryBase {
 			'log_user_text' => $this->getPerformer()->getName(),
 			'log_namespace' => $this->getTarget()->getNamespace(),
 			'log_title' => $this->getTarget()->getDBkey(),
-			'log_page' => $this->getTarget()->getArticleId(),
+			'log_page' => $this->getTarget()->getArticleID(),
 			'log_comment' => $comment,
 			'log_params' => serialize( (array) $this->getParameters() ),
 		);
@@ -458,12 +458,22 @@ class ManualLogEntry extends LogEntryBase {
 
 		$logpage = SpecialPage::getTitleFor( 'Log', $this->getType() );
 		$user = $this->getPerformer();
+		$ip = "";
+		if ( $user->isAnon() ) {
+			/*
+			 * "MediaWiki default" and friends may have
+			 * no IP address in their name
+			 */
+			if ( IP::isIPAddress( $user->getName() ) ) {
+				$ip = $user->getName();
+			}
+		}
 		$rc = RecentChange::newLogEntry(
 			$this->getTimestamp(),
 			$logpage,
 			$user,
 			$formatter->getPlainActionText(),
-			$user->isAnon() ? $user->getName() : '',
+			$ip,
 			$this->getType(),
 			$this->getSubtype(),
 			$this->getTarget(),
@@ -503,6 +513,9 @@ class ManualLogEntry extends LogEntryBase {
 		return $this->performer;
 	}
 
+	/**
+	 * @return Title
+	 */
 	public function getTarget() {
 		return $this->target;
 	}

@@ -997,6 +997,9 @@ Please report this to an [[Special:ListUsers/sysop|administrator]], making note 
 'directorycreateerror' => 'Could not create directory "$1".',
 'filenotfound'         => 'Could not find file "$1".',
 'fileexistserror'      => 'Unable to write to file "$1": File exists.',
+'filereadonlyerror'    => 'Unable to the modify the file "$1" because the file repository "$2" is in read-only mode.
+	
+The administrator who locked it offered this explanation: "$3".',
 'unexpected'           => 'Unexpected value: "$1"="$2".',
 'formerror'            => 'Error: Could not submit form.',
 'badarticleerror'      => 'This action cannot be performed on this page.',
@@ -2266,13 +2269,16 @@ If the problem persists, contact an [[Special:ListUsers/sysop|administrator]].',
 'backend-fail-closetemp'     => 'Could not close temporary file.',
 'backend-fail-read'          => 'Could not read file $1.',
 'backend-fail-create'        => 'Could not create file $1.',
-'backend-fail-maxsize'       => 'Could not create file $1 because it is larger than {{PLURAL:$2|$2 bytes|$2 byte}}.',
+'backend-fail-maxsize'       => 'Could not create file $1 because it is larger than {{PLURAL:$2|one byte|$2 bytes}}.',
 'backend-fail-readonly'      => 'The storage backend "$1" is currently read-only. The reason given was: "$2"',
 'backend-fail-synced'        => 'The file "$1" is in an inconsistent state within the internal storage backends',
 'backend-fail-connect'       => 'Could not connect to storage backend "$1".',
 'backend-fail-internal'      => 'An unknown error occurred in storage backend "$1".',
 'backend-fail-contenttype'   => 'Could not determine the content type of the file to store at "$1".',
 'backend-fail-batchsize'     => 'Storage backend given a batch of $1 file {{PLURAL:$1|operation|operations}}; the limit is $2 {{PLURAL:$2|operation|operations}}.',
+
+'filejournal-fail-dbconnect' => 'Could not connect to the journal database for storage backend "$1".',
+'filejournal-fail-dbquery'   => 'Could not update the journal database for storage backend "$1".',
 
 # Lock manager
 'lockmanager-notlocked'        => 'Could not unlock "$1"; it is not locked.',

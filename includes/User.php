@@ -165,8 +165,8 @@ class User {
 	//@{
 	var $mId, $mName, $mRealName, $mPassword, $mNewpassword, $mNewpassTime,
 		$mEmail, $mTouched, $mToken, $mEmailAuthenticated,
-		$mEmailToken, $mEmailTokenExpires, $mRegistration, $mGroups, $mOptionOverrides,
-		$mCookiePassword, $mEditCount, $mAllowUsertalk;
+		$mEmailToken, $mEmailTokenExpires, $mRegistration, $mEditCount,
+		$mGroups, $mOptionOverrides;
 	//@}
 
 	/**
@@ -208,6 +208,11 @@ class User {
 	 * @var Block
 	 */
 	var $mBlock;
+
+	/**
+	 * @var bool
+	 */
+	var $mAllowUsertalk;
 
 	/**
 	 * @var Block
@@ -472,11 +477,6 @@ class User {
 		$nt = Title::makeTitleSafe( NS_USER, $name );
 		if( is_null( $nt ) ) {
 			# Illegal name
-			return null;
-		}
-
-		if ( User::isIP( $name ) ) {
-			# Cannot exist
 			return null;
 		}
 
@@ -2051,16 +2051,6 @@ class User {
 	}
 
 	/**
-	 * Set the cookie password
-	 *
-	 * @param $str String New cookie password
-	 */
-	private function setCookiePassword( $str ) {
-		$this->load();
-		$this->mCookiePassword = md5( $str );
-	}
-
-	/**
 	 * Set the password for a password reminder or new account email
 	 *
 	 * @param $str String New password to set
@@ -2890,6 +2880,7 @@ class User {
 			'user_token' => $user->mToken,
 			'user_registration' => $dbw->timestamp( $user->mRegistration ),
 			'user_editcount' => 0,
+			'user_touched' => $dbw->timestamp( self::newTouchedTimestamp() ),
 		);
 		foreach ( $params as $name => $value ) {
 			$fields["user_$name"] = $value;
@@ -2908,6 +2899,9 @@ class User {
 	 */
 	public function addToDatabase() {
 		$this->load();
+
+		$this->mTouched = self::newTouchedTimestamp();
+
 		$dbw = wfGetDB( DB_MASTER );
 		$seqVal = $dbw->nextSequenceValue( 'user_user_id_seq' );
 		$dbw->insert( 'user',
@@ -2923,6 +2917,7 @@ class User {
 				'user_token' => $this->mToken,
 				'user_registration' => $dbw->timestamp( $this->mRegistration ),
 				'user_editcount' => 0,
+				'user_touched' => $dbw->timestamp( $this->mTouched ),
 			), __METHOD__
 		);
 		$this->mId = $dbw->insertId();

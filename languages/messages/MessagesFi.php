@@ -14,6 +14,7 @@
  * @author Harriv
  * @author Jaakonam
  * @author Jack Phoenix
+ * @author Jafeluv
  * @author Kaganer
  * @author Mobe
  * @author Nedergard
@@ -2317,11 +2318,11 @@ Viimeisimmän muokkauksen on tehnyt käyttäjä [[User:$3|$3]] ([[User talk:$3|k
 'protect-badnamespace-text'   => 'Tämän nimiavaruuden sivuja ei voi suojata.',
 'protect-legend'              => 'Suojaukset',
 'protectcomment'              => 'Syy',
-'protectexpiry'               => 'Vanhenee',
-'protect_expiry_invalid'      => 'Vanhenemisaika ei kelpaa.',
-'protect_expiry_old'          => 'Vanhenemisaika on menneisyydessä.',
+'protectexpiry'               => 'Vanhentuu',
+'protect_expiry_invalid'      => 'Vanhentumisaika ei kelpaa.',
+'protect_expiry_old'          => 'Vanhentumisaika on menneisyydessä.',
 'protect-unchain-permissions' => 'Avaa lisäsuojausvalinnat',
-'protect-text'                => "Voit tarkastella ja muuttaa sivun '''$1''' suojauksen asetuksia.",
+'protect-text'                => "Voit tarkastella ja muuttaa sivun '''$1''' suojaustasoa.",
 'protect-locked-blocked'      => "Et voi muuttaa sivun suojauksia, koska sinut on estetty. Alla on sivun ”'''$1'''” nykyiset suojaukset:",
 'protect-locked-dblock'       => "Sivun suojauksia ei voi muuttaa, koska tietokanta on lukittu. Alla on sivun ”'''$1'''” nykyiset suojaukset:",
 'protect-locked-access'       => "Sinulla ei ole tarvittavia oikeuksia sivujen suojauksen muuttamiseen. Alla on sivun ”'''$1'''” nykyiset suojaukset:",
@@ -2331,14 +2332,14 @@ Viimeisimmän muokkauksen on tehnyt käyttäjä [[User:$3|$3]] ([[User talk:$3|k
 'protect-level-autoconfirmed' => 'Estä uudet ja anonyymit käyttäjät',
 'protect-level-sysop'         => 'Vain ylläpitäjät',
 'protect-summary-cascade'     => 'laajennettu',
-'protect-expiring'            => 'vanhenee $1',
+'protect-expiring'            => 'vanhentuu $1 (UTC)',
 'protect-expiring-local'      => 'vanhentuu $1',
 'protect-expiry-indefinite'   => 'ikuinen',
 'protect-cascade'             => 'Laajenna suojaus koskemaan kaikkia tähän sivuun sisällytettyjä sivuja.',
 'protect-cantedit'            => 'Et voi muuttaa sivun suojaustasoa, koska sinulla ei ole oikeutta muokata sivua.',
 'protect-othertime'           => 'Muu kesto',
 'protect-othertime-op'        => 'muu kesto',
-'protect-existing-expiry'     => 'Nykyinen vanhenemisaika: $2 kello $3',
+'protect-existing-expiry'     => 'Nykyinen vanhentumisaika: $2 kello $3',
 'protect-otherreason'         => 'Muu syy tai tarkennus',
 'protect-otherreason-op'      => 'Muu syy',
 'protect-dropdown'            => '*Yleiset suojaussyyt
@@ -2455,7 +2456,7 @@ Alla on viimeisin estolokin tapahtuma:',
 'nolinkshere'              => 'Sivulle <strong>[[:$1]]</strong> ei ole linkkejä.',
 'nolinkshere-ns'           => 'Sivulle <strong>[[:$1]]</strong> ei ole linkkejä valitussa nimiavaruudessa.',
 'isredirect'               => 'ohjaussivu',
-'istemplate'               => 'sisällytetty mallineeseen',
+'istemplate'               => 'sisällytetty',
 'isimage'                  => 'tiedostolinkki',
 'whatlinkshere-prev'       => '← {{PLURAL:$1|edellinen sivu|$1 edellistä sivua}}',
 'whatlinkshere-next'       => '{{PLURAL:$1|seuraava sivu|$1 seuraavaa sivua}} →',

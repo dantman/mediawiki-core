@@ -1685,12 +1685,16 @@ Sila hubungi [[Special:ListUsers/sysop|pentadbir sistem]].',
 'backend-fail-closetemp'     => 'Fail sementara tidak dapat ditutup.',
 'backend-fail-read'          => 'Fail $1 tidak dapat dibaca.',
 'backend-fail-create'        => 'Fail $1 tidak dapat diwujudkan.',
+'backend-fail-maxsize'       => 'Fail $1 tidak boleh dibuat kerana melebihi $2 bait.',
 'backend-fail-readonly'      => 'Backend storan "$1" kini dalam mod baca sahaja. Sebab yang diberikan ialah: "$2"',
 'backend-fail-synced'        => 'Fail "$1" berada dalam keadaan yang tidak sejajar dalam backend storan dalaman',
 'backend-fail-connect'       => 'Tidak dapat bersambung dengan backend storan "$1".',
 'backend-fail-internal'      => 'Berlakunya ralat yang tidak dikenali dalam backend storan "$1".',
 'backend-fail-contenttype'   => 'Jenis kandungan fail untuk disimpan di "$1" tidak dapat ditentukan.',
 'backend-fail-batchsize'     => 'Backend storan diberi $1 operasi fail dalam satu kelompok; hadnya ialah $2 operasi.',
+
+'filejournal-fail-dbconnect' => 'Tidak dapat bersambung dengan pangkalan data jurnal untuk backend storan "$1".',
+'filejournal-fail-dbquery'   => 'Pangkalan data jurnal untuk backend storan "$1" tidak dapat dikemaskinikan.',
 
 # Lock manager
 'lockmanager-notlocked'        => '"$1" tidak dapat dibuka; ia tidak terkunci.',

@@ -1510,6 +1510,7 @@ $1',
 'backend-fail-closetemp'     => '無法度徙掉臨時檔案',
 'backend-fail-read'          => '無法度讀$1這个檔案',
 'backend-fail-create'        => '無法度建立$1這个檔案。',
+'backend-fail-maxsize'       => '無法度建立$1檔案，因為伊超過{{PLURAL:$2|$2位元|$2位元}}。',
 'backend-fail-readonly'      => '囥「$1」的位，這馬只會當讀，因為「$2」。',
 'backend-fail-synced'        => '"$1"這个檔案佇內部的囥位無一致。',
 'backend-fail-connect'       => '無法度連接到囥"$1"的位。',
@@ -1525,12 +1526,34 @@ $1',
 'lockmanager-fail-acquirelock' => '無法度套牢檔案 "$1"。',
 'lockmanager-fail-openlock'    => '無法度開"$1"這个hông套牢的檔案。',
 'lockmanager-fail-releaselock' => '無法度解套 "$1"。',
-'lockmanager-fail-db-bucket'   => '佇資料桶，提無夠愛套牢的資料。',
+'lockmanager-fail-db-bucket'   => '佇$1資料桶，提無夠愛套牢的資料。',
 'lockmanager-fail-db-release'  => '無法度共佇伺服器$1的套牢釋放掉。',
 'lockmanager-fail-svr-release' => '無法度共佇伺服器$1的套牢釋放掉。',
 
+# ZipDirectoryReader
+'zip-file-open-error' => '佇拍開檔案的ZIP檢查時陣，拄著一个問題。',
+'zip-wrong-format'    => '指定的檔案毋是一个ZIP檔案。',
+'zip-bad'             => '檔案已經歹去抑是無法度讀的ZIP檔案，
+伊無法正確來檢查，看有妥當無。',
+'zip-unsupported'     => '這个是一个 ZIP 檔案，伊用著 MediaWiki 無支持的ZIP功能，
+伊袂當正確檢查看有妥當無。',
+
+# Special:UploadStash
+'uploadstash'          => '上載囥位',
+'uploadstash-summary'  => '這个頁面提供的檔案已經上載（抑是當咧上載），毋過猶未佇wiki發布，遮的檔案除了上載的用者以外，別人看袂著。',
+'uploadstash-clear'    => '清掉囥咧的檔案',
+'uploadstash-nofiles'  => '你無囥咧的檔案。',
+'uploadstash-badtoken' => '彼个動作做無成功，可能是你的編輯資料已經過期，請閣試一擺。',
+'uploadstash-errclear' => '欲清掉檔案無成功。',
+'uploadstash-refresh'  => '更新檔案清單。',
+'invalid-chunk-offset' => '無效的區位偏移量',
+
 # img_auth script messages
 'img-auth-accessdenied'     => '拒絕讀寫',
+'img-auth-nopathinfo'       => '欠PATH_INFO，
+你的伺服器無設講免這个資料，
+伊它可能是因為是CGI的，而且不支源img_auth，
+會使參考[https://www.mediawiki.org/wiki/Manual:Image_Authorization 圖片認證。]',
 'img-auth-notindir'         => '你欲用的路徑無佇事先設定的上載目錄當中。',
 'img-auth-badtitle'         => '無法度對"$1"產生一个有效的標題',
 'img-auth-nologinnWL'       => '你猶未登入，"$1"無佇白名單(whitelist)面頂。',
@@ -1608,6 +1631,7 @@ $1',
 有一个[[Special:WhatLinksHere/$2|全部的清單]]。',
 'nolinkstoimage'            => 'Bô poàⁿ ia̍h liân kàu chit tiuⁿ iáⁿ-siōng.',
 'morelinkstoimage'          => '看連接到這个檔案的[[Special:WhatLinksHere/$1|其他連結]]',
+'linkstoimage-redirect'     => '$1 （檔案轉向） $2',
 'duplicatesoffile'          => '下跤{{PLURAL:$1|个|个}}檔案佮這个仝款（[[Special:FileDuplicateSearch/$2|詳細]]）：',
 'sharedupload'              => '這个檔案是對$1遐來的，伊可能用佇別个事工。',
 'sharedupload-desc-there'   => '這个檔案對$1遐來的，伊可能用佇別个事工，
@@ -1631,26 +1655,31 @@ $1',
 'filerevert-badversion'     => '這个檔案所提供的時間截記，無進前的本地版本。',
 
 # File deletion
-'filedelete'                  => '刣掉$1',
-'filedelete-legend'           => '刣掉檔案',
-'filedelete-intro'            => "你當咧刣掉檔案'''[[Media:$1|$1]]'''，佮伊的歷史。",
-'filedelete-intro-old'        => "你當咧刣掉'''[[Media:$1|$1]]'''佇[$4 $2 $3]的版本",
-'filedelete-comment'          => '理由：',
-'filedelete-submit'           => '刣掉',
-'filedelete-success'          => "'''$1'''已經刣掉",
-'filedelete-success-old'      => "'''[[Media:$1|$1]]'''佇$2 $3 的版本已經刣掉",
-'filedelete-nofile'           => "無'''$1'''這个",
-'filedelete-nofile-old'       => "揣無'''$1'''指定的保存版本",
-'filedelete-otherreason'      => '其他／另外的理由：',
-'filedelete-reason-otherlist' => '其他理由',
-'filedelete-reason-dropdown'  => '*一般刣掉的理由
+'filedelete'                   => '刣掉$1',
+'filedelete-legend'            => '刣掉檔案',
+'filedelete-intro'             => "你當咧刣掉檔案'''[[Media:$1|$1]]'''，佮伊的歷史。",
+'filedelete-intro-old'         => "你當咧刣掉'''[[Media:$1|$1]]'''佇[$4 $2 $3]的版本",
+'filedelete-comment'           => '理由：',
+'filedelete-submit'            => '刣掉',
+'filedelete-success'           => "'''$1'''已經刣掉",
+'filedelete-success-old'       => "'''[[Media:$1|$1]]'''佇$2 $3 的版本已經刣掉",
+'filedelete-nofile'            => "無'''$1'''這个",
+'filedelete-nofile-old'        => "揣無'''$1'''指定的保存版本",
+'filedelete-otherreason'       => '其他／另外的理由：',
+'filedelete-reason-otherlist'  => '其他理由',
+'filedelete-reason-dropdown'   => '*一般刣掉的理由
 ** 違反著作權
 ** 相仝',
-'filedelete-edit-reasonlist'  => '編輯刣掉的理由',
+'filedelete-edit-reasonlist'   => '編輯刣掉的理由',
+'filedelete-maintenance'       => '佇維護的時陣，暫時袂當刣掉檔案佮救倒轉來檔案。',
+'filedelete-maintenance-title' => '袂當刣掉檔案',
 
 # MIME search
-'mimesearch' => 'MIME chhiau-chhoē',
-'download'   => '下載',
+'mimesearch'         => 'MIME chhiau-chhoē',
+'mimesearch-summary' => '這个頁面有用MIME類型的檔案過濾器，
+輸入︰內容類型/次類型，親像 <tt>image/jpeg</tt>。',
+'mimetype'           => 'MIME 類型：',
+'download'           => '下載',
 
 # Unwatched pages
 'unwatchedpages' => 'Bô lâng kàm-sī ê ia̍h',
@@ -1659,8 +1688,10 @@ $1',
 'listredirects' => 'Lia̍t-chhut choán-ia̍h',
 
 # Unused templates
-'unusedtemplates'    => 'Bô iōng ê pang-bô·',
-'unusedtemplateswlh' => '其他的連結',
+'unusedtemplates'     => 'Bô iōng ê pang-bô·',
+'unusedtemplatestext' => '這个頁面排列出佇{{ns:template}}名空間內底，閣無予別頁面用著的頁。
+請會記得佇刣掉遮的枋模進前，看有別的連接鏈連著。',
+'unusedtemplateswlh'  => '其他的連結',
 
 # Random page
 'randompage'         => 'Sûi-chāi kéng ia̍h',
@@ -1668,28 +1699,46 @@ $1',
 {{PLURAL:$2|名空間|名空間}}：$1.',
 
 # Random redirect
-'randomredirect' => 'Sûi-chāi choán-ia̍h',
+'randomredirect'         => 'Sûi-chāi choán-ia̍h',
+'randomredirect-nopages' => '佇 "$1" 名空間內底無轉向的頁。',
 
 # Statistics
-'statistics'              => 'Thóng-kè',
-'statistics-header-pages' => '頁的統計',
-'statistics-header-edits' => '改的統計',
-'statistics-header-views' => '看的統計',
-'statistics-header-users' => 'Iōng-chiá thóng-kè sò·-ba̍k',
-'statistics-header-hooks' => '其他的統計',
-'statistics-articles'     => '內容頁',
-'statistics-pages-desc'   => '佇Wiki所有的頁，包括討論頁、轉頁等等。',
-'statistics-files'        => '上載檔案',
-'statistics-users-active' => '猶咧出工的用者',
-'statistics-mostpopular'  => '上濟人看的頁',
+'statistics'                   => 'Thóng-kè',
+'statistics-header-pages'      => '頁的統計',
+'statistics-header-edits'      => '改的統計',
+'statistics-header-views'      => '看的統計',
+'statistics-header-users'      => 'Iōng-chiá thóng-kè sò·-ba̍k',
+'statistics-header-hooks'      => '其他的統計',
+'statistics-articles'          => '內容頁',
+'statistics-pages'             => '文章',
+'statistics-pages-desc'        => '佇Wiki所有的頁，包括討論頁、轉頁等等。',
+'statistics-files'             => '上載檔案',
+'statistics-edits'             => '自設立{{SITENAME}}以後，對頁的編輯總數',
+'statistics-edits-average'     => '每頁的平均編輯數量',
+'statistics-views-total'       => '看的總量',
+'statistics-views-total-desc'  => '看空頁抑是特殊頁的數量無算在內。',
+'statistics-views-peredit'     => '佇編輯的時陣看的數量',
+'statistics-users'             => '已經註冊[[Special:ListUsers|用者]]',
+'statistics-users-active'      => '猶咧出工的用者',
+'statistics-users-active-desc' => '佇前{{PLURAL:$1|一工|$1工}}有操作過的用者。',
+'statistics-mostpopular'       => '上濟人看的頁',
 
-'disambiguations'     => 'Khu-pia̍t-ia̍h',
-'disambiguationspage' => 'Template:disambig
+'disambiguations'      => 'Khu-pia̍t-ia̍h',
+'disambiguationspage'  => 'Template:disambig
 Template:KhPI
 Template:Khu-pia̍t-iah
 Template:Khu-pia̍t-ia̍h',
+'disambiguations-text' => "下面的頁攏有連接到'''區別頁'''，
+In應該連接到適當的頁面。<br />一个頁面若有用[[MediaWiki:Disambiguationspage]]內底的枋模，就會算做是區別頁。",
 
-'doubleredirects' => 'Siang-thâu choán-ia̍h',
+'doubleredirects'                   => 'Siang-thâu choán-ia̍h',
+'doubleredirectstext'               => '這个頁排列出所有轉向到捌个轉向頁，
+每一列有轉向去第一个佮第二个轉向頁的連結，佮第二个轉向頁的目標，彼个目標一般著是應該的頁面， 第一个轉向連結應該指的所在。
+<del>拍叉的</del>是已經處理好的項目。',
+'double-redirect-fixed-move'        => '[[$1]]已經徙位，
+伊這馬轉去[[$2]]。',
+'double-redirect-fixed-maintenance' => '修改對[[$1]]到[[$2]]的兩擺轉向。',
+'double-redirect-fixer'             => '轉向的改向',
 
 'brokenredirects'        => 'Choán-ia̍h kò·-chiòng',
 'brokenredirectstext'    => 'Í-hā ê choán-ia̍h liân kàu bô chûn-chāi ê ia̍h:',
@@ -1698,6 +1747,7 @@ Template:Khu-pia̍t-ia̍h',
 
 'withoutinterwiki'         => 'Bô gí-giân liân-kiat ê ia̍h',
 'withoutinterwiki-summary' => 'Ē-kha ê ia̍h bô kî-thaⁿ gí-giân pán-pún ê liân-kiat:',
+'withoutinterwiki-legend'  => '前綴',
 'withoutinterwiki-submit'  => '顯示',
 
 'fewestrevisions' => 'Siōng bô siu-tēng ê bûn-chiuⁿ',
@@ -1744,8 +1794,13 @@ Template:Khu-pia̍t-ia̍h',
 'unusedimagestext'        => 'Ē-kha ê tóng-àn bô poàⁿ ia̍h ū teh iōng. M̄-koh ia̍h lâu leh. 
 Chhiáⁿ chù-ì: kî-thaⁿ ê bāng-chām ū khó-lêng iōng URL ti̍t-chiap liân kàu iáⁿ-siōng, só·-í sui-jiân bô teh iōng, mā sī ē lia̍t tī chia.',
 'unusedcategoriestext'    => 'Ū ē-kha chiah-ê lūi-pia̍t-ia̍h, m̄-koh bô kî-thaⁿ ê bûn-chiuⁿ a̍h-sī lūi-pia̍t lī-iōng.',
+'notargettitle'           => '無目標',
+'notargettext'            => '你無指定目標頁面抑是用者通做這个動作',
+'nopagetitle'             => '無這个目標頁',
+'nopagetext'              => '無你指定的目標頁。',
 'pager-newer-n'           => '{{PLURAL:$1|較新一个|較新$1个 }}',
 'pager-older-n'           => '{{PLURAL:$1|較舊一个|較舊$1个}}',
+'suppress'                => '監督',
 
 # Book sources
 'booksources'               => 'Tô͘-su chu-liāu',
@@ -1764,12 +1819,14 @@ Chhiáⁿ chù-ì: kî-thaⁿ ê bāng-chām ū khó-lêng iōng URL ti̍t-chiap
 'nextpage'          => 'Āu 1 ia̍h ($1)',
 'prevpage'          => '前一頁（$1）',
 'allpagesfrom'      => 'Tùi chit ia̍h khai-sí hián-sī:',
+'allpagesto'        => '顯示到這頁：',
 'allarticles'       => 'Só·-ū ê bûn-chiuⁿ',
 'allinnamespace'    => 'Só·-ū ê ia̍h ($1 miâ-khong-kan)',
 'allnotinnamespace' => 'Só·-ū ê ia̍h (bô tī $1 miâ-khong-kan)',
 'allpagesprev'      => 'Téng 1 ê',
 'allpagesnext'      => 'ē 1 ê',
 'allpagessubmit'    => 'Lâi-khì',
+'allpagesprefix'    => '顯示頁標題有：',
 
 # Special:Categories
 'categories'         => 'Lūi-pia̍t',
@@ -1849,6 +1906,7 @@ Also see [[Special:WantedCategories|wanted categories]].',
 'notanarticle'       => '毋是內容頁面',
 'watchnochange'      => 'Lí kàm-sī ê hāng-bo̍k tī hián-sī ê sî-kî í-lāi lóng bô siu-kái kòe.',
 'watchlist-details'  => 'Kàm-sī-toaⁿ ū {{PLURAL:$1|$1 ia̍h|$1 ia̍h}}, thó-lūn-ia̍h bô sǹg chāi-lāi.',
+'wlheader-enotif'    => '*會當用電子批通知',
 'watchmethod-recent' => 'tng teh kíam-cha choè-kīn ê siu-kái, khoàⁿ ū kàm-sī ê ia̍h bô',
 'watchmethod-list'   => 'tng teh kiám-cha kàm-sī ê ia̍h khoàⁿ chòe-kīn ū siu-kái bô',
 'watchlistcontains'  => 'Lí ê kàm-sī-toaⁿ siu {{PLURAL:$1|ia̍h|ia̍h}} .',
@@ -1861,14 +1919,15 @@ Also see [[Special:WantedCategories|wanted categories]].',
 'unwatching'     => '莫監視',
 'watcherrortext' => '佇你改"$1"監視設定的時陣，發生一个問題',
 
-'enotif_reset'       => '共全部的頁攏當做巡過',
-'enotif_newpagetext' => '這是新的一頁',
-'changed'            => '改過',
-'created'            => '寫過',
-'enotif_subject'     => '佇{{SITENAME}}的$PAGETITLE這頁捌予$CHANGEDORCREATED$PAGEEDITOR',
-'enotif_lastvisited' => '看$1，自你頂回來到今所有改的',
-'enotif_lastdiff'    => '看$1這回改的',
-'enotif_anon_editor' => '無名氏用者$1',
+'enotif_reset'                 => '共全部的頁攏當做巡過',
+'enotif_newpagetext'           => '這是新的一頁',
+'enotif_impersonal_salutation' => '{{SITENAME}}用者',
+'changed'                      => '改過',
+'created'                      => '寫過',
+'enotif_subject'               => '佇{{SITENAME}}的$PAGETITLE這頁捌予$CHANGEDORCREATED$PAGEEDITOR',
+'enotif_lastvisited'           => '看$1，自你頂回來到今所有改的',
+'enotif_lastdiff'              => '看$1這回改的',
+'enotif_anon_editor'           => '無名氏用者$1',
 
 # Delete
 'deletepage'             => 'Thâi ia̍h',
@@ -1936,6 +1995,9 @@ Téng 1 ūi siu-kái-chiá sī [[User:$3|$3]] ([[User talk:$3|talk]]{{int:pipe-s
 'protect-unchain-permissions' => '解除更加保護的選項',
 'protect-locked-blocked'      => "你袂當佇封鎖的時陣改保護等級，
 下跤是'''$1'''這馬的保護等級:",
+'protect-default'             => '所有用者攏會當',
+'protect-fallback'            => '要求會當"$1"',
+'protect-level-sysop'         => '干焦管理員',
 'protect-expiring-local'      => '佇$1到期',
 'protect-cascade'             => 'Cascading protection - pó-hō͘ jīm-hô pau-hâm tī chit ia̍h ê ia̍h.',
 'protect-othertime'           => '其他的時間：',
@@ -1959,17 +2021,22 @@ Téng 1 ūi siu-kái-chiá sī [[User:$3|$3]] ([[User talk:$3|talk]]{{int:pipe-s
 'restriction-level-all'           => '任何一級',
 
 # Undelete
-'undelete'            => 'Kiù thâi tiāu ê ia̍h',
-'undeletepage'        => 'Khoàⁿ kap kiù thâi tiāu ê ia̍h',
-'undeletepagetitle'   => "'''下跤包括[[:$1]]的刣掉修訂本'''",
-'viewdeletedpage'     => '看刣掉的頁',
-'undeletepagetext'    => '下跤的{{PLURAL:$1|篇頁|篇頁}}已經予人刣掉，毋過猶留佇檔案庫，而且會使救倒轉來。
+'undelete'                 => 'Kiù thâi tiāu ê ia̍h',
+'undeletepage'             => 'Khoàⁿ kap kiù thâi tiāu ê ia̍h',
+'undeletepagetitle'        => "'''下跤包括[[:$1]]的刣掉修訂本'''",
+'viewdeletedpage'          => '看刣掉的頁',
+'undeletepagetext'         => '下跤的{{PLURAL:$1|篇頁|篇頁}}已經予人刣掉，毋過猶留佇檔案庫，而且會使救倒轉來。
 檔案庫內底可能會定時清掉。',
-'undeletelink'        => '看／恢復',
-'undeleteviewlink'    => 'Khoàⁿ',
-'undeletereset'       => '設便',
-'undeletecomment'     => '理由：',
-'undelete-search-box' => '揣刣掉的頁',
+'undelete-revision'        => '$1予$3（佇$4 $5）刣掉的修訂本。',
+'undeleterevision-missing' => '毋著抑是無去的修訂本，
+你的連結毋著，抑是彼个修訂本己經對保管庫轉回抑徙掉。',
+'undelete-nodiff'          => '無頂一个修訂本。',
+'undeletebtn'              => '恢復',
+'undeletelink'             => '看／恢復',
+'undeleteviewlink'         => 'Khoàⁿ',
+'undeletereset'            => '設便',
+'undeletecomment'          => '理由：',
+'undelete-search-box'      => '揣刣掉的頁',
 
 # Namespace form on various pages
 'namespace'      => 'Miâ-khong-kan:',
@@ -2039,7 +2106,9 @@ Téng 1 ūi siu-kái-chiá sī [[User:$3|$3]] ([[User talk:$3|talk]]{{int:pipe-s
 'ipusubmit'                   => 'Chhú-siau chit ê hong-só',
 'ipblocklist'                 => 'Siū hong-só ê iōng-chiá',
 'ipblocklist-legend'          => '揣一个封鎖的用者',
+'blocklist-timestamp'         => '戳印的時間',
 'blocklist-target'            => '目標',
+'blocklist-expiry'            => '到期',
 'ipblocklist-submit'          => '揣',
 'blocklink'                   => 'hong-só',
 'unblocklink'                 => '取消封鎖',
@@ -2064,6 +2133,11 @@ Téng 1 ūi siu-kái-chiá sī [[User:$3|$3]] ([[User talk:$3|talk]]{{int:pipe-s
 'proxyblocker-disabled'       => '這个功能袂當用。',
 
 # Developer tools
+'lockdb'              => '封鎖資料庫',
+'unlockdb'            => '解除對資料庫的封鎖',
+'unlockdbtext'        => '解除封鎖會予所有的用者通編輯、改設定、改監視單佮其他通改資料庫的代誌，
+請確認這是你欲做的動作。',
+'lockconfirm'         => '是，我確實欲封鎖資料庫。',
 'lockbtn'             => '封鎖資料庫',
 'unlockbtn'           => '解除對資料庫的封鎖',
 'locknoconfirm'       => 'Lí bô kau "khak-tēng" ê keh-á.',
@@ -2073,9 +2147,9 @@ Téng 1 ūi siu-kái-chiá sī [[User:$3|$3]] ([[User talk:$3|talk]]{{int:pipe-s
 'databasenotlocked'   => '資料庫無封鎖牢咧。',
 
 # Move page
-'move-page'              => '徙$1',
-'move-page-legend'       => 'Sóa ia̍h',
-'movepagetext'           => "Ē-kha chit ê form> iōng lâi kái 1 ê ia̍h ê piau-tê (miâ-chheng); só·-ū siong-koan ê le̍k-sú ē tòe leh sóa khì sin piau-tê.
+'move-page'                    => '徙$1',
+'move-page-legend'             => 'Sóa ia̍h',
+'movepagetext'                 => "Ē-kha chit ê form> iōng lâi kái 1 ê ia̍h ê piau-tê (miâ-chheng); só·-ū siong-koan ê le̍k-sú ē tòe leh sóa khì sin piau-tê.
 Kū piau-tê ē chiâⁿ-chò 1 ia̍h choán khì sin piau-tê ê choán-ia̍h.
 Liân khì kū piau-tê ê liân-kiat (link) bē khì tāng--tio̍h; ē-kì-tit chhiau-chhōe siang-thâu (double) ê a̍h-sī kò·-chiòng ê choán-ia̍h.
 Lí ū chek-jīm khak-tēng liân-kiat kè-sio̍k liân tio̍h ūi.
@@ -2086,30 +2160,55 @@ Che piaú-sī nā ū têng-tâⁿ, ē-sái kā sin ia̍h soà tńg-khì goân-l�
 '''SÈ-JĪ!'''
 Tùi chē lâng tha̍k ê ia̍h lâi kóng, soá-ūi sī toā tiâu tāi-chì.
 Liâu--lo̍h-khì chìn-chêng, chhiáⁿ seng khak-tēng lí ū liáu-kái chiah-ê hiō-kó.",
-'movepagetalktext'       => "Siong-koan ê thó-lūn-ia̍h (chún ū) oân-nâ ē chū-tōng tòe leh sóa-ūi. Í-hā ê chêng-hêng '''bô chún-sǹg''': *Beh kā chit ia̍h tùi 1 ê miâ-khong-kan (namespace) soá khì lēng-gōa 1 ê miâ-khong-kan, *Sin piau-tê í-keng ū iōng--kòe ê thó-lūn-ia̍h, he̍k-chiá *Ē-kha ê sió-keh-á bô phah-kau. Í-siōng ê chêng-hêng nā-chún tī leh, lí chí-hó iōng jîn-kang ê hong-sek sóa ia̍h a̍h-sī kā ha̍p-pèng (nā ū su-iàu).",
-'movearticle'            => 'Sóa ia̍h:',
-'movenologin'            => 'Bô teng-ji̍p',
-'movenologintext'        => 'Lí it-tēng ài sī chù-chheh ê iōng-chiá jī-chhiáⁿ ū [[Special:UserLogin|teng-ji̍p]] chiah ē-tàng sóa ia̍h.',
-'movenotallowed'         => '你無授權通去徙頁',
-'movenotallowedfile'     => '你無授權通去徙檔案',
-'cant-move-user-page'    => '你無授權通去徙用者頁（無包括伊的下頁）',
-'cant-move-to-user-page' => '你無授權通去徙用者頁（下頁例外）',
-'newtitle'               => 'Khì sin piau-tê:',
-'move-watch'             => 'Kàm-sī chit ia̍h',
-'movepagebtn'            => 'Sóa ia̍h',
-'pagemovedsub'           => 'Sóa-ūi sêng-kong',
-'articleexists'          => 'Kāng miâ ê ia̍h í-keng tī leh, a̍h-sī lí kéng ê miâ bô-hāu. Chhiáⁿ kéng pa̍t ê miâ.',
-'talkexists'             => "'''Ia̍h ê loē-bûn ū soá cháu, m̄-koh siong-koan ê thó-lūn-ia̍h bô toè leh soá, in-ūi sin piau-tê pun-té tō ū hit ia̍h. Chhiáⁿ iōng jîn-kang ê hoat-tō· kā ha̍p-pèng.'''",
-'movedto'                => 'sóa khì tī',
-'movetalk'               => 'Sūn-sòa sóa thó-lūn-ia̍h',
-'movepage-page-moved'    => '$1 í-keng sóa khì tī $2.',
-'movepage-page-unmoved'  => '$1這頁袂當徙去$2',
-'movelogpage'            => '徙位記錄',
-'movelogpagetext'        => 'Ē-kha lia̍t-chhut hông soá-ūi ê ia̍h.',
-'movenosubpage'          => '這頁無下頁',
-'movereason'             => 'Lí-iû:',
-'revertmove'             => '回轉',
-'selfmove'               => 'Goân piau-tê kap sin piau-tê sio-siâng; bô hoat-tō· sóa.',
+'movepagetalktext'             => "Siong-koan ê thó-lūn-ia̍h (chún ū) oân-nâ ē chū-tōng tòe leh sóa-ūi. Í-hā ê chêng-hêng '''bô chún-sǹg''': *Beh kā chit ia̍h tùi 1 ê miâ-khong-kan (namespace) soá khì lēng-gōa 1 ê miâ-khong-kan, *Sin piau-tê í-keng ū iōng--kòe ê thó-lūn-ia̍h, he̍k-chiá *Ē-kha ê sió-keh-á bô phah-kau. Í-siōng ê chêng-hêng nā-chún tī leh, lí chí-hó iōng jîn-kang ê hong-sek sóa ia̍h a̍h-sī kā ha̍p-pèng (nā ū su-iàu).",
+'movearticle'                  => 'Sóa ia̍h:',
+'movenologin'                  => 'Bô teng-ji̍p',
+'movenologintext'              => 'Lí it-tēng ài sī chù-chheh ê iōng-chiá jī-chhiáⁿ ū [[Special:UserLogin|teng-ji̍p]] chiah ē-tàng sóa ia̍h.',
+'movenotallowed'               => '你無授權通去徙頁',
+'movenotallowedfile'           => '你無授權通去徙檔案',
+'cant-move-user-page'          => '你無授權通去徙用者頁（無包括伊的下頁）',
+'cant-move-to-user-page'       => '你無授權通去徙用者頁（下頁例外）',
+'newtitle'                     => 'Khì sin piau-tê:',
+'move-watch'                   => 'Kàm-sī chit ia̍h',
+'movepagebtn'                  => 'Sóa ia̍h',
+'pagemovedsub'                 => 'Sóa-ūi sêng-kong',
+'articleexists'                => 'Kāng miâ ê ia̍h í-keng tī leh, a̍h-sī lí kéng ê miâ bô-hāu. Chhiáⁿ kéng pa̍t ê miâ.',
+'talkexists'                   => "'''Ia̍h ê loē-bûn ū soá cháu, m̄-koh siong-koan ê thó-lūn-ia̍h bô toè leh soá, in-ūi sin piau-tê pun-té tō ū hit ia̍h. Chhiáⁿ iōng jîn-kang ê hoat-tō· kā ha̍p-pèng.'''",
+'movedto'                      => 'sóa khì tī',
+'movetalk'                     => 'Sūn-sòa sóa thó-lūn-ia̍h',
+'movepage-page-moved'          => '$1 í-keng sóa khì tī $2.',
+'movepage-page-unmoved'        => '$1這頁袂當徙去$2',
+'movelogpage'                  => '徙位記錄',
+'movelogpagetext'              => 'Ē-kha lia̍t-chhut hông soá-ūi ê ia̍h.',
+'movenosubpage'                => '這頁無下頁',
+'movereason'                   => 'Lí-iû:',
+'revertmove'                   => '回轉',
+'delete_and_move'              => '刣掉而且徙走',
+'delete_and_move_text'         => '==需要刣掉==
+目標頁面"[[:$1]]"已經有矣，
+你敢真正欲為著徙頁共彼頁刣掉？',
+'delete_and_move_confirm'      => '無毋著，共刣掉彼頁。',
+'delete_and_move_reason'       => '為著徙位，[[$1]]已經刣掉。',
+'selfmove'                     => 'Goân piau-tê kap sin piau-tê sio-siâng; bô hoat-tō· sóa.',
+'immobile-source-namespace'    => '佇"$1"名空間內底袂使徙頁。',
+'immobile-target-namespace'    => '袂當共頁徙去$1名空間。',
+'immobile-target-namespace-iw' => '跨維基的連結袂當用佇徙頁。',
+'immobile-source-page'         => '這頁袂當徙振動。',
+'immobile-target-page'         => '無法度徙去指定的標題',
+'imagenocrossnamespace'        => '檔案只會當佇"檔案"名空間內底徙位。',
+'nonfile-cannot-move-to-file'  => '袂當共毋是檔案的物件徙來"檔案"名空間。',
+'imagetypemismatch'            => '新檔案尾的類型無符合伊的類型。',
+'imageinvalidfilename'         => '目標的檔案名稱無適當',
+'fix-double-redirects'         => '改新所有指到原本標題的轉向。',
+'move-leave-redirect'          => '留一个轉向',
+'protectedpagemovewarning'     => "'''KÉNG-KÒ: Pún ia̍h só tiâu leh. Kan-taⁿ ū hêng-chèng te̍k-koân ê iōng-chiá (sysop) ē-sái soá tín-tāng.'''
+Ē-kha ū choè-kīn ê kì-lio̍k thang chham-khó:",
+'semiprotectedpagemovewarning' => "'''注意：'''這頁予人保護牢咧，只有有註冊的用者通徙振動，
+下跤有最近的記錄通參考：",
+'move-over-sharedrepo'         => '== 檔案已經存在 ==
+[[:$1]]已經佇共享資源，共檔案徙到這个標題會蓋掉共享的檔案。',
+'file-exists-sharedrepo'       => '仝名的檔案已經佇共享資源，
+請用另外一个檔案名稱。',
 
 # Export
 'export'        => 'Su-chhut ia̍h',

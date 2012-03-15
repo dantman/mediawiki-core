@@ -376,7 +376,7 @@ class EditPage {
 				wfProfileOut( __METHOD__ );
 				return;
 			}
-			if ( !$this->mTitle->getArticleId() )
+			if ( !$this->mTitle->getArticleID() )
 				wfRunHooks( 'EditFormPreloadText', array( &$this->textbox1, &$this->mTitle ) );
 			else
 				wfRunHooks( 'EditFormInitialText', array( $this ) );
@@ -805,7 +805,7 @@ class EditPage {
 					# Otherwise, $text will be left as-is.
 					if ( !is_null( $undorev ) && !is_null( $oldrev ) &&
 						$undorev->getPage() == $oldrev->getPage() &&
-						$undorev->getPage() == $this->mTitle->getArticleId() &&
+						$undorev->getPage() == $this->mTitle->getArticleID() &&
 						!$undorev->isDeleted( Revision::DELETED_TEXT ) &&
 						!$oldrev->isDeleted( Revision::DELETED_TEXT ) ) {
 
@@ -1478,7 +1478,7 @@ class EditPage {
 		$res = $dbw->select( 'revision',
 			'rev_user',
 			array(
-				'rev_page' => $this->mTitle->getArticleId(),
+				'rev_page' => $this->mTitle->getArticleID(),
 				'rev_timestamp > ' . $dbw->addQuotes( $dbw->timestamp( $edittime ) )
 			),
 			__METHOD__,
@@ -1872,7 +1872,7 @@ class EditPage {
 	 * @return Mixed|string or false
 	 */
 	public static function extractSectionTitle( $text ) {
-		preg_match( "/^(=+)(.+)\\1(\n|$)/i", $text, $matches );
+		preg_match( "/^(=+)(.+)\\1\\s*(\n|$)/i", $text, $matches );
 		if ( !empty( $matches[2] ) ) {
 			global $wgParser;
 			return $wgParser->stripSectionName( trim( $matches[2] ) );

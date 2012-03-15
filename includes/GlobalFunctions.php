@@ -876,10 +876,14 @@ function wfDebug( $text, $logonly = false ) {
 	global $wgDebugLogPrefix, $wgShowDebug;
 
 	static $cache = array(); // Cache of unoutputted messages
-	$text = wfDebugTimer() . $text;
 
 	if ( !$wgDebugRawPage && wfIsDebugRawPage() ) {
 		return;
+	}
+
+	$timer = wfDebugTimer();
+	if ( $timer !== '' ) {
+		$text = preg_replace( '/[^\n]/', $timer . '\0', $text, 1 );
 	}
 
 	if ( ( $wgDebugComments || $wgShowDebug ) && !$logonly ) {
@@ -2925,8 +2929,8 @@ function wfShellMaintenanceCmd( $script, array $parameters = array(), array $opt
 		$cmd[] = $options['wrapper'];
 	}
 	$cmd[] = $script;
-	// Escape each parameter for shell
-	return implode( " ", array_map( 'wfEscapeShellArg', array_merge( $cmd, $parameters ) ) );
+	// Build up the full command, shell escaping each parameter
+	return implode( ' ', array_merge( $cmd, array_map( 'wfEscapeShellArg', $parameters ) ) );
 }
 
 /**

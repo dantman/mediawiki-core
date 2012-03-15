@@ -1755,12 +1755,16 @@ Se o problema persiste, póñase en contacto cun [[Special:ListUsers/sysop|admin
 'backend-fail-closetemp'     => 'Non se puido pechar o ficheiro temporal.',
 'backend-fail-read'          => 'Non se puido ler o ficheiro "$1".',
 'backend-fail-create'        => 'Non se puido crear o ficheiro "$1".',
+'backend-fail-maxsize'       => 'Non se puido crear o ficheiro "$1" porque {{PLURAL:$2|é de máis de $2 byte|supera os $2 bytes}}.',
 'backend-fail-readonly'      => 'Nestes intres, o sistema de almacenamento "$1" está en modo de só lectura. A razón dada é: "$2"',
 'backend-fail-synced'        => 'O ficheiro "$1" está nun estado inconsistente dentro do sistema de almacenamento interno',
 'backend-fail-connect'       => 'Non se puido conectar co sistema de almacenamento "$1".',
 'backend-fail-internal'      => 'Houbo un erro descoñecido no sistema de almacenamento "$1".',
 'backend-fail-contenttype'   => 'Non se puido determinar o tipo de contido do ficheiro a almacenar en "$1".',
 'backend-fail-batchsize'     => 'O sistema de almacenamento recibiu un feixe de $1 {{PLURAL:$1|operación|operacións}} de ficheiro; o límite está en $2 {{PLURAL:$2|operación|operacións}}.',
+
+'filejournal-fail-dbconnect' => 'Non se pode conectar coa base de datos do rexistro do sistema de almacenamento "$1".',
+'filejournal-fail-dbquery'   => 'Non se pode actualizar a base de datos do rexistro do sistema de almacenamento "$1".',
 
 # Lock manager
 'lockmanager-notlocked'        => 'Non se puido desbloquear "$1". Non está bloqueado.',

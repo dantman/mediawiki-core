@@ -383,7 +383,7 @@ $messages = array(
 'tog-justify'                 => 'Text als Blocksatz',
 'tog-hideminor'               => 'Kleine Änderungen in den „Letzten Änderungen“ ausblenden',
 'tog-hidepatrolled'           => 'Kontrollierte Änderungen in den „Letzten Änderungen“ ausblenden',
-'tog-newpageshidepatrolled'   => 'Kontrollierte Seiten in den „Neuen Seiten“ ausblenden',
+'tog-newpageshidepatrolled'   => 'Kontrollierte Seiten bei den „Neuen Seiten“ ausblenden',
 'tog-extendwatchlist'         => 'Erweiterte Beobachtungsliste zur Anzeige aller Änderungen',
 'tog-usenewrc'                => 'Erweiterte Darstellung der „Letzten Änderungen“ (benötigt JavaScript)',
 'tog-numberheadings'          => 'Überschriften automatisch nummerieren',
@@ -1614,7 +1614,7 @@ Dies kann nicht mehr rückgängig gemacht werden.',
 'right-siteadmin'             => 'Datenbank sperren und entsperren',
 'right-override-export-depth' => 'Exportiere Seiten einschließlich verlinkter Seiten bis zu einer Tiefe von 5',
 'right-sendemail'             => 'E-Mails an andere Benutzer senden',
-'right-passwordreset'         => 'Passwort eines Benutzers zurücksetzen',
+'right-passwordreset'         => 'Passwort eines Benutzers zurücksetzen und die dazu verschickte E-Mail einsehen',
 
 # User rights log
 'rightslog'                  => 'Rechte-Logbuch',
@@ -1879,6 +1879,9 @@ Wenn das Problem weiter besteht, informiere einen [[Special:ListUsers/sysop|Syst
 'backend-fail-internal'      => 'Im Speicher-Backend „$1“ ist ein unbekannter Fehler aufgetreten.',
 'backend-fail-contenttype'   => 'Der Inhaltstyp, der im Pfad „$1“ zu speichernden Datei, konnte nicht bestimmt werden.',
 'backend-fail-batchsize'     => 'Eine Stapelverarbeitungsdatei, die {{PLURAL:$1|eine Operation|$1 Operationen}} enthält, wurde an das Speicher-Backend gesandt. Die Begrenzung liegt allerdings bei {{PLURAL:$2|einer Operation|$2 Operationen}}.',
+
+'filejournal-fail-dbconnect' => 'Es konnte keine Verbindung zur Journaldatenbank des Speicher-Backends „$1“ hergestellt werden.',
+'filejournal-fail-dbquery'   => 'Die Journaldatenbank des Speicher-Backends „$1“ konnte nicht aktualisiert werden.',
 
 # Lock manager
 'lockmanager-notlocked'        => '„$1“ konnte nicht entsperrt werden, da keine Sperrung besteht.',
@@ -2532,7 +2535,7 @@ Im [[Special:Log/delete|Lösch-Logbuch]] findest du eine Übersicht der gelösch
 'undelete-bad-store-key'       => 'Die Dateiversion mit dem Zeitstempel $1 konnte nicht wiederhergestellt werden: Die Datei war bereits vor dem Löschen nicht mehr vorhanden.',
 'undelete-cleanup-error'       => 'Fehler beim Löschen der unbenutzten Archiv-Version $1.',
 'undelete-missing-filearchive' => 'Die Datei mit der Archiv-ID $1 kann nicht wiederhergestellt werden, da sie nicht in der Datenbank vorhanden ist. Möglicherweise wurde sie bereits wiederhergestellt.',
-'undelete-error'               => 'Es beim Wiederherstellen der Seite ein Fehler aufgetreten.',
+'undelete-error'               => 'Es ist beim Wiederherstellen der Seite ein Fehler aufgetreten.',
 'undelete-error-short'         => 'Fehler beim Wiederherstellen der Datei $1',
 'undelete-error-long'          => 'Es wurden Fehler beim Wiederherstellen einer Datei festgestellt:
 
@@ -3888,7 +3891,7 @@ Eine [{{SERVER}}{{SCRIPTPATH}}/COPYING Kopie der ''GNU General Public License'']
 'dberr-cachederror' => 'Folgendes ist eine Kopie des Caches der angeforderten Seite und kann veraltet sein.',
 
 # HTML forms
-'htmlform-invalid-input'       => 'Mit einigen Eingaben gibt es Probleme',
+'htmlform-invalid-input'       => 'Mit einer oder mehreren Eingaben gibt es Probleme',
 'htmlform-select-badoption'    => 'Der angegebene Wert ist keine gültige Option.',
 'htmlform-int-invalid'         => 'Der angegebene Wert ist keine Ganzzahl.',
 'htmlform-float-invalid'       => 'Der angegebene Wert ist keine Zahl.',
@@ -3929,9 +3932,9 @@ Eine [{{SERVER}}{{SCRIPTPATH}}/COPYING Kopie der ''GNU General Public License'']
 'logentry-move-move_redir-noredirect' => '$1 verschob Seite $3 nach $4 und überschrieb dabei eine Weiterleitung ohne selbst eine Weiterleitung anzulegen',
 'logentry-patrol-patrol'              => '$1 markierte Version $4 von Seite $3 als kontrolliert',
 'logentry-patrol-patrol-auto'         => '$1 markierte automatisch Version $4 von Seite $3 als kontrolliert',
-'logentry-newusers-newusers'          => '$1 erstellte ein Benutzerkonto',
-'logentry-newusers-create'            => '$1 erstellte ein Benutzerkonto',
-'logentry-newusers-create2'           => '$1 erstellte ein Benutzerkonto $3',
+'logentry-newusers-newusers'          => 'Benutzerkonto $1 wurde erstellt',
+'logentry-newusers-create'            => 'Benutzerkonto $1 wurde erstellt',
+'logentry-newusers-create2'           => 'Benutzerkonto $3 wurde von $1 erstellt',
 'logentry-newusers-autocreate'        => 'Benutzerkonto $1 wurde automatisch erstellt',
 'newuserlog-byemail'                  => 'das Passwort wurde per E-Mail versandt',
 

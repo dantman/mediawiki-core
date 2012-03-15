@@ -408,6 +408,7 @@ $wgMessageStructure = array(
 		'customjsprotected',
 		'ns-specialprotected',
 		'titleprotected',
+		'filereadonlyerror'
 	),
 	'virus' => array(
 		'virus-badscanner',
@@ -1375,6 +1376,11 @@ $wgMessageStructure = array(
 		'backend-fail-internal',
 		'backend-fail-contenttype',
 		'backend-fail-batchsize'
+	),
+
+	'filejournal-errors' => array(
+		'filejournal-fail-dbconnect',
+		'filejournal-fail-dbquery'
 	),
 
 	'lockmanager-errors' => array(
