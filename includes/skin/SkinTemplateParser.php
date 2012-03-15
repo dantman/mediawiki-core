@@ -5,7 +5,7 @@
  * @file
  */
 
-class STP_Node {
+abstract class STP_Node {
 
 	protected $children;
 
@@ -242,6 +242,7 @@ class SkinTemplateParser {
 				if ( $m = $this->matchAndContinue( '#<!--|</|<#' ) ) {
 					switch( $m[0]->text ) {
 					case '<!--':
+						$this->pushTree( new STP_Comment );
 						// Continue in comment state parsing the comment ending
 						$this->state = self::STATE_COMMENT;
 						break;

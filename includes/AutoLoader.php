@@ -777,6 +777,7 @@ $wgAutoloadLocalClasses = array(
 	'SqlSearchResultSet' => 'includes/search/SearchEngine.php',
 
 	# includes/skin
+	'MWSkin' => 'includes/skin/MWSkin.php',
 	'SkinTemplateParser' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Comment' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Node' => 'includes/skin/SkinTemplateParser.php',

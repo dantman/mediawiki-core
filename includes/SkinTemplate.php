@@ -128,10 +128,8 @@ class SkinTemplate extends Skin {
 
 	/**
 	 * initialize various variables and generate the template
-	 *
-	 * @param $out OutputPage
 	 */
-	function outputPage( OutputPage $out=null ) {
+	protected function execute() {
 		global $wgContLang;
 		global $wgScript, $wgStylePath;
 		global $wgMimeType, $wgJsMimeType;
@@ -143,25 +141,13 @@ class SkinTemplate extends Skin {
 		global $wgArticlePath, $wgScriptPath, $wgServer;
 
 		wfProfileIn( __METHOD__ );
-		Profiler::instance()->setTemplated( true );
-
-		$oldContext = null;
-		if ( $out !== null ) {
-			// @todo Add wfDeprecated in 1.20
-			$oldContext = $this->getContext();
-			$this->setContext( $out->getContext() );
-		}
 
 		$out = $this->getOutput();
 		$request = $this->getRequest();
 		$user = $this->getUser();
 		$title = $this->getTitle();
 
-		wfProfileIn( __METHOD__ . '-init' );
-		$this->initPage( $out );
-
 		$tpl = $this->setupTemplate( $this->template, 'skins' );
-		wfProfileOut( __METHOD__ . '-init' );
 
 		wfProfileIn( __METHOD__ . '-stuff' );
 		$this->thispage = $title->getPrefixedDBkey();
@@ -493,9 +479,6 @@ class SkinTemplate extends Skin {
 		// result may be an error
 		$this->printOrError( $res );
 
-		if ( $oldContext ) {
-			$this->setContext( $oldContext );
-		}
 		wfProfileOut( __METHOD__ );
 	}
 
