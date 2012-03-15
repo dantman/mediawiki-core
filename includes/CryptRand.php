@@ -92,6 +92,7 @@ final class MWCryptRand {
 		foreach ( $preference as $algorithm ) {
 			if ( in_array( $algorithm, $algos ) ) {
 				$algo = $algorithm; # assign to static
+				wfDebug( __METHOD__ . ": Using the $algo hash algorithm." );
 				return $algo;
 			}
 		}
@@ -149,9 +150,13 @@ final class MWCryptRand {
 	 * was cryptographically strong.
 	 *
 	 * @param $bytes int the number of bytes of random data to generate
+	 * @param $forceStrong bool Pass true if you want generate to prefer cryptographically
+	 *                          strong sources of entropy even if reading from them may steal
+	 *                          more entropy from the system than optimal.
 	 * @return String Raw binary random data
 	 */
-	public static function generate( $bytes ) {
+	public static function generate( $bytes, $forceStrong = false ) {
+		wfProfileIn( __METHOD__ );
 		$bytes = floor( $bytes );
 		static $buffer = '';
 		if ( is_null( self::$strong ) ) {
@@ -160,6 +165,61 @@ final class MWCryptRand {
 		}
 
 		if ( strlen( $buffer ) < $bytes ) {
+			// If available make use of mcrypt_create_iv URANDOM source to generate randomness
+			// On unix-like systems this reads from /dev/urandom but does it without any buffering
+			// and bypasses openbasdir restrictions so it's preferable to reading directly
+			// On Windows starting in PHP 5.3.0 Windows' native CryptGenRandom is used to generate
+			// entropy so this is also preferable to just trying to read urandom because it may work
+			// on Windows systems as well.
+			if ( function_exists( 'mcrypt_create_iv' ) ) {
+				wfProfileIn( __METHOD__ . '-mcrypt' );
+				$rem = $bytes - strlen( $buffer );
+				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using mcrypt_create_iv." );
+				$iv = mcrypt_create_iv( $rem, MCRYPT_DEV_URANDOM );
+				if ( $iv === false ) {
+					wfDebug( __METHOD__ . ": mcrypt_create_iv returned false." );
+				} else {
+					$bytes .= $iv;
+					wfDebug( __METHOD__ . ": mcrypt_create_iv generated " . strlen( $iv ) . " bytes of randomness." );
+				}
+				wfProfileOut( __METHOD__ . '-mcrypt' );
+			}
+		}
+
+		if ( strlen( $buffer ) < $bytes ) {
+			// If available make use of openssl's random_pesudo_bytes method to attempt to generate randomness.
+			// However don't do this on Windows with PHP < 5.3.4 due to a bug:
+			// http://stackoverflow.com/questions/1940168/openssl-random-pseudo-bytes-is-slow-php
+			if ( function_exists( 'openssl_random_pseudo_bytes' )
+				&& ( !wfIsWindows() || version_compare( PHP_VERSION, '5.3.4', '>=' ) )
+			) {
+				wfProfileIn( __METHOD__ . '-openssl' );
+				$rem = $bytes - strlen( $buffer );
+				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using openssl_random_pseudo_bytes." );
+				$openssl_bytes = openssl_random_pseudo_bytes( $rem, $openssl_strong );
+				if ( $openssl_bytes === false ) {
+					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes returned false." );
+				} else {
+					$buffer .= $openssl_bytes;
+					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes generated " . strlen( $openssl_bytes ) . " bytes of " . ( $openssl_strong ? "strong" : "weak" ) . " randomness." );
+				}
+				if ( strlen( $buffer ) >= $bytes ) {
+					// openssl tells us if the random source was strong, if some of our data was generated
+					// using it use it's say on whether the randomness is strong
+					self::$strong = !!$openssl_strong;
+				}
+				wfProfileOut( __METHOD__ . '-openssl' );
+			}
+		}
+
+		// Only read from urandom if we can control the buffer size or were passed forceStrong
+		if ( strlen( $buffer ) < $bytes && ( function_exists( 'stream_set_read_buffer' ) || $forceStrong ) ) {
+			wfProfileIn( __METHOD__ . '-fopen-urandom' );
+			$rem = $bytes - strlen( $buffer );
+			wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using /dev/urandom." );
+			if ( !function_exists( 'stream_set_read_buffer' ) && $forceStrong ) {
+				wfDebug( __METHOD__ . ": Was forced to read from /dev/urandom without control over the buffer size." );
+			}
 			// /dev/urandom is generally considered the best possible commonly
 			// available random source, and is available on most *nix systems.
 			wfSuppressWarnings();
@@ -177,49 +237,40 @@ final class MWCryptRand {
 				$chunk_size = 1024 * 8;
 				if ( function_exists( 'stream_set_read_buffer' ) ) {
 					// If possible set the chunk_size to the amount of data we need
-					stream_set_read_buffer( $urandom, $bytes - strlen( $buffer ) );
-					// Let our max() take care of the read size
-					$chunk_size = 0;
+					stream_set_read_buffer( $urandom, $rem );
+					$chunk_size = $rem;
 				}
-				$buffer .= fread( $urandom, max( $chunk_size, $bytes - strlen( $buffer ) ) );
+				wfDebug( __METHOD__ . ": Reading from /dev/urandom with a buffer size of $chunk_size." );
+				$random_bytes = fread( $urandom, max( $chunk_size, $rem ) );
+				$buffer .= $random_bytes;
 				fclose( $urandom );
+				wfDebug( __METHOD__ . ": mcrypt_create_iv generated " . strlen( $random_bytes ) . " bytes of randomness." );
 				if ( strlen( $buffer ) >= $bytes ) {
 					// urandom is always strong, set to true if all our data was generated using it
 					self::$strong = true;
 				}
+			} else {
+				wfDebug( __METHOD__ . ": /dev/urandom could not be opened." );
 			}
+			wfProfileOut( __METHOD__ . '-fopen-urandom' );
 		}
 
-		if ( strlen( $buffer ) < $bytes ) {
-			// If available and we failed to read enough data out of urandom make use
-			// of openssl's random_pesudo_bytes method to attempt to generate randomness.
-			// However don't do this on Windows with PHP < 5.3.4 due to a bug:
-			// http://stackoverflow.com/questions/1940168/openssl-random-pseudo-bytes-is-slow-php
-			if ( ( $bytes - strlen( $buffer ) > 0 )
-				&& function_exists( 'openssl_random_pseudo_bytes' )
-				&& ( !wfIsWindows() || version_compare( PHP_VERSION, '5.3.4', '>=' ) )
-			) {
-				$buffer .= openssl_random_pseudo_bytes( $bytes - strlen( $buffer ), $openssl_strong );
-				if ( strlen( $buffer ) >= $bytes ) {
-					// openssl tells us if the random source was strong, if some of our data was generated
-					// using it use it's say on whether the randomness is strong
-					self::$strong = !!$openssl_strong;
-				}
-			}
-		}
-
-
-		// If we cannot use or generate enough data from /dev/urandom or openssl
+		// If we cannot use or generate enough data from a secure source
 		// use this loop to generate a good set of pesudo random data.
 		// This works by initializing a random state using a pile of unstable data
 		// and continually shoving it through a hash along with a variable salt.
 		// We hash the random state with more salt to avoid the state from leaking
 		// out and being used to predict the /randomness/ that follows.
+		if ( strlen( $buffer ) < $bytes ) {
+			wfDebug( __METHOD__ . ": Falling back to using a pesudo random state to generate randomness." ); 
+		}
 		while ( strlen( $buffer ) < $bytes ) {
+			wfProfileIn( __METHOD__ . '-fallback' );
 			$buffer .= self::hmac( self::randomState(), mt_rand() );
 			// This code is never really cryptographically strong, if we use it
 			// at all, then set strong to false.
 			self::$strong = false;
+			wfProfileOut( __METHOD__ . '-fallback' );
 		}
 
 		// Once the buffer has been filled up with enough random data to fulfill
@@ -228,6 +279,9 @@ final class MWCryptRand {
 		$generated = substr( $buffer, 0, $bytes );
 		$buffer = substr( $buffer, $bytes );
 
+		wfDebug( __METHOD__ . ": " . strlen( $buffer ) . " bytes of randomness leftover in the buffer." );
+
+		wfProfileOut( __METHOD__ );
 		return $generated;
 	}
 
@@ -238,15 +292,18 @@ final class MWCryptRand {
 	 * was cryptographically strong.
 	 *
 	 * @param $chars int the number of hex chars of random data to generate
+	 * @param $forceStrong bool Pass true if you want generate to prefer cryptographically
+	 *                          strong sources of entropy even if reading from them may steal
+	 *                          more entropy from the system than optimal.
 	 * @return String Hexadecimal random data
 	 */
-	public static function generateHex( $chars ) {
+	public static function generateHex( $chars, $forceStrong = false ) {
 		// hex strings are 2x the length of raw binary so we divide the length in half
 		// odd numbers will result in a .5 that leads the generate() being 1 character
 		// short, so we use ceil() to ensure that we always have enough bytes
 		$bytes = ceil( $chars / 2 );
 		// Generate the data and then convert it to a hex string
-		$hex = bin2hex( self::generate( $bytes ) );
+		$hex = bin2hex( self::generate( $bytes, $forceStrong ) );
 		// A bit of paranoia here, the caller asked for a specific length of string
 		// here, and it's possible (eg when given an odd number) that we may actually
 		// have at least 1 char more than they asked for. Just in case they made this
