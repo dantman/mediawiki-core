@@ -186,10 +186,21 @@ final class MWCryptRand {
 	 * @param $forceStrong bool Pass true if you want generate to prefer cryptographically
 	 *                          strong sources of entropy even if reading from them may steal
 	 *                          more entropy from the system than optimal.
+	 * @param $method The calling method, for debug info. May be the second argument if you are not using forceStrong
 	 * @return String Raw binary random data
 	 */
-	public static function generate( $bytes, $forceStrong = false ) {
+	public static function generate( $bytes, $forceStrong = false, $method = null ) {
 		wfProfileIn( __METHOD__ );
+		if ( is_string( $forceStrong ) && is_null( $method ) ) {
+			// If $forceStrong is a string then it's really $method
+			$method = $forceStrong;
+			$forceStrong = false;
+		}
+
+		if ( !is_null( $method ) ) {
+			wfDebug( __METHOD__ . ": Generating cryptographic random bytes for $method\n" );
+		}
+
 		$bytes = floor( $bytes );
 		static $buffer = '';
 		if ( is_null( self::$strong ) ) {
@@ -328,15 +339,16 @@ final class MWCryptRand {
 	 * @param $forceStrong bool Pass true if you want generate to prefer cryptographically
 	 *                          strong sources of entropy even if reading from them may steal
 	 *                          more entropy from the system than optimal.
+	 * @param $method The calling method, for debug info. May be the second argument if you are not using forceStrong
 	 * @return String Hexadecimal random data
 	 */
-	public static function generateHex( $chars, $forceStrong = false ) {
+	public static function generateHex( $chars, $forceStrong = false, $method = null ) {
 		// hex strings are 2x the length of raw binary so we divide the length in half
 		// odd numbers will result in a .5 that leads the generate() being 1 character
 		// short, so we use ceil() to ensure that we always have enough bytes
 		$bytes = ceil( $chars / 2 );
 		// Generate the data and then convert it to a hex string
-		$hex = bin2hex( self::generate( $bytes, $forceStrong ) );
+		$hex = bin2hex( self::generate( $bytes, $forceStrong, $method ) );
 		// A bit of paranoia here, the caller asked for a specific length of string
 		// here, and it's possible (eg when given an odd number) that we may actually
 		// have at least 1 char more than they asked for. Just in case they made this

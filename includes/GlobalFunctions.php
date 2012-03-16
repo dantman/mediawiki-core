@@ -3362,7 +3362,8 @@ function wfFixSessionID() {
 	
 	// If built-in entropy is not enabled or not sufficient override php's built in session id generation code
 	if ( !$entropyEnabled ) {
-		session_id( MWCryptRand::generateHex( 32 ) );
+		wfDebug( __METHOD__ . ": PHP's built in entropy is disabled or not sufficient, overriding session id generation using our cryptrand source.\n" );
+		session_id( MWCryptRand::generateHex( 32, __METHOD__ ) );
 	}
 }
 
