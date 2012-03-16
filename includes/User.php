@@ -836,23 +836,20 @@ class User {
 	}
 
 	/**
-	 * Return a random password. Sourced from mt_rand, so it's not particularly secure.
-	 * @todo hash random numbers to improve security, like generateToken()
+	 * Return a random password.
 	 *
 	 * @return String new random password
 	 */
 	public static function randomPassword() {
 		global $wgMinimalPasswordLength;
-		$pwchars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-		$l = strlen( $pwchars ) - 1;
-
-		$pwlength = max( 7, $wgMinimalPasswordLength );
-		$digit = mt_rand( 0, $pwlength - 1 );
-		$np = '';
-		for ( $i = 0; $i < $pwlength; $i++ ) {
-			$np .= $i == $digit ? chr( mt_rand( 48, 57 ) ) : $pwchars[ mt_rand( 0, $l ) ];
-		}
-		return $np;
+		// Decide the final password length based on our min password length, stopping at a minimum of 10 chars
+		$length = max( 10, $wgMinimalPasswordLength );
+		// Multiply by 1.25 to get the number of hex characters we need
+		$length = $length * 1.25;
+		// Generate random hex chars
+		$hex = MWCryptRand::generateHex( $length );
+		// Convert from base 16 to base 32 to get a proper password like string
+		return wfBaseConvert( $hex, 16, 32 );
 	}
 
 	/**
