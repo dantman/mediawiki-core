@@ -882,7 +882,7 @@ class User {
 			$this->mTouched = '0'; # Allow any pages to be cached
 		}
 
-		$this->setToken(); # Random
+		$this->mToken = null; // Don't run cryptographic functions till we need a token
 		$this->mEmailAuthenticated = null;
 		$this->mEmailToken = '';
 		$this->mEmailTokenExpires = null;
@@ -989,11 +989,11 @@ class User {
 			return false;
 		}
 
-		if ( $request->getSessionData( 'wsToken' ) !== null ) {
-			$passwordCorrect = $proposedUser->getToken() === $request->getSessionData( 'wsToken' );
+		if ( $request->getSessionData( 'wsToken' ) ) {
+			$passwordCorrect = $proposedUser->getToken( false ) === $request->getSessionData( 'wsToken' );
 			$from = 'session';
-		} elseif ( $request->getCookie( 'Token' ) !== null ) {
-			$passwordCorrect = $proposedUser->getToken() === $request->getCookie( 'Token' );
+		} elseif ( $request->getCookie( 'Token' ) ) {
+			$passwordCorrect = $proposedUser->getToken( false ) === $request->getCookie( 'Token' );
 			$from = 'cookie';
 		} else {
 			# No session or persistent login cookie
@@ -1098,6 +1098,9 @@ class User {
 			}
 			$this->mTouched = wfTimestamp( TS_MW, $row->user_touched );
 			$this->mToken = $row->user_token;
+			if ( $this->mToken == '' ) {
+				$this->mToken = null;
+			}
 			$this->mEmailAuthenticated = wfTimestampOrNull( TS_MW, $row->user_email_authenticated );
 			$this->mEmailToken = $row->user_email_token;
 			$this->mEmailTokenExpires = wfTimestampOrNull( TS_MW, $row->user_email_token_expires );
@@ -2020,10 +2023,14 @@ class User {
 
 	/**
 	 * Get the user's current token.
+	 * @param $forceCreation Force the generation of a new token if the user doesn't have one (default=true for backwards compatibility)
 	 * @return String Token
 	 */
-	public function getToken() {
+	public function getToken( $forceCreation = true ) {
 		$this->load();
+		if ( !$this->mToken && $forceCreation ) {
+			$this->setToken();
+		}
 		return $this->mToken;
 	}
 
@@ -2037,14 +2044,7 @@ class User {
 		global $wgSecretKey, $wgProxyKey;
 		$this->load();
 		if ( !$token ) {
-			if ( $wgSecretKey ) {
-				$key = $wgSecretKey;
-			} elseif ( $wgProxyKey ) {
-				$key = $wgProxyKey;
-			} else {
-				$key = microtime();
-			}
-			$this->mToken = md5( $key . mt_rand( 0, 0x7fffffff ) . wfWikiID() . $this->mId );
+			$this->mToken = MWCryptRand::generateHex( USER_TOKEN_LENGTH );
 		} else {
 			$this->mToken = $token;
 		}
@@ -2811,7 +2811,7 @@ class User {
 				'user_email' => $this->mEmail,
 				'user_email_authenticated' => $dbw->timestampOrNull( $this->mEmailAuthenticated ),
 				'user_touched' => $dbw->timestamp( $this->mTouched ),
-				'user_token' => $this->mToken,
+				'user_token' => strval( $this->mToken ),
 				'user_email_token' => $this->mEmailToken,
 				'user_email_token_expires' => $dbw->timestampOrNull( $this->mEmailTokenExpires ),
 			), array( /* WHERE */
@@ -2877,7 +2877,7 @@ class User {
 			'user_email' => $user->mEmail,
 			'user_email_authenticated' => $dbw->timestampOrNull( $user->mEmailAuthenticated ),
 			'user_real_name' => $user->mRealName,
-			'user_token' => $user->mToken,
+			'user_token' => strval( $user->mToken ),
 			'user_registration' => $dbw->timestamp( $user->mRegistration ),
 			'user_editcount' => 0,
 			'user_touched' => $dbw->timestamp( self::newTouchedTimestamp() ),
@@ -2914,7 +2914,7 @@ class User {
 				'user_email' => $this->mEmail,
 				'user_email_authenticated' => $dbw->timestampOrNull( $this->mEmailAuthenticated ),
 				'user_real_name' => $this->mRealName,
-				'user_token' => $this->mToken,
+				'user_token' => strval( $this->mToken ),
 				'user_registration' => $dbw->timestamp( $this->mRegistration ),
 				'user_editcount' => 0,
 				'user_touched' => $dbw->timestamp( $this->mTouched ),
