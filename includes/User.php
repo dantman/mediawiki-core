@@ -3304,7 +3304,9 @@ class User {
 		$now = time();
 		$expires = $now + $wgUserEmailConfirmationTokenExpiry;
 		$this->load();
-		$this->mEmailToken = MWCryptRand::generateHex( 32 );
+		$token = MWCryptRand::generateHex( 32 );
+		$hash = md5( $token );
+		$this->mEmailToken = $hash;
 		$this->mEmailTokenExpires = wfTimestamp( TS_MW, $expires );
 		return $token;
 	}
