@@ -92,7 +92,7 @@ final class MWCryptRand {
 		foreach ( $preference as $algorithm ) {
 			if ( in_array( $algorithm, $algos ) ) {
 				$algo = $algorithm; # assign to static
-				wfDebug( __METHOD__ . ": Using the $algo hash algorithm." );
+				wfDebug( __METHOD__ . ": Using the $algo hash algorithm.\n" );
 				return $algo;
 			}
 		}
@@ -174,13 +174,13 @@ final class MWCryptRand {
 			if ( function_exists( 'mcrypt_create_iv' ) ) {
 				wfProfileIn( __METHOD__ . '-mcrypt' );
 				$rem = $bytes - strlen( $buffer );
-				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using mcrypt_create_iv." );
+				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using mcrypt_create_iv.\n" );
 				$iv = mcrypt_create_iv( $rem, MCRYPT_DEV_URANDOM );
 				if ( $iv === false ) {
-					wfDebug( __METHOD__ . ": mcrypt_create_iv returned false." );
+					wfDebug( __METHOD__ . ": mcrypt_create_iv returned false.\n" );
 				} else {
 					$bytes .= $iv;
-					wfDebug( __METHOD__ . ": mcrypt_create_iv generated " . strlen( $iv ) . " bytes of randomness." );
+					wfDebug( __METHOD__ . ": mcrypt_create_iv generated " . strlen( $iv ) . " bytes of randomness.\n" );
 				}
 				wfProfileOut( __METHOD__ . '-mcrypt' );
 			}
@@ -195,13 +195,13 @@ final class MWCryptRand {
 			) {
 				wfProfileIn( __METHOD__ . '-openssl' );
 				$rem = $bytes - strlen( $buffer );
-				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using openssl_random_pseudo_bytes." );
+				wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using openssl_random_pseudo_bytes.\n" );
 				$openssl_bytes = openssl_random_pseudo_bytes( $rem, $openssl_strong );
 				if ( $openssl_bytes === false ) {
-					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes returned false." );
+					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes returned false.\n" );
 				} else {
 					$buffer .= $openssl_bytes;
-					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes generated " . strlen( $openssl_bytes ) . " bytes of " . ( $openssl_strong ? "strong" : "weak" ) . " randomness." );
+					wfDebug( __METHOD__ . ": openssl_random_pseudo_bytes generated " . strlen( $openssl_bytes ) . " bytes of " . ( $openssl_strong ? "strong" : "weak" ) . " randomness.\n" );
 				}
 				if ( strlen( $buffer ) >= $bytes ) {
 					// openssl tells us if the random source was strong, if some of our data was generated
@@ -216,9 +216,9 @@ final class MWCryptRand {
 		if ( strlen( $buffer ) < $bytes && ( function_exists( 'stream_set_read_buffer' ) || $forceStrong ) ) {
 			wfProfileIn( __METHOD__ . '-fopen-urandom' );
 			$rem = $bytes - strlen( $buffer );
-			wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using /dev/urandom." );
+			wfDebug( __METHOD__ . ": Trying to generate $rem bytes of randomness using /dev/urandom.\n" );
 			if ( !function_exists( 'stream_set_read_buffer' ) && $forceStrong ) {
-				wfDebug( __METHOD__ . ": Was forced to read from /dev/urandom without control over the buffer size." );
+				wfDebug( __METHOD__ . ": Was forced to read from /dev/urandom without control over the buffer size.\n" );
 			}
 			// /dev/urandom is generally considered the best possible commonly
 			// available random source, and is available on most *nix systems.
@@ -240,17 +240,17 @@ final class MWCryptRand {
 					stream_set_read_buffer( $urandom, $rem );
 					$chunk_size = $rem;
 				}
-				wfDebug( __METHOD__ . ": Reading from /dev/urandom with a buffer size of $chunk_size." );
+				wfDebug( __METHOD__ . ": Reading from /dev/urandom with a buffer size of $chunk_size.\n" );
 				$random_bytes = fread( $urandom, max( $chunk_size, $rem ) );
 				$buffer .= $random_bytes;
 				fclose( $urandom );
-				wfDebug( __METHOD__ . ": mcrypt_create_iv generated " . strlen( $random_bytes ) . " bytes of randomness." );
+				wfDebug( __METHOD__ . ": /dev/urandom generated " . strlen( $random_bytes ) . " bytes of randomness.\n" );
 				if ( strlen( $buffer ) >= $bytes ) {
 					// urandom is always strong, set to true if all our data was generated using it
 					self::$strong = true;
 				}
 			} else {
-				wfDebug( __METHOD__ . ": /dev/urandom could not be opened." );
+				wfDebug( __METHOD__ . ": /dev/urandom could not be opened.\n" );
 			}
 			wfProfileOut( __METHOD__ . '-fopen-urandom' );
 		}
@@ -262,7 +262,7 @@ final class MWCryptRand {
 		// We hash the random state with more salt to avoid the state from leaking
 		// out and being used to predict the /randomness/ that follows.
 		if ( strlen( $buffer ) < $bytes ) {
-			wfDebug( __METHOD__ . ": Falling back to using a pesudo random state to generate randomness." ); 
+			wfDebug( __METHOD__ . ": Falling back to using a pesudo random state to generate randomness.\n" ); 
 		}
 		while ( strlen( $buffer ) < $bytes ) {
 			wfProfileIn( __METHOD__ . '-fallback' );
@@ -279,7 +279,7 @@ final class MWCryptRand {
 		$generated = substr( $buffer, 0, $bytes );
 		$buffer = substr( $buffer, $bytes );
 
-		wfDebug( __METHOD__ . ": " . strlen( $buffer ) . " bytes of randomness leftover in the buffer." );
+		wfDebug( __METHOD__ . ": " . strlen( $buffer ) . " bytes of randomness leftover in the buffer.\n" );
 
 		wfProfileOut( __METHOD__ );
 		return $generated;
