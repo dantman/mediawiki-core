@@ -256,13 +256,13 @@ final class MWCryptRand {
 		}
 
 		// If we cannot use or generate enough data from a secure source
-		// use this loop to generate a good set of pesudo random data.
+		// use this loop to generate a good set of pseudo random data.
 		// This works by initializing a random state using a pile of unstable data
 		// and continually shoving it through a hash along with a variable salt.
 		// We hash the random state with more salt to avoid the state from leaking
 		// out and being used to predict the /randomness/ that follows.
 		if ( strlen( $buffer ) < $bytes ) {
-			wfDebug( __METHOD__ . ": Falling back to using a pesudo random state to generate randomness.\n" ); 
+			wfDebug( __METHOD__ . ": Falling back to using a pseudo random state to generate randomness.\n" ); 
 		}
 		while ( strlen( $buffer ) < $bytes ) {
 			wfProfileIn( __METHOD__ . '-fallback' );
