@@ -3179,7 +3179,7 @@ class User {
 		} else {
 			$token = $request->getSessionData( 'wsEditToken' );
 			if ( $token === null ) {
-				$token = self::generateToken();
+				$token = MWCryptRand::generateHex( 32 );
 				$request->setSessionData( 'wsEditToken', $token );
 			}
 			if( is_array( $salt ) ) {
@@ -3194,10 +3194,10 @@ class User {
 	 *
 	 * @param $salt String Optional salt value
 	 * @return String The new random token
+	 * @deprecated since 1.20; Use MWCryptRand for secure purposes or wfRandomString for pesudo-randomness
 	 */
 	public static function generateToken( $salt = '' ) {
-		$token = dechex( mt_rand() ) . dechex( mt_rand() );
-		return md5( $token . $salt );
+		return MWCryptRand::generateHex( 32 );
 	}
 
 	/**
@@ -3303,12 +3303,9 @@ class User {
 		global $wgUserEmailConfirmationTokenExpiry;
 		$now = time();
 		$expires = $now + $wgUserEmailConfirmationTokenExpiry;
-		$expiration = wfTimestamp( TS_MW, $expires );
-		$token = self::generateToken( $this->mId . $this->mEmail . $expires );
-		$hash = md5( $token );
 		$this->load();
-		$this->mEmailToken = $hash;
-		$this->mEmailTokenExpires = $expiration;
+		$this->mEmailToken = MWCryptRand::generateHex( 32 );
+		$this->mEmailTokenExpires = wfTimestamp( TS_MW, $expires );
 		return $token;
 	}
 
@@ -3857,7 +3854,7 @@ class User {
 
 		if( $wgPasswordSalt ) {
 			if ( $salt === false ) {
-				$salt = substr( wfGenerateToken(), 0, 8 );
+				$salt = MWCryptRand::generateHex( 8 );
 			}
 			return ':B:' . $salt . ':' . md5( $salt . '-' . md5( $password ) );
 		} else {

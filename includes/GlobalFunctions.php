@@ -295,6 +295,24 @@ function wfRandom() {
 }
 
 /**
+ * Get a random string containing a number of pesudo-random hex
+ * characters.
+ * @note This is not secure, if you are trying to generate some sort
+ *       of token please use MWCryptRand instead.
+ *
+ * @param $length int The length of the string to generate
+ * @return String
+ * @since 1.20
+ */
+function wfRandomString( $length = 32 ) {
+	$str = '';
+	while ( strlen( $str ) < $length ) {
+		$str .= dechex( mt_rand() );
+	}
+	return substr( $str, 0, $length );
+}
+
+/**
  * We want some things to be included as literal characters in our title URLs
  * for prettiness, which urlencode encodes by default.  According to RFC 1738,
  * all of the following should be safe:
@@ -3681,8 +3699,11 @@ function wfCountDown( $n ) {
  *              characters before hashing.
  * @return string
  * @codeCoverageIgnore
+ * @deprecated since 1.20; Please use MWCryptRand for security purposes and wfRandomString for pesudo-random strings
+ * @warning This method is NOT secure. Additionally it has many callers that use it for pesudo-random purposes.
  */
 function wfGenerateToken( $salt = '' ) {
+	wfDeprecated( __METHOD__, '1.20' );
 	$salt = serialize( $salt );
 	return md5( mt_rand( 0, 0x7fffffff ) . $salt );
 }
