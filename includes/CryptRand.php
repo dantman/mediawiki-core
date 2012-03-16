@@ -23,6 +23,39 @@ final class MWCryptRand {
 		// by including the system's hostname into the state
 		$state .= wfHostname();
 
+		// Try to gather a little entropy from the different php rand sources
+		$state .= rand() . uniqid( mt_rand(), true );
+
+		// Include some information about the filesystem's current state in the random state
+		$files = array();
+		// We know this file is here so grab some info about ourself
+		$files[] = __FILE__;
+		// The config file is likely the most often edited file we know should be around
+		// so if the constant with it's location is defined include it's stat info into the state
+		if ( defined( 'MW_CONFIG_FILE' ) ) {
+			$files[] = MW_CONFIG_FILE;
+		}
+		foreach ( $files as $file ) {
+			wfSuppressWarnings();
+			$stat = stat( $file );
+			wfRestoreWarnings();
+			if ( $stat ) {
+				// stat() duplicates data into numeric and string keys so kill off all the numeric ones
+				foreach ( $stat as $k => $v ) {
+					if ( is_numeric( $k ) ) {
+						unset( $k );
+					}
+				}
+				// The absolute filename itself will differ from install to install so don't leave it out
+				$state .= realpath( $file );
+				var_dump( $state .= implode( $stat ) );
+			} else {
+				// The fact that the file isn't there is worth at least a
+				// minuscule amount of entropy.
+				$state .= '0';
+			}
+		}
+
 		// Try and make this a little more unstable by including the varying process
 		// id of the php process we are running inside of if we are able to access it
 		if ( function_exists( 'getmypid' ) ) {
