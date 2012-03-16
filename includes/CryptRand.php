@@ -86,7 +86,7 @@ final class MWCryptRand {
 	 * Return a rolling random state initially build using data from unstable sources
 	 * @return A new weak random state
 	 */
-	public static function randomState() {
+	private static function randomState() {
 		static $state = null;
 		if ( is_null( $state ) ) {
 			// Initialize the state with whatever unstable data we can find
