@@ -778,11 +778,15 @@ $wgAutoloadLocalClasses = array(
 
 	# includes/skin
 	'MWSkin' => 'includes/skin/MWSkin.php',
+	'MWSkinTemplate' => 'includes/skin/MWSkinTemplate.php',
 	'SkinTemplateParser' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Comment' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Function' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Item' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Node' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Root' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Tag' => 'includes/skin/SkinTemplateParser.php',
+	'STP_Substitution' => 'includes/skin/SkinTemplateParser.php',
 
 	# includes/specials
 	'ActiveUsersPager' => 'includes/specials/SpecialActiveusers.php',

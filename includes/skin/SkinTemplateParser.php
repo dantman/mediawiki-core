@@ -5,7 +5,68 @@
  * @file
  */
 
-abstract class STP_Node implements IteratorAggregate {
+abstract class STP_Item {
+
+	protected function toString_startExt( $ind ) {
+		return "";
+	}
+
+	protected function toString_block( $indent ) {
+		return "";
+	}
+
+	public function toString( $indent = 0 ) {
+		$ind = str_repeat( '	', $indent );
+		$str = $ind . get_class( $this ) . $this->toString_startExt( $ind ) .  $this->toString_block( $indent ) . "\n";
+		return $str;
+	}
+
+	public function __toString() {
+		return $this->toString();
+	}
+
+}
+
+abstract class STP_Curly extends STP_Item {
+
+	public function __construct( $name ) {
+		$this->name = $name;
+		$this->args = new SplDoublyLinkedList;
+	}
+
+	public function name() {
+		return $this->name;
+	}
+
+	public function toString_startExt( $ind ) {
+		return ":" . $this->name;
+	}
+
+	public function addArg( $arg ) {
+		$this->args->push( $arg );
+	}
+
+	public function toString_block( $indent ) {
+		$ind = str_repeat( '	', $indent );
+		$str = " [\n";
+		foreach ( $this->args as $arg ) {
+			$str .= $ind . "	" . strtr( strlen( $arg ) > 32 ? substr( $arg, 0, 32 - 3 ) . '...' : $arg, array( "\n" => '\n' ) ) . "\n";
+		}
+		$str .= $ind . "]";
+		return $str;
+	}
+
+}
+
+class STP_Function extends STP_Curly {
+
+}
+
+class STP_Substitution extends STP_Curly {
+
+}
+
+abstract class STP_Node extends STP_Item implements IteratorAggregate {
 
 	protected $children;
 
@@ -13,26 +74,18 @@ abstract class STP_Node implements IteratorAggregate {
 		$this->children = new SplDoublyLinkedList;
 	}
 
-	public function toString_startExt( $ind ) {
-		return "";
-	}
-
-	public function toString( $indent = 0 ) {
+	public function toString_block( $indent ) {
 		$ind = str_repeat( '	', $indent );
-		$str = $ind . get_class( $this ) . $this->toString_startExt( $ind ) .  " {\n";
+		$str = " {\n";
 		foreach ( $this->children as $node ) {
-			if ( $node instanceof STP_Node ) {
+			if ( $node instanceof STP_Item ) {
 				$str .= $node->toString( $indent + 1 );
 			} else {
 				$str .= $ind . "	" . strtr( strlen( $node ) > 32 ? substr( $node, 0, 32 - 3 ) . '...' : $node, array( "\n" => '\n' ) ) . "\n";
 			}
 		}
-		$str .= $ind . "}\n";
+		$str .= $ind . "}";
 		return $str;
-	}
-
-	public function __toString() {
-		return $this->toString();
 	}
 
 	/** Children **/
@@ -45,7 +98,7 @@ abstract class STP_Node implements IteratorAggregate {
 	}
 
 	public function pushChild( $node ) {
-		if ( !($node instanceof STP_Node) && !is_string( $node ) ) {
+		if ( !($node instanceof STP_Item) && !is_string( $node ) ) {
 			throw new Exception( "Tried to push an invalid node type (" . gettype( $node ) . ") into the tree." );
 		}
 		$this->children->push( $node );
@@ -144,6 +197,8 @@ class SkinTemplateParser {
 	const STATE_TAG = 1;
 	const STATE_STARTBLANKTAG = 2;
 	const STATE_COMMENT = 3;
+	const STATE_CURLY = 4;
+	const STATE_CURLY_ARGS = 5;
 
 	# List of void elements from HTML5, section 8.1.2 as of 2011-08-12
 	private static $voidElements = array(
@@ -251,7 +306,7 @@ class SkinTemplateParser {
 
 		do {
 			if ( $this->state == self::STATE_DEFAULT ) {
-				if ( $m = $this->matchAndContinue( '#<!--|</|<#' ) ) {
+				if ( $m = $this->matchAndContinue( '#<!--|</|<|\{#' ) ) {
 					switch( $m[0]->text ) {
 					case '<!--':
 						$this->pushTree( new STP_Comment );
@@ -334,6 +389,9 @@ class SkinTemplateParser {
 							$this->state = self::STATE_STARTBLANKTAG;
 						}
 						break;
+					case '{':
+						$this->state = self::STATE_CURLY;
+						break;
 					default:
 						throw new Exception( "Invalid match {$m[0]->text}." );
 					}
@@ -376,6 +434,46 @@ class SkinTemplateParser {
 					}
 				} else {
 					return $this->error( "End of tag started by < not found, or invalid sequence of characters before the closing >." );
+				}
+			} elseif ( $this->state == self::STATE_CURLY ) {
+				if ( $m = $this->matchAndContinue( '/(?:(?P<func>[-_\w]+):)?(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
+					if ( isset( $m['func'] ) && $m['func']->text ) {
+						$block = new STP_Function( $m['func']->text );
+						$block->addArg( $m['str']->text );
+					} else {
+						$block = new STP_Substitution( $m['str']->text );
+					}
+
+					$this->pushTree( $block );
+
+					switch( $m['stop']->text ) {
+					case '|':
+						// If we find a | continue into arg parsing
+						$this->state = self::STATE_CURLY_ARGS;
+						break;
+					case '}':
+						// If we find a } pop off the curly item and return to default parsing
+						$this->stack->pop();
+						$this->state = self::STATE_DEFAULT;
+						break;
+					default:
+						throw new Exception( "Invalid match {$m['stop']->text}." );
+					}
+				} else {
+					return $this->error( "Failed to find end of { tag." );
+				}
+			} elseif ( $this->state == self::STATE_CURLY_ARGS ) {
+				if ( $m = $this->matchAndContinue( '/(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
+					$block = $this->stack->top();
+					$block->addArg( $m['str']->text );
+
+					if ( $m['stop']->text == '}' ) {
+						// If we find a } pop off the curly item and return to default parsing
+						$this->stack->pop();
+						$this->state = self::STATE_DEFAULT;
+					}
+				} else {
+					return $this->error( "Failed to find end of { tag." );
 				}
 			} else {
 				throw new Exception( "Invalid state." );
