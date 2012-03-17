@@ -42,7 +42,7 @@ class MWSkinTemplate {
 		return $this->tree;
 	}
 
-	public function outputBody() {
+	public function outputBody( MWSkinTemplateContext $context ) {
 		$stack = new SplStack;
 		$item = new stdClass;
 		$item->queue = new SplQueue;
@@ -56,9 +56,11 @@ class MWSkinTemplate {
 				if ( is_string( $node ) ) {
 					echo $node;
 				} elseif ( $node instanceof STP_Substitution ) {
-					echo "{" . $node->name() . "}";
+					$value = $context->get( $node->name() );
+					echo MWSkinTemplateContext::expandHtmlContext( $value );
 				} elseif ( $node instanceof STP_Function ) {
-					echo "{" . $node->name() . ":}";
+					$func = MWSkinFunction::getFunction( $node->name() );
+					echo MWSkinTemplateContext::expandHtmlContext( $func->execute( $node->args() ) );
 				} elseif ( $node instanceof STP_Node ) {
 					if ( $node instanceof STP_Comment ) {
 					} else {

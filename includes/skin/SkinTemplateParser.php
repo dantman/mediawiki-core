@@ -31,7 +31,7 @@ abstract class STP_Curly extends STP_Item {
 
 	public function __construct( $name ) {
 		$this->name = $name;
-		$this->args = new SplDoublyLinkedList;
+		// $this->args = new SplDoublyLinkedList;
 	}
 
 	public function name() {
@@ -43,9 +43,9 @@ abstract class STP_Curly extends STP_Item {
 	}
 
 	public function addArg( $arg ) {
-		$this->args->push( $arg );
+		// $this->args->push( $arg );
 	}
-
+/*
 	public function toString_block( $indent ) {
 		$ind = str_repeat( '	', $indent );
 		$str = " [\n";
@@ -54,11 +54,26 @@ abstract class STP_Curly extends STP_Item {
 		}
 		$str .= $ind . "]";
 		return $str;
-	}
+	}*/
 
 }
 
 class STP_Function extends STP_Curly {
+
+	private $args;
+
+	public function __construct( $name ) {
+		parent::__construct( $name );
+		$this->args = new MWSkinFunctionArgs;
+	}
+
+	public function addArg( $arg ) {
+		$this->args->addPositional( $arg );
+	}
+
+	public function args() {
+		return $this->args;
+	}
 
 }
 
