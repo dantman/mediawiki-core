@@ -43,10 +43,16 @@ class MWSkinTemplate {
 	}
 
 	public function outputBody( MWSkinTemplateContext $context ) {
+		$tree = $this->getTree();
+		if ( $tree instanceof Exception ) {
+			echo "<pre>" . htmlspecialchars( $tree ) . "</pre>";
+			return;
+		}
+
 		$stack = new SplStack;
 		$item = new stdClass;
 		$item->queue = new SplQueue;
-		$item->queue->push( $this->getTree() );
+		$item->queue->push( $tree );
 		$stack->push( $item );
 
 		do {
@@ -56,26 +62,55 @@ class MWSkinTemplate {
 				if ( is_string( $node ) ) {
 					echo $node;
 				} elseif ( $node instanceof STP_Substitution ) {
-					$value = $context->get( $node->name() );
-					echo MWSkinTemplateContext::expandHtmlContext( $value );
+					echo MWSkinTemplateContext::expandHtmlContext(
+						$context->get( $node->name() )
+					);
 				} elseif ( $node instanceof STP_Function ) {
-					$func = MWSkinFunction::getFunction( $node->name() );
-					echo MWSkinTemplateContext::expandHtmlContext( $func->execute( $node->args() ) );
+					echo MWSkinTemplateContext::expandHtmlContext(
+						MWSkinFunction::getFunction( $node->name() )->execute( $node->args() )
+					);
 				} elseif ( $node instanceof STP_Node ) {
 					if ( $node instanceof STP_Comment ) {
 					} else {
 						$recursive = true;
 						if ( $node instanceof STP_Tag && $tagName = $node->name() ) {
+							$attrs = array();
+							foreach( $node->attributes() as $attr ) {
+								$name = $attr->name();
+								if ( $attr->isValueless() ) {
+									$value = true;
+								} else {
+									$value = "";
+									foreach ( $attr as $piece ) {
+										if ( is_string( $piece ) ) {
+											$value .= $piece;
+										} elseif ( $piece instanceof STP_Substitution ) {
+											$value .= MWSkinTemplateContext::expandAttrContext(
+												$name,
+												$context->get( $piece->name() )
+											);
+										} elseif ( $piece instanceof STP_Function ) {
+											$value .= MWSkinTemplateContext::expandAttrContext(
+												$name,
+												MWSkinFunction::getFunction( $piece->name() )->execute( $piece->args() )
+											);
+										} else {
+											wfWarn( 'Unknown node type reached when iterating through attribute nodes.' );
+										}
+									}
+								}
+								$attrs[$name] = $value;
+							}
 							if ( Html::isVoid( $tagName ) ) {
 								// Output the whole tag for a void element
 								$recursive = false;
-								echo Html::element( $tagName, $node->attributes() );
+								echo Html::element( $tagName, $attrs );
 								if ( $node->hasChildren() ) {
 									wfWarn( "A void <$tagName>'s child nodes were discarded." );
 								}
 							} else {
 								// Just open a non-void element
-								echo Html::openElement( $tagName, $node->attributes() );
+								echo Html::openElement( $tagName, $attrs );
 							}
 						}
 						// Let void tags skip recursion

@@ -116,6 +116,9 @@ abstract class STP_Node extends STP_Item implements IteratorAggregate {
 		if ( !($node instanceof STP_Item) && !is_string( $node ) ) {
 			throw new Exception( "Tried to push an invalid node type (" . gettype( $node ) . ") into the tree." );
 		}
+		if ( $node instanceof STP_Attr ) {
+			throw new Exception( "Tried to push a STP_Attr where it doesn't belong." );
+		}
 		$this->children->push( $node );
 	}
 
@@ -147,15 +150,30 @@ class STP_Tag extends STP_Node {
 	public function __construct( $tagName ) {
 		parent::__construct();
 		$this->tagName = $tagName;
-		$this->attributes = array();
+		$this->attributes = new SplDoublyLinkedList;
 	}
 
 	public function name() {
 		return $this->tagName;
 	}
 
-	public function blankFirstAttribute() {
-		return $this->blankFirstAttribute;
+	public function pushChild( $node ) {
+		if ( $node instanceof STP_Attr ) {
+			$this->attributes->push( $node );
+		} else {
+			parent::pushChild( $node );
+		}
+	}
+
+	public function blankFirstAttribute( $name = null ) {
+		if ( !is_null( $name ) ) {
+			if ( count( $this->attributes ) > 0 || $this->blankFirstAttribute ) {
+				throw new Exception( "Tried to set a blank first attribute on a node already with attributes." );
+			}
+			$this->blankFirstAttribute = $name;
+		} else {
+			return $this->blankFirstAttribute;
+		}
 	}
 
 	public function setAttribute( $name, $value, $blankFirst = false ) {
@@ -200,7 +218,31 @@ class STP_Tag extends STP_Node {
 
 }
 
-class STP_Comment {
+class STP_Attr extends STP_Node {
+
+	private $name, $isBlank, $valueless;
+
+	public function __construct( $name ) {
+		parent::__construct();
+		$this->name = $name;
+		$this->valueless = false;
+	}
+
+	public function name() {
+		return $this->name;
+	}
+
+	function setValueless() {
+		$this->valueless = true;
+	}
+
+	public function isValueless() {
+		return $this->valueless;
+	}
+
+}
+
+class STP_Comment extends STP_Node {
 
 }
 
@@ -208,12 +250,18 @@ class SkinTemplateParser {
 
 	const IDENT_CHARS = "-_:.a-zA-Z0-9\\x{C0}-\\x{D6}\\x{D8}-\\x{F6}\\x{F8}-\\x{2FF}\\x{370}-\\x{37D}\\x{37F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}\\x{B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}";
 
-	const STATE_DEFAULT = 0;
-	const STATE_TAG = 1;
-	const STATE_STARTBLANKTAG = 2;
-	const STATE_COMMENT = 3;
-	const STATE_CURLY = 4;
-	const STATE_CURLY_ARGS = 5;
+	const STATE_DEFAULT = 'DEFAULT';
+	const STATE_TAG = 'TAG';
+	const STATE_STARTBLANKTAG = 'STARTBLANKTAG';
+	const STATE_ARG_START = 'ARG_START';
+	const STATE_ARG_SINGLE = 'ARG_SINGLE';
+	const STATE_ARG_DOUBLE = 'ARG_DOUBLE';
+	const STATE_COMMENT = 'COMMENT';
+	const STATE_CURLY = 'CURLY';
+	const STATE_SUBST = 'SUBST';
+	const STATE_SUBST_ARGS = 'SUBST_ARGS'; // @fixme These aren't really args
+	const STATE_FUNC = 'FUNC';
+	const STATE_FUNC_ARGS = 'FUNC_ARGS';
 
 	# List of void elements from HTML5, section 8.1.2 as of 2011-08-12
 	private static $voidElements = array(
@@ -311,22 +359,44 @@ class SkinTemplateParser {
 		return new Exception( $msg );
 	}
 
+	public function pushState( $state ) {
+		$this->state->push( $state );
+	}
+	public function popState() {
+		$this->state->pop();
+	}
+	public function replaceState( $state ) {
+		$this->state->pop();
+		$this->state->push( $state );
+	}
+	public function state( /* $state... */ ) {
+		$states = func_get_args();
+		if ( count( $states ) <= 0 ) {
+			return $this->state->isEmpty() ? self::STATE_DEFAULT : $this->state->top();
+		}
+		if ( $this->state->isEmpty() ) {
+			return in_array( self::STATE_DEFAULT, $states );
+		}
+		return in_array( $this->state->top(), $states );
+	}
+
+
 	public function parse( $source ) {
 		$this->offset = 0;
 		$this->source = $source;
 
 		$this->stack = new SplStack;
-		$this->state = self::STATE_DEFAULT;
+		$this->state = new SplStack;
 		$this->stack->push( new STP_Root );
 
 		do {
-			if ( $this->state == self::STATE_DEFAULT ) {
+			if ( $this->state( self::STATE_DEFAULT ) ) {
 				if ( $m = $this->matchAndContinue( '#<!--|</|<|\{#' ) ) {
 					switch( $m[0]->text ) {
 					case '<!--':
 						$this->pushTree( new STP_Comment );
 						// Continue in comment state parsing the comment ending
-						$this->state = self::STATE_COMMENT;
+						$this->pushState( self::STATE_COMMENT );
 						break;
 					case '</':
 						if ( $m = $this->matchAndContinue( '/([' . self::IDENT_CHARS . ']+)?\s*>/', 'start-anchor' ) ) {
@@ -398,14 +468,14 @@ class SkinTemplateParser {
 						$this->pushTree( $tag );
 						// Continue in tag state parsing the arguments
 						if ( $tagName ) {
-							$this->state = self::STATE_TAG;
+							$this->pushState( self::STATE_TAG );
 						} else {
 							// If there is no tag name we continue in an alt mode where we ignore the normal whitespace rule for attributes
-							$this->state = self::STATE_STARTBLANKTAG;
+							$this->pushState( self::STATE_STARTBLANKTAG );
 						}
 						break;
 					case '{':
-						$this->state = self::STATE_CURLY;
+						$this->pushState( self::STATE_CURLY );
 						break;
 					default:
 						throw new Exception( "Invalid match {$m[0]->text}." );
@@ -418,12 +488,13 @@ class SkinTemplateParser {
 					}
 					break;
 				}
-			} elseif ( $this->state == self::STATE_TAG || $this->state == self::STATE_STARTBLANKTAG ) {
+			} elseif ( $this->state( self::STATE_TAG ) || $this->state( self::STATE_STARTBLANKTAG ) ) {
 				// If we're at the start of a blank tag like <mw:if="..."> the normal rules about whitespace preceding
 				// the attribute do not apply.
-				$whitespace = $this->state == self::STATE_STARTBLANKTAG ? '\s*' : '\s+';
+				$whitespace = $this->state( self::STATE_STARTBLANKTAG ) ? '\s*' : '\s+';
 				// @fixme Should we fix the attribute parsing so that foo=asdf/asdf works (the / that is)?
-				if ( $m = $this->matchAndContinue( '#' . $whitespace . '(?P<name>[' . self::IDENT_CHARS . ']+)(?:=(?|"(?P<value>[^"]*)"|\'(?P<value>[^\']*)\'|(?P<value>[^\s/>]+)))?|\s*(?P<close>/?)(?P<end>>)#', 'start-anchor' ) ) {
+				// (?|"(?P<value>[^"]*)"|\'(?P<value>[^\']*)\'|(?P<value>[^\s/>]+))
+				if ( $m = $this->matchAndContinue( '#' . $whitespace . '(?P<name>[' . self::IDENT_CHARS . ']+)(?P<eq>=)?|\s*(?P<close>/?)(?P<end>>)#', 'start-anchor' ) ) {
 					if ( isset( $m['end'] ) && $m['end']->text ) {
 						$tagName = $this->stack->top()->name();
 						if ( isset( $m['close'] ) && $m['close']->text || in_array( $tagName, self::$voidElements ) ) {
@@ -431,26 +502,71 @@ class SkinTemplateParser {
 							$this->stack->pop();
 						}
 						// Return to default state parsing
-						$this->state = self::STATE_DEFAULT;
+						$this->popState();
 					} else {
 						$name = $m['name']->text;
-						$value = true;
+
+						if ( $this->state( self::STATE_STARTBLANKTAG ) ) {
+							$this->stack->top()->blankFirstAttribute( $name );
+						}
+
+						$arg = new STP_Attr( $name );
+						$this->pushTree( $arg );
+						/*$value = true;
 						if ( isset( $m['value'] ) ) {
 							$value = $m['value']->text;
-						}
-						$tag = $this->stack->top();
-						try {
-							$tag->setAttribute( $name, $value, $this->state == self::STATE_STARTBLANKTAG );
+						}*/
+						//$tag = $this->stack->top();
+						/*try {
+							//$tag->setAttribute( $name, $value, $this->state( self::STATE_STARTBLANKTAG ) );
 						} catch ( Exception $e ) {
 							return $this->error( $e->getMessage() );
+						}*/
+						// Make sure we're set to STATE_TAG, the STARTBLANKTAG behavior ends after the first attribute
+						$this->replaceState( self::STATE_TAG );
+
+						if ( isset( $m['eq'] ) && $m['eq']->text ) {
+							$this->pushState( self::STATE_ARG_START );
+						} else {
+							// 
+							$arg->setValueless();
+							$this->stack->pop();
 						}
-						// Make sure we're set to STATE_TAG, the STARTBLANKTAG behaviour ends after the first attribute
-						$this->state = self::STATE_TAG;
 					}
 				} else {
 					return $this->error( "End of tag started by < not found, or invalid sequence of characters before the closing >." );
 				}
-			} elseif ( $this->state == self::STATE_CURLY ) {
+			} elseif ( $this->state( self::STATE_ARG_START ) ) {
+				if ( $m = $this->matchAndContinue( '#(?P<start>["\'])|(?P<str>(?:[^\s/>]+|/(?!>))+)#s', 'start-anchor' ) ) {
+					if ( isset( $m['start'] ) && $m['start']->text ) {
+						$this->replaceState( $m['start']->text == "'" ? self::STATE_ARG_SINGLE : self::STATE_ARG_DOUBLE );
+					} else {
+						// Add the text used in this argument then pop the arg off and return to parsing out tag arguments
+						$this->stack->top()->pushChild( $m['str']->text );
+						$this->stack->pop();
+						$this->popState();
+					}
+				} else { 
+					return $this->error( "End of attribute not found." );
+				}
+			} elseif ( $this->state( self::STATE_ARG_SINGLE, self::STATE_ARG_DOUBLE ) ) {
+				$q = $this->state( self::STATE_ARG_SINGLE ) ? "'" : '"';
+				if ( $m = $this->matchAndContinue( "#(?P<str>[^$q{]*)(?P<end>[$q{])#s", 'start-anchor' ) ) {
+					if ( $m['str']->text ) {
+						$this->stack->top()->pushChild( $m['str']->text );
+					}
+					if ( $m['end']->text == '{' ) {
+						// Start parsing curly patterns
+						$this->pushState( self::STATE_CURLY );
+					} else {
+						// Return to parsing out tag arguments
+						$this->stack->pop();
+						$this->popState();
+					}
+				} else {
+					return $this->error( "End of attribute not found." );
+				}
+			} elseif ( $this->state( self::STATE_CURLY ) ) {
 				if ( $m = $this->matchAndContinue( '/(?:(?P<func>[-_\w]+):)?(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
 					if ( isset( $m['func'] ) && $m['func']->text ) {
 						$block = new STP_Function( $m['func']->text );
@@ -464,12 +580,12 @@ class SkinTemplateParser {
 					switch( $m['stop']->text ) {
 					case '|':
 						// If we find a | continue into arg parsing
-						$this->state = self::STATE_CURLY_ARGS;
+						$this->replaceState( $block instanceof STP_Function ? self::STATE_FUNC_ARGS : self::STATE_SUBST_ARGS );
 						break;
 					case '}':
 						// If we find a } pop off the curly item and return to default parsing
 						$this->stack->pop();
-						$this->state = self::STATE_DEFAULT;
+						$this->popState();
 						break;
 					default:
 						throw new Exception( "Invalid match {$m['stop']->text}." );
@@ -477,15 +593,15 @@ class SkinTemplateParser {
 				} else {
 					return $this->error( "Failed to find end of { tag." );
 				}
-			} elseif ( $this->state == self::STATE_CURLY_ARGS ) {
+			} elseif ( $this->state( self::STATE_SUBST_ARGS ) || $this->state( self::STATE_FUNC_ARGS ) ) {
 				if ( $m = $this->matchAndContinue( '/(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
 					$block = $this->stack->top();
 					$block->addArg( $m['str']->text );
 
 					if ( $m['stop']->text == '}' ) {
-						// If we find a } pop off the curly item and return to default parsing
+						// If we find a } pop off the curly item and return to the previous parsing
 						$this->stack->pop();
-						$this->state = self::STATE_DEFAULT;
+						$this->popState();
 					}
 				} else {
 					return $this->error( "Failed to find end of { tag." );
@@ -495,7 +611,7 @@ class SkinTemplateParser {
 			}
 		} while( true );
 
-		// Now that the source has ended pop off any tags on the top of the stack that allow the ent tag to be omitted
+		// Now that the source has ended pop off any tags on the top of the stack that allow the end tag to be omitted
 		// when it's parent element is closed.
 		while ( $this->stack->top() instanceof STP_Tag ) {
 			$tag = $this->stack->top();

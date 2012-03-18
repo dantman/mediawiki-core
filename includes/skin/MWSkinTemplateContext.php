@@ -25,7 +25,7 @@ class MWSkinTemplateContext {
 				}
 			} elseif ( !preg_match( '/^[-_\w]+$/', $p ) ) {
 				// @fixme Add some sort of template exception we can catch
-				throw new Exception( "Invalid characters in variable." );
+				throw new Exception( "Invalid characters in variable '" . htmlspecialchars( $p ) . "'." );
 			}
 			$first = false;
 		}
@@ -70,6 +70,18 @@ class MWSkinTemplateContext {
 		}
 		if ( $value instanceof MWSkinTemplateTypes\IHtml ) {
 			return $value->getHtml();
+		}
+		// @fixme Output some sort of inline error
+		return '???';
+	}
+
+	public static function expandAttrContext( $attr, $value ) {
+		if ( is_null( $value ) ) {
+			return null;
+		}
+		// @todo Special cases like href and src
+		if ( $value instanceof MWSkinTemplateTypes\IText ) {
+			return $value->getText();
 		}
 		// @fixme Output some sort of inline error
 		return '???';

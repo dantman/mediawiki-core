@@ -44,3 +44,21 @@ class HtmlText extends Html implements IHtml {
 	}
 
 }
+
+class FunctionError implements IHtml, IText {
+
+	private $msg;
+
+	public function __construct( $msg ) {
+		$this->msg = $msg;
+	}
+
+	public function getHtml() {
+		return Html::element( 'div', array( 'class' => 'error' ), $this->msg );
+	}
+
+	public function getText() {
+		return '[[' . $this->msg . ']]';
+	}
+
+}

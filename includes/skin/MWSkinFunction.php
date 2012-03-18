@@ -43,11 +43,12 @@ abstract class MWSkinFunction {
 	);
 
 	public static function getFunction( $name ) {
-		if ( !isset( self::$functions[$name] ) ) {
+		if ( isset( self::$functions[$name] ) ) {
+			$className = self::$functions[$name];
+		} else {
 			wfDebug( __METHOD__ . ": there is no skin function by the name $name." );
-			return false;
+			$className = 'MWSkinFunction_nofunction';
 		}
-		$className = self::$functions[$name];
 		$func = new $className( $name );
 		// @todo Singletons?
 		return $func;
@@ -68,4 +69,12 @@ class MWSkinFunction_msg extends MWSkinFunction {
 		return new MWSkinTemplateTypes\Text( wfMsg( $msgName ) );
 	}
 
+}
+
+class MWSkinFunction_nofunction extends MWSkinFunction {
+
+	public function execute( MWSkinFunctionArgs $args ) {
+		// @todo i18n the error
+		return new MWSkinTemplateTypes\FunctionError( "There is no function by the name {$this->name}." );
+	} 
 }
