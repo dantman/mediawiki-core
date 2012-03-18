@@ -45,7 +45,7 @@ class HtmlText extends Html implements IHtml {
 
 }
 
-class FunctionError implements IHtml, IText {
+class Error implements IHtml, IText {
 
 	private $msg;
 

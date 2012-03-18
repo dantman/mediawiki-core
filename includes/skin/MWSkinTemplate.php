@@ -4,6 +4,7 @@
  *
  * @file
  */
+use MWSkinTemplateTypes as TT;
 
 class MWSkinTemplate {
 
@@ -42,13 +43,13 @@ class MWSkinTemplate {
 		return $this->tree;
 	}
 
-	public function outputBody( MWSkinTemplateContext $context ) {
+	public function outputBody( MWTemplateContext $context ) {
 		$tree = $this->getTree();
 		if ( $tree instanceof Exception ) {
 			echo "<pre>" . htmlspecialchars( $tree ) . "</pre>";
 			return;
 		}
-
+		wfProfileIn( __METHOD__ . '-output' );
 		$stack = new SplStack;
 		$item = new stdClass;
 		$item->queue = new SplQueue;
@@ -62,11 +63,11 @@ class MWSkinTemplate {
 				if ( is_string( $node ) ) {
 					echo $node;
 				} elseif ( $node instanceof STP_Substitution ) {
-					echo MWSkinTemplateContext::expandHtmlContext(
+					echo MWTemplateContext::expandHtmlContext(
 						$context->get( $node->name() )
 					);
 				} elseif ( $node instanceof STP_Function ) {
-					echo MWSkinTemplateContext::expandHtmlContext(
+					echo MWTemplateContext::expandHtmlContext(
 						MWSkinFunction::getFunction( $node->name() )->execute( $node->args() )
 					);
 				} elseif ( $node instanceof STP_Node ) {
@@ -81,19 +82,51 @@ class MWSkinTemplate {
 									$value = true;
 								} else {
 									$value = "";
+									$queue = new SplQueue;
 									foreach ( $attr as $piece ) {
+										$queue->push( $piece );
+									}
+									while( !$queue->isEmpty() ) {
+										$piece = $queue->shift();
 										if ( is_string( $piece ) ) {
 											$value .= $piece;
 										} elseif ( $piece instanceof STP_Substitution ) {
-											$value .= MWSkinTemplateContext::expandAttrContext(
+											$value .= MWTemplateContext::expandAttrContext(
 												$name,
 												$context->get( $piece->name() )
 											);
 										} elseif ( $piece instanceof STP_Function ) {
-											$value .= MWSkinTemplateContext::expandAttrContext(
+											$value .= MWTemplateContext::expandAttrContext(
 												$name,
 												MWSkinFunction::getFunction( $piece->name() )->execute( $piece->args() )
 											);
+										} elseif ( $piece instanceof STP_Conditional ) {
+											$type = $piece->type();
+											$expression = $piece->expression();
+											// @fixme Should we have a new class for conditionals?
+											if ( !in_array( $type, array( 'if', 'unless' ) ) ) {
+												$value .= MWTemplateContext::expandAttrContext(
+													new TT\Error( "There is no conditional by the name $type." )
+												);
+											} else {
+												$test = MWTemplateContext::expandExpressionContext(
+													// @fixme Should we have a complex expression parser instead?
+													$context->get( $expression )
+												);
+												if ( $type == 'unless' ) {
+													$test = !$test;
+												}
+												// If test is falsy we just continue and nothing inside the conditional gets added
+												// If it's truthy the we add the children to the start of the queue and they get added to the value
+												if ( $test ) {
+													// Clone and reverse the children so we can shift onto the queue's start in the right order
+													$children = clone $piece->children();
+													$children->setIteratorMode( SplDoublyLinkedList::IT_MODE_LIFO | SplDoublyLinkedList::IT_MODE_KEEP );
+													foreach ( $children as $child ) {
+														$queue->unshift( $child );
+													}
+												}
+											}
 										} else {
 											wfWarn( 'Unknown node type reached when iterating through attribute nodes.' );
 										}
@@ -138,6 +171,7 @@ class MWSkinTemplate {
 				}
 			}
 		} while ( !$stack->isEmpty() );
+		wfProfileOut( __METHOD__ . '-output' );
 	}
 
 }

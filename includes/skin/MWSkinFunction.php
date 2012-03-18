@@ -4,6 +4,7 @@
  *
  * @file
  */
+use MWSkinTemplateTypes as TT;
 
 class MWSkinFunctionArgs {
 
@@ -66,7 +67,7 @@ class MWSkinFunction_msg extends MWSkinFunction {
 	public function execute( MWSkinFunctionArgs $args ) {
 		// @fixme The real msg function will support a number of extra args and use a proper wfMessage class
 		$msgName = $args->getPositional( 0 );
-		return new MWSkinTemplateTypes\Text( wfMsg( $msgName ) );
+		return new TT\Text( wfMsg( $msgName ) );
 	}
 
 }
@@ -75,6 +76,6 @@ class MWSkinFunction_nofunction extends MWSkinFunction {
 
 	public function execute( MWSkinFunctionArgs $args ) {
 		// @todo i18n the error
-		return new MWSkinTemplateTypes\FunctionError( "There is no function by the name {$this->name}." );
+		return new TT\Error( "There is no function by the name {$this->name}." );
 	} 
 }

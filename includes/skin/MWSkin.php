@@ -4,9 +4,7 @@
  *
  * @file
  */
-
-// @fixme Autoload once we've created all the different template types
-require_once( "$IP/includes/skin/TemplateTypes.php" );
+use MWSkinTemplateTypes as TT;
 
 class MWSkin extends Skin {
 
@@ -30,8 +28,8 @@ class MWSkin extends Skin {
 			throw new Exception( "Template file does not exist." );
 		}
 
-		$context = new MWSkinTemplateContext;
-		$context->set( 'title', new MWSkinTemplateTypes\HtmlText( $out->getPageTitle() ) );
+		$context = new MWTemplateContext;
+		$context->extendContext( new MWSkinTemplateContext( $this ) );
 
 		echo $out->headElement( $this );
 
@@ -48,3 +46,30 @@ class MWSkin extends Skin {
 
 
 }
+
+class MWSkinTemplateContext extends MWTemplateContextExtension {
+
+	protected $skin;
+
+	public function __construct( $skin ) {
+		$this->skin = $skin;
+	}
+
+	public function getVariable( $name ) {
+		$out = $this->skin->getOutput();
+		switch( $name ) {
+		case 'title':
+			return new TT\HtmlText( $out->getPageTitle() );
+		case 'isarticle':
+			return $out->isArticle();
+		case 'footer':
+			$footer = new MWTemplateContext;
+			//$footer->set( 'links',  );
+			// $footer->set( 'icons', );
+			return $footer;
+		}
+		return parent::getVariable( $name );
+	}
+
+}
+

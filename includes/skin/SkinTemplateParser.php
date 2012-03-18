@@ -112,6 +112,10 @@ abstract class STP_Node extends STP_Item implements IteratorAggregate {
 		return !$this->children->isEmpty();
 	}
 
+	public function children() {
+		return $this->children;
+	}
+
 	public function pushChild( $node ) {
 		if ( !($node instanceof STP_Item) && !is_string( $node ) ) {
 			throw new Exception( "Tried to push an invalid node type (" . gettype( $node ) . ") into the tree." );
@@ -242,6 +246,26 @@ class STP_Attr extends STP_Node {
 
 }
 
+class STP_Conditional extends STP_Node {
+
+	private $type, $expression;
+
+	public function __construct( $type, $expression ) { 
+		parent::__construct();
+		$this->type = $type;
+		$this->expression = $expression;
+	}
+
+	public function type() {
+		return $this->type;
+	}
+
+	public function expression() {
+		return $this->expression;
+	}
+
+}
+
 class STP_Comment extends STP_Node {
 
 }
@@ -262,6 +286,8 @@ class SkinTemplateParser {
 	const STATE_SUBST_ARGS = 'SUBST_ARGS'; // @fixme These aren't really args
 	const STATE_FUNC = 'FUNC';
 	const STATE_FUNC_ARGS = 'FUNC_ARGS';
+	///const STATE_CONDITIONAL = 'CONDITIONAL';
+
 
 	# List of void elements from HTML5, section 8.1.2 as of 2011-08-12
 	private static $voidElements = array(
@@ -382,6 +408,7 @@ class SkinTemplateParser {
 
 
 	public function parse( $source ) {
+		wfProfileIn( __METHOD__ );
 		$this->offset = 0;
 		$this->source = $source;
 
@@ -404,10 +431,12 @@ class SkinTemplateParser {
 							do {
 								$tag = $this->stack->top();
 								if ( $tag instanceof STP_Root ) {
+									wfProfileOut( __METHOD__ );
 									return $this->error( "Found a closing tag <{$tagName}> when all elements are already closed." );
 								}
 								$realTag = $tag->name();
 								if ( $realTag && !$tagName ) {
+									wfProfileOut( __METHOD__ );
 									return $this->error( "Cannot close <{$realTag}> with a blank end tag (</>)." );
 								} elseif ( $realTag && $realTag != $tagName ) {
 									// If the tag on the top of the stack allows the end tag to be omitted when it's parent
@@ -418,6 +447,7 @@ class SkinTemplateParser {
 											continue;
 										}
 									}
+									wfProfileOut( __METHOD__ );
 									return $this->error( "Tag mismatch. Found a closing tag </{$tagName}> when expecting a closing tag for <{$realTag}>." );
 								} elseif ( !$realTag && $tagName ) {
 									// Blank tags like <mw:if="..."> CAN be closed with non-blank tags like </mw:if>
@@ -428,6 +458,7 @@ class SkinTemplateParser {
 											($tagName == 'mw:' || $tagName == 'mw') && preg_match( '/^mw:.+$/', $blankFirst )
 										);
 									if ( !$blankMatch ) {
+										wfProfileOut( __METHOD__ );
 										return $this->error( "Tag mismatch. Found a closing tag </{$tagName}> when expecting a blank node closing tag." );
 									}
 								}
@@ -436,6 +467,7 @@ class SkinTemplateParser {
 							// Nothing was wrong with  the end tag name, pop the tag off the stack and continue on in it's parent
 							$this->stack->pop();
 						} else {
+							wfProfileOut( __METHOD__ );
 							return $this->error( "Starting end of tag (\"</\") found without proper tag name or tag end (\"<\")." );
 						}
 						break;
@@ -520,6 +552,7 @@ class SkinTemplateParser {
 						/*try {
 							//$tag->setAttribute( $name, $value, $this->state( self::STATE_STARTBLANKTAG ) );
 						} catch ( Exception $e ) {
+							wfProfileOut( __METHOD__ );
 							return $this->error( $e->getMessage() );
 						}*/
 						// Make sure we're set to STATE_TAG, the STARTBLANKTAG behavior ends after the first attribute
@@ -534,6 +567,7 @@ class SkinTemplateParser {
 						}
 					}
 				} else {
+					wfProfileOut( __METHOD__ );
 					return $this->error( "End of tag started by < not found, or invalid sequence of characters before the closing >." );
 				}
 			} elseif ( $this->state( self::STATE_ARG_START ) ) {
@@ -546,7 +580,8 @@ class SkinTemplateParser {
 						$this->stack->pop();
 						$this->popState();
 					}
-				} else { 
+				} else {
+					wfProfileOut( __METHOD__ );
 					return $this->error( "End of attribute not found." );
 				}
 			} elseif ( $this->state( self::STATE_ARG_SINGLE, self::STATE_ARG_DOUBLE ) ) {
@@ -564,13 +599,36 @@ class SkinTemplateParser {
 						$this->popState();
 					}
 				} else {
+					wfProfileOut( __METHOD__ );
 					return $this->error( "End of attribute not found." );
 				}
 			} elseif ( $this->state( self::STATE_CURLY ) ) {
-				if ( $m = $this->matchAndContinue( '/(?:(?P<func>[-_\w]+):)?(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
+				if ( $m = $this->matchAndContinue( '#/(?P<cond>[-_\w]+)\}#', 'start-anchor' ) ) {
+					// Matches an {/foo} end tag
+					$top = $this->stack->top();
+					if ( $top instanceof STP_Conditional ) {
+						if ( $top->type() == $m['cond']->text ) {
+							$this->stack->pop();
+							$this->popState();
+						} else {
+							wfProfileOut( __METHOD__ );
+							return $this->error( "Unexpected {/{$m['cond']->text}}, expecting a {/$top->name()} close tag." );
+						}
+					} else {
+						wfProfileOut( __METHOD__ );
+						return $this->error( "No {{$m['cond']->text}} condition to close." );
+					}
+				} elseif ( $m = $this->matchAndContinue( '/(?:(?:(?P<func>[-_\w]+):)|(?P<cond>[-_\w]+)\s+)?(?P<str>.*?)(?P<stop>\||\})/', 'start-anchor' ) ) {
 					if ( isset( $m['func'] ) && $m['func']->text ) {
 						$block = new STP_Function( $m['func']->text );
 						$block->addArg( $m['str']->text );
+					} elseif ( isset( $m['cond'] ) && $m['cond']->text ) {
+						$top = $this->stack->top();
+						if ( !($top instanceof STP_Conditional) && !($top instanceof STP_Attr) ) {
+							wfProfileOut( __METHOD__ );
+							return $this->error( "Curly conditionals may only be used inside attributes." );
+						}
+						$block = new STP_Conditional( $m['cond']->text, $m['str']->text );
 					} else {
 						$block = new STP_Substitution( $m['str']->text );
 					}
@@ -579,18 +637,28 @@ class SkinTemplateParser {
 
 					switch( $m['stop']->text ) {
 					case '|':
-						// If we find a | continue into arg parsing
-						$this->replaceState( $block instanceof STP_Function ? self::STATE_FUNC_ARGS : self::STATE_SUBST_ARGS );
+						if ( $block instanceof STP_Conditional ) {
+							wfProfileOut( __METHOD__ );
+							return $this->error( "Conditionals cannot have | parameters." );
+						} else {
+							// If we find a | continue into arg parsing
+							$this->replaceState( $block instanceof STP_Function ? self::STATE_FUNC_ARGS : self::STATE_SUBST_ARGS );
+						}
 						break;
 					case '}':
-						// If we find a } pop off the curly item and return to default parsing
-						$this->stack->pop();
-						$this->popState();
+						if ( $block instanceof STP_Conditional ) {
+							$this->popState();
+						} else {
+							// If we find a } pop off the curly item and return to default parsing
+							$this->stack->pop();
+							$this->popState();
+						}
 						break;
 					default:
 						throw new Exception( "Invalid match {$m['stop']->text}." );
 					}
 				} else {
+					wfProfileOut( __METHOD__ );
 					return $this->error( "Failed to find end of { tag." );
 				}
 			} elseif ( $this->state( self::STATE_SUBST_ARGS ) || $this->state( self::STATE_FUNC_ARGS ) ) {
@@ -604,6 +672,7 @@ class SkinTemplateParser {
 						$this->popState();
 					}
 				} else {
+					wfProfileOut( __METHOD__ );
 					return $this->error( "Failed to find end of { tag." );
 				}
 			} else {
@@ -624,9 +693,11 @@ class SkinTemplateParser {
 		}
 		
 		if ( !($this->stack->top() instanceof STP_Root) ) {
+			wfProfileOut( __METHOD__ );
 			return $this->error( "End of template reached with missing end tags." );
 		}
 
+		wfProfileOut( __METHOD__ );
 		return $this->stack->bottom();
 	}
 
