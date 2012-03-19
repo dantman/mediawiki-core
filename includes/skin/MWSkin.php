@@ -43,8 +43,21 @@ class MWSkin extends Skin {
 			Html::rawElement( 'div', array( 'class' => 'printfooter' ), "\n" . $this->printSource() ) . "\n" .
 			$this->generateDebugHTML()
 		);
- 
 		$out->getRegions()->addRegion( $bodyTextBlock );
+
+		if ( true ) {
+			// @todo This should be a conditional that checks if we use a 'categories' variable somewhere in the
+			// template. If we don't then this will run, but if we do we will leave this out
+			$catlinksBlock = new MWRegionBlock( 'catlinks' );
+			$catlinksBlock->addHTML( $this->getCategories() );
+			$out->getRegions()->addRegion( $catlinksBlock );
+		}
+
+		if ( $afterContent = $this->afterContentHook() ) {
+			$afterContentBlock = new MWRegionBlock( 'legacy-aftercontent' );
+			$afterContentBlock->addHTML( $afterContent );
+			$out->getRegions()->addRegion( $afterContentBlock );
+		}
 		
 		// @temp @fixme This method of doing things is just to get the initial test working
 		$tpl = MWSkinTemplate::newFromFile( "{$GLOBALS['IP']}/skins/{$this->skinname}/{$this->skinname}.tpl" );
