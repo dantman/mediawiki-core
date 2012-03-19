@@ -31,6 +31,9 @@ class MWSkin extends Skin {
 		$context = new MWTemplateContext;
 		$context->extendContext( new MWSkinTemplateContext( $this ) );
 
+		$skinRegions = $tpl->getRegions();
+		var_dump( $skinRegions );
+
 		echo $out->headElement( $this );
 
 		$tpl->outputBody( $context );

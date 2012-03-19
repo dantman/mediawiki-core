@@ -197,6 +197,27 @@ class STP_Tag extends STP_Node {
 		return $this->attributes;
 	}
 
+	public function expandStaticAttributes() {
+		$attrs = array();
+		foreach ( $this->attributes as $attr ) {
+			$name = $attr->name();
+			if ( $attr->isValueless() ) {
+				$value = true;
+			} else {
+				$value = "";
+				foreach ( $attr as $piece ) {
+					if ( is_string( $piece ) ) {
+						$value .= $piece;
+					} else {
+						throw new STPNonStaticValueException( "Found an illegal dynamic value in $name attribute." );
+					}
+				}
+			}
+			$attrs[$name] = $value;
+		}
+		return $attrs;
+	}
+
 	public function toString_startExt( $ind ) {
 		$str = ":";
 		if ( $this->tagName ) {
@@ -267,7 +288,7 @@ class STP_Conditional extends STP_Node {
 }
 
 class STP_Comment extends STP_Node {
-
+// XXX: Should we actually make comments non-nodes?
 }
 
 class SkinTemplateParser {

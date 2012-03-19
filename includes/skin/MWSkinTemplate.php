@@ -9,13 +9,14 @@ use MWSkinTemplateTypes as TT;
 class MWSkinTemplate {
 
 	private $fileName;
-	private $tree;
+	private $loaded, $tree, $regions;
 
 	public function __construct( $fileName ) {
 		if ( !is_readable( $fileName ) ) {
 			throw new Exception( "Template file does not exist or is not readable." );
 		}
 		$this->fileName = $fileName;
+		$this->loaded = false;
 	}
 
 	public static function newFromFile( $fileName ) {
@@ -30,17 +31,49 @@ class MWSkinTemplate {
 		return file_get_contents( $this->fileName );
 	}
 
+	private static function extractRegions( $tree ) {
+		$regions = new SplDoublyLinkedList;
+
+		$queue = new SplQueue;
+		$queue->enqueue( $tree );
+		while( !$queue->isEmpty() ) {
+			$node = $queue->dequeue();
+			if ( $node instanceof STP_Node ) {
+				foreach ( $node as $child ) {
+					$queue->enqueue( $child );
+				}
+			}
+			if ( $node instanceof STP_Tag ) {
+				if ( $node->blankFirstAttribute() == 'mw:region' ) {
+					$attrs = $node->expandStaticAttributes();
+					$region = MWSkinRegion::newFromAttributes( $attrs ); 
+					$regions->push( $region );
+				}
+			}
+		}
+
+		return $regions;
+	}
+
 	public function parse() {
+		if ( $this->loaded ) {
+			return;
+		}
 		$stp = new SkinTemplateParser;
 		// @todo See if optimizing this by caching the tree in some form has value
 		$this->tree = $stp->parse( $this->getText() );
+		$this->regions = self::extractRegions( $this->tree );
+		$this->loaded = true;
 	}
 
 	public function getTree() {
-		if ( !isset( $this->tree ) ) {
-			$this->parse();
-		}
+		$this->parse();
 		return $this->tree;
+	}
+
+	public function getRegions() {
+		$this->parse();
+		return $this->regions;
 	}
 
 	public function outputBody( MWTemplateContext $context ) {

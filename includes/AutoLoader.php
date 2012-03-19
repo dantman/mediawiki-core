@@ -777,11 +777,13 @@ $wgAutoloadLocalClasses = array(
 	'SqlSearchResultSet' => 'includes/search/SearchEngine.php',
 
 	# includes/skin
+	'MWRegionBlock' => 'includes/skin/MWRegions.php',
 	'MWSkin' => 'includes/skin/MWSkin.php',
 	'MWSkinFunction' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunctionArgs' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunction_msg' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunction_nofunction' => 'includes/skin/MWSkinFunction.php',
+	'MWSkinRegion' => 'includes/skin/MWRegions.php',
 	'MWSkinTemplate' => 'includes/skin/MWSkinTemplate.php',
 	'MWSkinTemplateContext' => 'includes/skin/MWSkin.php',
 	'MWSkinTemplateTypes\Error' => 'includes/skin/TemplateTypes.php',
