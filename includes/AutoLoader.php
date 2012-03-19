@@ -778,6 +778,7 @@ $wgAutoloadLocalClasses = array(
 
 	# includes/skin
 	'MWRegionBlock' => 'includes/skin/MWRegions.php',
+	'MWRegionBlocks' => 'includes/skin/MWRegions.php',
 	'MWSkin' => 'includes/skin/MWSkin.php',
 	'MWSkinFunction' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunctionArgs' => 'includes/skin/MWSkinFunction.php',
@@ -794,7 +795,7 @@ $wgAutoloadLocalClasses = array(
 	'MWSkinTemplateTypes\Text' => 'includes/skin/TemplateTypes.php',
 	'MWTemplateContext' => 'includes/skin/MWTemplateContext.php',
 	'MWTemplateContextExtension' => 'includes/skin/MWTemplateContext.php',
-	'MWTemplateContextNoVariableException' => 'includes/skin/MWTemplateContext.php',
+	'MWTemplateContextNoValueException' => 'includes/skin/MWTemplateContext.php',
 	'SkinTemplateParser' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Attr' => 'includes/skin/SkinTemplateParser.php',
 	'STP_Comment' => 'includes/skin/SkinTemplateParser.php',

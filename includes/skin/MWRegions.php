@@ -5,17 +5,69 @@
  * @file
  */
 
-class MWRegionBlock {
+class MWRegionBlocks {
+
+	private $blocks;
+
+	public function __construct() {
+		$this->blocks = new SplDoublyLinkedList;
+	}
+
+	public function addRegion( $region ) {
+		$this->blocks->push( $region );
+	}
+
+	public function fillRegions( $regions ) {
+		// XXX: This code is just so the test will work
+		$primary = null;
+		foreach ( $regions as $region ) {
+			if ( $region->isPrimary() ) {
+				$primary = $region;
+			}
+		}
+		if ( !$primary ) {
+			$primary = $region->bottom();
+		}
+		// XXX: For now we're assuming everything goes in one primary region
+		$primary->clearBlocks();
+		foreach ( $this->blocks as $block ) {
+			$primary->addBlock( $block );
+		}
+	}
 
 }
 
-class MWSkinRegion {
+class MWRegionBlock {
+
+	private $name, $html;
+
+	public function __construct( $name, array $options = array() ) {
+		$this->name = $name;
+		$this->options = $options;
+		$this->html = '';
+	}
+
+	public function name() {
+		return $this->name;
+	}
+
+	public function addHTML( $html ) {
+		$this->html .= $html;
+	}
+
+	public function getHTML() {
+		return $this->html;
+	}
+
+}
+
+class MWSkinRegion implements IteratorAggregate {
 
 	const SIZE_NORMAL = 1;
 	const SIZE_NARROW = 2;
 	const SIZE_WIDE = 3;
 
-	private $name, $size, $isPrimary, $isSpecial;
+	private $name, $size, $isPrimary, $isSpecial, $blocks;
 
 	public function __construct( $name, array $options ) {
 		$this->name = $name;
@@ -50,6 +102,33 @@ class MWSkinRegion {
 		$options['primary'] = isset( $attrs['primary'] );
 		$options['special'] = isset( $attrs['special'] );
 		return new self( $name, $options );
+	}
+
+	public function name() {
+		return $this->name;
+	}
+
+	public function isPrimary() {
+		return $this->isPrimary; 
+	}
+
+	public function clearBlocks() {
+		unset( $this->blocks );
+	}
+
+	public function addBlock( $block ) {
+		if ( !isset( $this->blocks ) ) {
+			$this->blocks = new SplDoublyLinkedList;
+		}
+		$this->blocks->push( $block );
+	}
+
+	public function getIterator() {
+		if ( isset( $this->blocks ) ) {
+			return new IteratorIterator( $this->blocks );
+		} else {
+			return new EmptyIterator;
+		}
 	}
 
 }

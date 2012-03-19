@@ -36,6 +36,9 @@ class OutputPage extends ContextSource {
 	/// Contains all of the <body> content. Should be private we got set/get accessors and the append() method.
 	var $mBodytext = '';
 
+	/// MWRegion containing all the MWRegionBlocks inside this output page
+	private $mRegions;
+
 	/**
 	 * Holds the debug lines that will be output as comments in page source if
 	 * $wgDebugComments is enabled. See also $wgShowDebug.
@@ -243,6 +246,8 @@ class OutputPage extends ContextSource {
 		} else {
 			$this->setContext( $context );
 		}
+
+		$this->mRegions = new MWRegionBlocks;
 	}
 
 	/**
@@ -1295,6 +1300,10 @@ class OutputPage extends ContextSource {
 	 */
 	public function getHTML() {
 		return $this->mBodytext;
+	}
+
+	public function getRegions() {
+		return $this->mRegions;
 	}
 
 	/**

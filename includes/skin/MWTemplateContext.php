@@ -8,10 +8,11 @@ use MWSkinTemplateTypes as TT;
 
 class MWTemplateContext {
 
-	private $variables;
+	private $variables, $regions;
 
 	public function __construct( ) {
 		$this->variables = array();
+		$this->regions = array();
 		$this->extensions = new SplDoublyLinkedList;
 	} 
 
@@ -28,12 +29,29 @@ class MWTemplateContext {
 				try {
 					$this->variables[$name] = $ext->getVariable( $name );
 					break;
-				} catch ( MWTemplateContextNoVariableException $e ) {
+				} catch ( MWTemplateContextNoValueException $e ) {
 					// Not found, continue
 				}
 			}
 		}
 		return $this->variables[$name];
+	}
+
+	public function getRegion( $name ) {
+		if ( !array_key_exists( $name, $this->regions ) ) {
+			// Set region to null so it will be set to null if we don't find a value for it
+			$this->regions[$name] = null;
+			// Loop over extensions and see if one has the region
+			foreach ( $this->extensions as $ext ) {
+				try {
+					$this->regions[$name] = $ext->getRegion( $name );
+					break;
+				} catch ( MWTemplateContextNoValueException $e ) {
+					// Not found, continue
+				}
+			}
+		}
+		return $this->regions[$name];
 	}
 
 	private function parseKey( $key ) {
@@ -131,12 +149,16 @@ class MWTemplateContext {
 
 }
 
-class MWTemplateContextNoVariableException extends Exception {}
+class MWTemplateContextNoValueException extends Exception {}
 
 class MWTemplateContextExtension {
 
 	public function getVariable( $name ) {
-		throw new MWTemplateContextNoVariableException;
+		throw new MWTemplateContextNoValueException;
+	}
+
+	public function getRegion( $name ) {
+		throw new MWTemplateContextNoValueException;
 	}
 
 }

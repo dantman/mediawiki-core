@@ -178,6 +178,22 @@ class MWSkinTemplate {
 								// Just open a non-void element
 								echo Html::openElement( $tagName, $attrs );
 							}
+						} elseif ( $node instanceof STP_Tag && $node->blankFirstAttribute() == 'mw:region' ) {
+							$attrs = $node->expandStaticAttributes();
+							$region = $context->getRegion( $attrs['mw:region'] );
+							if ( !$region ) {
+								throw new Exception( __METHOD__ . ": <mw:region> tag present but no extracted region object present." );
+							}
+							echo "\n<!-- Start of " . htmlspecialchars( $region->name() ) . " region -->\n";
+							foreach ( $region as $block ) {
+								echo "\n<!-- Start of " . htmlspecialchars( $block->name() ) . " block -->\n";
+								echo $block->getHTML();
+								echo "\n<!-- End of " . htmlspecialchars( $block->name() ) . " block -->\n";
+							}
+							echo "\n<!-- End of " . htmlspecialchars( $region->name() ) . " region -->\n";
+							
+							// Regions aren't meant to have children
+							$recursive = false;
 						}
 						// Let void tags skip recursion
 						if ( $recursive ) {
