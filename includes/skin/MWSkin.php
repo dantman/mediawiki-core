@@ -11,6 +11,7 @@ class MWSkin extends Skin {
 	public function __construct( $skinname ) {
 		$this->skinname = $skinname;
 		$this->stylename = $skinname; // @fixme May need separate stylename for subskins?
+		$this->metadata = MWSkinMetadata::newFromFile( "{$GLOBALS['IP']}/skins/{$this->skinname}/{$this->skinname}.xml" );
 	}
 
 	protected function execute() {
@@ -59,10 +60,9 @@ class MWSkin extends Skin {
 			$out->getRegions()->addRegion( $afterContentBlock );
 		}
 		
-		// @temp @fixme This method of doing things is just to get the initial test working
-		$tpl = MWSkinTemplate::newFromFile( "{$GLOBALS['IP']}/skins/{$this->skinname}/{$this->skinname}.tpl" );
+		$tpl = $this->metadata->getTemplate();
 		if ( !$tpl ) {
-			throw new Exception( "Template file does not exist." );
+			throw new Exception( "Template does not exist." );
 		}
 
 		$skinRegions = $tpl->getRegions();
@@ -82,9 +82,19 @@ class MWSkin extends Skin {
 	}
 
 	function setupSkinUserCss( OutputPage $out ) {
-
+		$out->addModuleStyles( array( 'mediawiki.legacy.shared', 'mediawiki.legacy.commonPrint' ) );
+		
+		foreach ( $this->metadata->getModules() as $name => $module ) {
+			if ( $module['load'] ) {
+				$out->addModuleStyles( $name );
+			}
+		}
 	}
 
+
+	public function commonPrintStylesheet() {
+		return false;
+	}
 
 }
 

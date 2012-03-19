@@ -1,0 +1,17 @@
+<skin>
+	<name lang="en">Jimi</name>
+	<description lang="en">A ''plain'' skin ;).</description>
+	<template  primary="true">jimi.tpl</template>
+	<resource>
+		<style common="elements" />
+		<style common="content" />
+		<style common="interface" />
+		<style media="screen">jimi.css</style>
+	</resource>
+	<resource name="skin.jimi.jimi.jack" load="true">
+		<style media="screen">jimi.css</style>
+	</resource>
+	<resource name="skin.jimi.jimi.joe">
+		<style media="screen">jimi.css</style>
+	</resource>
+</skin>
