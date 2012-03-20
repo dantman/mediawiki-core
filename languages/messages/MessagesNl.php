@@ -735,6 +735,9 @@ $2",
 'ns-specialprotected'  => 'Pagina\'s in de naamruimte "{{ns:special}}" kunnen niet bewerkt worden.',
 'titleprotected'       => "Het aanmaken van deze pagina is beveiligd door [[User:$1|$1]].
 De gegeven reden is ''$2''.",
+'filereadonlyerror'    => 'Het was niet mogelijk het bestand "$1" aan te passen omdat de bestandsrepository "$2" op dit moment alleen-lezen is.
+
+De opgegeven reden is "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Onjuiste configuratie: onbekende virusscanner: ''$1''.",

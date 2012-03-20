@@ -997,9 +997,6 @@ Please report this to an [[Special:ListUsers/sysop|administrator]], making note 
 'directorycreateerror' => 'Could not create directory "$1".',
 'filenotfound'         => 'Could not find file "$1".',
 'fileexistserror'      => 'Unable to write to file "$1": File exists.',
-'filereadonlyerror'    => 'Unable to the modify the file "$1" because the file repository "$2" is in read-only mode.
-	
-The administrator who locked it offered this explanation: "$3".',
 'unexpected'           => 'Unexpected value: "$1"="$2".',
 'formerror'            => 'Error: Could not submit form.',
 'badarticleerror'      => 'This action cannot be performed on this page.',
@@ -1037,6 +1034,9 @@ $2',
 'ns-specialprotected'  => 'Special pages cannot be edited.',
 'titleprotected'       => 'This title has been protected from creation by [[User:$1|$1]].
 The reason given is "\'\'$2\'\'".',
+'filereadonlyerror'    => 'Unable to modify the file "$1" because the file repository "$2" is in read-only mode.
+
+The reason given is "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Bad configuration: Unknown virus scanner: ''$1''",
@@ -1297,7 +1297,7 @@ You cannot use the 'e-mail this user' feature unless a valid e-mail address is s
 Your current IP address is $3, and the block ID is #$5.
 Please include all above details in any queries you make.",
 'autoblockedtext'                  => 'Your IP address has been automatically blocked because it was used by another user, who was blocked by $1.
-The reason given is this:
+The reason given is:
 
 :\'\'$2\'\'
 
@@ -2270,7 +2270,7 @@ If the problem persists, contact an [[Special:ListUsers/sysop|administrator]].',
 'backend-fail-read'          => 'Could not read file $1.',
 'backend-fail-create'        => 'Could not create file $1.',
 'backend-fail-maxsize'       => 'Could not create file $1 because it is larger than {{PLURAL:$2|one byte|$2 bytes}}.',
-'backend-fail-readonly'      => 'The storage backend "$1" is currently read-only. The reason given was: "$2"',
+'backend-fail-readonly'      => 'The storage backend "$1" is currently read-only. The reason given is: "\'\'$2\'\'"',
 'backend-fail-synced'        => 'The file "$1" is in an inconsistent state within the internal storage backends',
 'backend-fail-connect'       => 'Could not connect to storage backend "$1".',
 'backend-fail-internal'      => 'An unknown error occurred in storage backend "$1".',
@@ -2660,6 +2660,11 @@ You can narrow down the view by selecting a log type, the username (case-sensiti
 'allpagesbadtitle'  => 'The given page title was invalid or had an inter-language or inter-wiki prefix.
 It may contain one or more characters which cannot be used in titles.',
 'allpages-bad-ns'   => '{{SITENAME}} does not have namespace "$1".',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'You are viewing a cached version of this page, which can be up to $1 old.',
+'cachedspecial-viewing-cached-ts'  => 'You are viewing a cached version of this page, which might not be completely actual.',
+'cachedspecial-refresh-now'        => 'View latest.',
 
 # Special:Categories
 'categories'                    => 'Categories',
@@ -3171,7 +3176,7 @@ See [[Special:BlockList|IP block list]] to review blocks.',
 'contribslink'                    => 'contribs',
 'emaillink'                       => 'send e-mail',
 'autoblocker'                     => 'Autoblocked because your IP address has been recently used by "[[User:$1|$1]]".
-The reason given for $1\'s block is: "$2"',
+The reason given for $1\'s block is "\'\'$2\'\'"',
 'blocklogpage'                    => 'Block log',
 'blocklog-showlog'                => 'This user has been blocked previously.
 The block log is provided below for reference:',
@@ -4819,5 +4824,16 @@ Otherwise, you can use the easy form below. Your comment will be added to the pa
 'api-error-unknownerror'                  => 'Unknown error: "$1".',
 'api-error-uploaddisabled'                => 'Uploading is disabled on this wiki.',
 'api-error-verification-error'            => 'This file might be corrupt, or have the wrong extension.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|second|seconds}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minute|minutes}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hour|hours}}',
+'duration-days'      => '$1 {{PLURAL:$1|day|days}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|week|weeks}}',
+'duration-years'     => '$1 {{PLURAL:$1|year|years}}',
+'duration-decades'   => '$1 {{PLURAL:$1|decade|decades}}',
+'duration-centuries' => '$1 {{PLURAL:$1|century|centuries}}',
+'duration-millennia' => '$1 {{PLURAL:$1|millennium|millennia}}',
 
 );
