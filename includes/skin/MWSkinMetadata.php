@@ -66,7 +66,7 @@ class MWSkinMetadata {
 						$module['styles'][$path] = array( 'media' => $media );
 					} else {
 						wfWarn( "Invalid common style type." );
-					} 
+					}
 				} else {
 					$media = strval( $style['media'] );
 					if( !$media ) {

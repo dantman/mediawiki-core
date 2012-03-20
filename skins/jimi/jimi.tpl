@@ -1,6 +1,6 @@
 <div id="content" class="mw-body">
 	<mw:region="messages" size="wide" special />
-	<h1 id="firstHeading" class="firstHeading">{title}</h1>
+	<h1 id="firstHeading" class="firstHeading">{page.title}</h1>
 	<div id="bodyContent">
 		<div id="siteSub" mw:if="isarticle">{msg:tagline}</div>
 		<mw:loop="subtitles">

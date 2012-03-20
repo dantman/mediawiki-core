@@ -77,6 +77,8 @@ class MWSkinTemplate {
 	}
 
 	public function outputBody( MWTemplateContext $context ) {
+		global $wgScript;
+
 		$tree = $this->getTree();
 		if ( $tree instanceof Exception ) {
 			echo "<pre>" . htmlspecialchars( $tree ) . "</pre>";
@@ -107,6 +109,7 @@ class MWSkinTemplate {
 					if ( $node instanceof STP_Comment ) {
 					} else {
 						$recursive = true;
+						$prepend = array();
 						if ( $node instanceof STP_Tag && $tagName = $node->name() ) {
 							$attrs = array();
 							foreach( $node->attributes() as $attr ) {
@@ -167,6 +170,15 @@ class MWSkinTemplate {
 								}
 								$attrs[$name] = $value;
 							}
+							if ( $tagName == 'form' && isset( $attrs['action'] ) && $attrs['action'] == 'mw:search' ) {
+								$attrs['action'] = $wgScript;
+
+						 		$input = new STP_Tag( 'input' );
+								$input->setAttribute( 'type', 'hidden' );
+								$input->setAttribute( 'name', 'title' );
+								$input->setAttribute( 'value', SpecialPage::getTitleFor( 'Search' )->getPrefixedDBKey() );
+								$prepend[] = $input;
+							}
 							if ( Html::isVoid( $tagName ) ) {
 								// Output the whole tag for a void element
 								$recursive = false;
@@ -200,6 +212,11 @@ class MWSkinTemplate {
 							$item = new stdClass;
 							$item->node = $node;
 							$item->queue = new SplQueue;
+							if ( $prepend ) {
+								foreach ( $prepend as $c ) {
+									$item->queue->push( $c );
+								}
+							}
 							foreach( $node as $child ) {
 								$item->queue->push( $child );
 							}

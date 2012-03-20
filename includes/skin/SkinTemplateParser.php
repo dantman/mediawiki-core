@@ -180,8 +180,8 @@ class STP_Tag extends STP_Node {
 		}
 	}
 
-	public function setAttribute( $name, $value, $blankFirst = false ) {
-		if ( array_key_exists( $name, $this->attributes ) ) {
+	public function setAttribute( $name, $value /*, $blankFirst = false*/ ) {
+		/*if ( array_key_exists( $name, $this->attributes ) ) {
 			throw new Exception( "Duplicate attribute $name found on tag." );
 		}
 		if ( $blankFirst ) {
@@ -189,8 +189,10 @@ class STP_Tag extends STP_Node {
 				throw new Exception( "Tried to set a blank first attribute on a node already with attributes." );
 			}
 			$this->blankFirstAttribute = $name;
-		}
-		$this->attributes[$name] = $value;
+		}*/
+		$attr = new STP_Attr( $name );
+		$attr->pushChild( $value );
+		$this->attributes->push( $attr );
 	}
 
 	public function attributes() {

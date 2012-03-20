@@ -83,7 +83,7 @@ class MWSkin extends Skin {
 
 	function setupSkinUserCss( OutputPage $out ) {
 		$out->addModuleStyles( array( 'mediawiki.legacy.shared', 'mediawiki.legacy.commonPrint' ) );
-		
+
 		foreach ( $this->metadata->getModules() as $name => $module ) {
 			if ( $module['load'] ) {
 				$out->addModuleStyles( $name );
@@ -119,8 +119,10 @@ class MWSkinTemplateContext extends MWTemplateContextExtension {
 	public function getVariable( $name ) {
 		$out = $this->skin->getOutput();
 		switch( $name ) {
-		case 'title':
-			return new TT\HtmlText( $out->getPageTitle() );
+		case 'page':
+			$page = new MWTemplateContext;
+			$page->set( 'title', new TT\HtmlText( $out->getPageTitle() ) );
+			return $page;
 		case 'isarticle':
 			return $out->isArticle();
 		case 'footer':

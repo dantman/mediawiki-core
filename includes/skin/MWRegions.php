@@ -39,16 +39,28 @@ class MWRegionBlocks {
 
 class MWRegionBlock {
 
-	private $name, $html;
+	const SIZE_NORMAL = 1;
+	const SIZE_NARROW = 2;
+	const SIZE_WIDE = 3;
+	const SIZE_SHORT = 4;
+
+	private $name, $size, $html;
 
 	public function __construct( $name, array $options = array() ) {
 		$this->name = $name;
-		$this->options = $options;
+		$this->size = self::SIZE_NORMAL;
 		$this->html = '';
 	}
 
 	public function name() {
 		return $this->name;
+	}
+
+	public function setSize( $size ) {
+		if ( !in_array( $size, array( self::SIZE_NORMAL, self::SIZE_NARROW, self::SIZE_WIDE, self::SIZE_SHORT ) ) ) {
+			throw new Exception( "Invalid region block size." );
+		}
+		$this->size = $size;
 	}
 
 	public function addHTML( $html ) {
@@ -66,6 +78,7 @@ class MWSkinRegion implements IteratorAggregate {
 	const SIZE_NORMAL = 1;
 	const SIZE_NARROW = 2;
 	const SIZE_WIDE = 3;
+	const SIZE_SHORT = 4;
 
 	private $name, $size, $isPrimary, $isSpecial, $blocks;
 

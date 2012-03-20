@@ -1596,6 +1596,7 @@ abstract class Skin extends ContextSource {
 	function __call( $fname, $args ) {
 		$realFunction = array( 'Linker', $fname );
 		if ( is_callable( $realFunction ) ) {
+			wfDeprecated( __CLASS__ . '::' . $fname, '1.20' );
 			return call_user_func_array( $realFunction, $args );
 		} else {
 			$className = get_class( $this );
