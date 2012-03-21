@@ -784,6 +784,7 @@ $wgAutoloadLocalClasses = array(
 	'MWSkinFunctionArgs' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunction_msg' => 'includes/skin/MWSkinFunction.php',
 	'MWSkinFunction_nofunction' => 'includes/skin/MWSkinFunction.php',
+	'MWSkinLinksDefinition' => 'includes/skin/MWSkinLinksDefinition.php',
 	'MWSkinMetadata' => 'includes/skin/MWSkinMetadata.php',
 	'MWSkinRegion' => 'includes/skin/MWRegions.php',
 	'MWSkinTemplate' => 'includes/skin/MWSkinTemplate.php',

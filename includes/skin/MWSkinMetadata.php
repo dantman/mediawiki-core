@@ -53,6 +53,22 @@ class MWSkinMetadata {
 		return false;
 	}
 
+	/**
+	 * Return a definition for link grouping within this skin
+	 * @return MWSkinLinksDefinition
+	 */
+	public function getLinksDefinition() {
+		$linksDefinition = strval( $this->xml->{'links-definition'} );
+		if ( $linksDefinition ) {
+			return MWSkinLinksDefinition::newFromFile( "{$this->dir}/$linksDefinition" );
+		}
+		return false;
+	}
+
+	/**
+	 * Return an array of ResourceLoader modules defined in this skin's metadata
+	 * @return Array
+	 */
 	public function getModules() {
 		$modules = array();
 		foreach ( $this->xml->resource as $resource ) {

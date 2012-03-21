@@ -14,6 +14,10 @@ class MWSkin extends Skin {
 		$this->metadata = MWSkinMetadata::newFromFile( "{$GLOBALS['IP']}/skins/{$this->skinname}/{$this->skinname}.xml" );
 	}
 
+	public function getMetadata() {
+		return $this->metadata; 
+	}
+
 	protected function execute() {
 		wfProfileIn( __METHOD__ );
 
@@ -125,6 +129,10 @@ class MWSkinTemplateContext extends MWTemplateContextExtension {
 			return $page;
 		case 'isarticle':
 			return $out->isArticle();
+		case 'links':
+			$dfn = $this->skin->getMetadata()->getLinksDefinition();
+
+			return new MWTemplateContext; // XXX: Till we have $dfn working
 		case 'footer':
 			$footer = new MWTemplateContext;
 			//$footer->set( 'links',  );

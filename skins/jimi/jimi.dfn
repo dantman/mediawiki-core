@@ -1,0 +1,26 @@
+[personal_links]
+* user.*.*
+[content_navigation]
+* page.namespaces
+* views:
+** page.views.*
+** page.actions.watch
+** page.actions.unwatch
+* page.actions
+* related.variants
+[related]
+* related.*
+[toolbox]
+* page.*.*
+* global.*
+* **
+[bad]
+*
+***
+* *.foo
+* foo.*.foo
+* foo.**.*
+* foo-
+* _9
+* foo*
+* foo..bar
