@@ -118,12 +118,12 @@ class MWSkinTemplate {
 									$value = true;
 								} else {
 									$value = "";
-									$queue = new SplQueue;
+									$attrQueue = new SplQueue;
 									foreach ( $attr as $piece ) {
-										$queue->push( $piece );
+										$attrQueue->push( $piece );
 									}
-									while( !$queue->isEmpty() ) {
-										$piece = $queue->shift();
+									while( !$attrQueue->isEmpty() ) {
+										$piece = $attrQueue->shift();
 										if ( is_string( $piece ) ) {
 											$value .= $piece;
 										} elseif ( $piece instanceof STP_Substitution ) {
@@ -159,7 +159,7 @@ class MWSkinTemplate {
 													$children = clone $piece->children();
 													$children->setIteratorMode( SplDoublyLinkedList::IT_MODE_LIFO | SplDoublyLinkedList::IT_MODE_KEEP );
 													foreach ( $children as $child ) {
-														$queue->unshift( $child );
+														$attrQueue->unshift( $child );
 													}
 												}
 											}
