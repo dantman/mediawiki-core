@@ -27,14 +27,14 @@ class MWSkinLinksDefinition {
 		return $dfn;
 	}
 
-	protected static function validName( $name ) {
+	protected static function validName( $name, $type = 'rule' ) {
 		$name = explode( '.', $name );
-		// Validate the indiviual pieces
+		// Validate the individual pieces
 		// * is only valid as * or **, no more than ** and it cannot be used anywhere else
 		// * - and _ must be used in a foo-bar pattern, not as foo- or -bar
 		// A double .. creating an empty item is not valid
 		foreach ( $name as $piece ) {
-			if ( !preg_match( '/^([a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*|\*{1,2})$/', $piece ) ) {
+			if ( !preg_match( '/^([a-zA-Z0-9]+([-_][a-zA-Z0-9]+)*|\*{1,2}|#)$/', $piece ) ) {
 				// Invalid
 				return false;
 			}
@@ -42,16 +42,19 @@ class MWSkinLinksDefinition {
 		// Validate wildcards
 		// - Wildcards must be at the end, you cannot have foo.*.foo
 		// - A ** wildcard must be the very last, and you cannot have more than one
+		// - #'s can also only be the very last
 		$wild = 0;
 		foreach ( $name as $piece ) {
-			if ( $wild >= 2 ) {
-				// ** must be the very last, this is invalid
+			if ( $wild >= 2 || $wild === '#' ) {
+				// ** and # must be the very last, this is invalid
 				return false;
 			}
-			if ( $piece == '*' ) {
+			if ( $piece === '*' ) {
 				$wild = 1;
-			} elseif ( $piece == '**' ) {
+			} elseif ( $piece === '**' ) {
 				$wild = 2;
+			} elseif ( $piece === '#' ) {
+				$wild = '#';
 			} else {
 				if ( $wild >= 1 ) {
 					// foo.*.foo is invalid
@@ -59,6 +62,18 @@ class MWSkinLinksDefinition {
 					return false;
 				}
 			}
+		}
+		// * is not valid in forInsert, and # is not valid in normal names
+		$last = $name[count( $name ) - 1];
+		if ( $type !== 'rule' && $last[0] === '*' ) {
+			// * and ** is only valid in rule
+			return false;
+		} elseif ( $type !== 'link' && $last === '#' ) {
+			// # is only valid in linke
+			return false;
+		} elseif ( $type === 'as' && count( $name ) > 1 ) {
+			// as cannot have multiple pieces
+			return false;
 		}
 		// Return the separated name if valid
 		return $name;
@@ -85,18 +100,26 @@ class MWSkinLinksDefinition {
 				// Clear the stack
 				while( !$stack->isEmpty() ) {
 					$stack->pop();
-				}
+				} 
 				// Push the group onto it
 				$stack->push( $group );
-			} elseif ( preg_match( '/^(?P<start>\*+|\++|-+)\s+(?<name>[-_.a-zA-Z0-9*]+)$/', $line, $m ) ) {
+			} elseif ( preg_match( '/^(?P<start>\*+|\++|-+)\s+(?<name>[-_.a-zA-Z0-9*]+)(?:\s+as\s+(?<as>[-_.a-zA-Z0-9*]+)|(?P<colon>:))?$/', $line, $m ) ) {
 				if ( $stack->isEmpty() ) {
 					wfWarn( __METHOD__ . ': Ignored link rule outside of group.' ); 
 					continue;
 				}
-				$name = self::validName( $m['name'] );
+				$name = self::validName( $m['name'], isset( $m['colon'] ) && $m['colon'] ? 'as' : 'rule' );
 				if ( !$name ) {
-					wfWarn( __METHOD__ . ': Invalid rule name "' . $name . '".' );
+					wfWarn( __METHOD__ . ': Invalid rule name "' . $m['name'] . '".' );
 					continue;
+				}
+				$as = null;
+				if ( isset( $m['as'] ) && $m['as'] ) {
+					$as = self::validName( $m['as'], 'as' );
+					if ( !$as ) {
+						wfWarn( __METHOD__ . ': Invalid as name "' . $m['as'] . '".' );
+						continue;
+					}
 				}
 				$depth = strlen( $m['start'] );
 				// Trim the size of the stack to match our depth
@@ -106,12 +129,26 @@ class MWSkinLinksDefinition {
 				}
 				// Deal with bad depths, eg: a *** following a * with no ** in between
 				if ( $stack->count() != $depth ) {
-					wfWarn( __METHOD__ . ': Invalid depth for rule "' . $name . '".' );
+					wfWarn( __METHOD__ . ': Invalid depth for rule "' . implode( '.', $name ) . '".' );
 					continue;
 				}
 				$rule = new stdClass;
-				$rule->name = $name;
-				$rule->type = $m['start'][0];
+				if ( isset( $m['colon'] ) && $m['colon'] ) {
+					$rule->name = false;
+					$rule->as = implode( '.', $name );
+					$rule->type = false;
+				} else {
+					$rule->name = $name;
+					$last = $name[count( $name ) - 1];
+					if ( $as ) {
+						$rule->as = implode( '.', $as );
+					} elseif ( $last[0] !== '*' ) {
+						$rule->as = $last;
+					} else {
+						$rule->as = false;
+					}
+					$rule->type = $m['start'][0];
+				}
 				$rule->list = new SplDoublyLinkedList; 
 				$stack->top()->list->push( $rule );
 				$stack->push( $rule );
@@ -121,7 +158,7 @@ class MWSkinLinksDefinition {
 	 	}
 		$x = null;
 		$x = function( $i ) use( &$x ) {
-			echo '<li>' . implode( '.', $i->name ) . '<ul>';
+			echo '<li>(' . $i->type . ') ' . ( $i->name ? implode( '.', $i->name ) : '{none}' ) . ( $i->as ? ' as ' . $i->as : '' ) . '<ul>';
 			foreach ( $i->list as $it ) {
 				$x( $it );
 			}
@@ -136,6 +173,15 @@ class MWSkinLinksDefinition {
 			echo '</ul></li>';
 		}
 		echo '</ul>';
+	}
+
+	public function addLink( $origName, $link ) {
+		$name = self::validName( $origName, 'link' );
+		if ( !$name ) {
+			wfWarn( __METHOD__ . ': Invalid link name "' . $origName . '".' );
+			continue;
+		}
+
 	}
 
 }

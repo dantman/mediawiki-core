@@ -14,13 +14,3 @@
 * page.*.*
 * global.*
 * **
-[bad]
-*
-***
-* *.foo
-* foo.*.foo
-* foo.**.*
-* foo-
-* _9
-* foo*
-* foo..bar

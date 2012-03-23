@@ -87,7 +87,7 @@ class MWSkin extends Skin {
 
 	public function getLinkStructure() {
 		// XXX: I wonder if this is the kind of thing we could split out into a separate interface
-		$dfn = $this->getMetadata()->getLinksDefinition();
+		$links = $this->getMetadata()->getLinksDefinition();
 
 		$this->setupUserLinks( $links );
 		$this->setupPageLinks( $links );
@@ -97,13 +97,37 @@ class MWSkin extends Skin {
 
 	protected function setupUserLinks( $links ) {
 		global $wgUseCombinedLoginLink;
+		/**
+		 * user.** links
+		 */
 		$request = $this->getRequest();
 		$user = $this->getUser();
 		$title = $this->getTitle();
 
-		/**
-		 * user.** links
-		 */
+		$query = array();
+		if ( !$request->wasPosted() ) {
+			$query = $request->getValues();
+			unset( $query['title'] );
+			unset( $query['returnto'] );
+			unset( $query['returntoquery'] );
+		}
+		$query = wfArrayToCGI( $query );
+
+		# Due to bug 32276, if a user does not have read permissions,
+		# $this->getTitle() will just give Special:Badtitle, which is
+		# not especially useful as a returnto parameter. Use the title
+		# from the request instead, if there was one.
+		$page = Title::newFromURL( $request->getVal( 'title', '' ) );
+		$page = $request->getVal( 'returnto', $page );
+		$a = array();
+		if ( strval( $page ) !== '' ) {
+			$a['returnto'] = $page;
+			$query = $request->getVal( 'returntoquery', $query );
+			if( $query != '' ) {
+				$a['returntoquery'] = $query;
+			}
+		}
+		$returnto = wfArrayToCGI( $a );
 
 		$userpage = $user->getUserPage();
 		$userpageUrlDetails = array(
@@ -131,7 +155,7 @@ class MWSkin extends Skin {
 				'href' => &$usertalkUrlDetails['href'],
 				'exists' => $usertalkUrlDetails['exists'],
 				'active' => ( $usertalkUrlDetails['href'] == $pageurl )
-			) ;
+			) );
 			$href = self::makeSpecialUrl( 'Preferences' );
 			$links->addLink( 'user.tools.preferences', array(
 				'text' => $this->msg( 'mypreferences' ),
@@ -199,7 +223,7 @@ class MWSkin extends Skin {
 				$title = SpecialPage::getTitleFor( 'Userlogin' );
 				$https_url = preg_replace( '/^http:/', 'https:', $title->getFullURL() );
 				$login_url['href']  = $https_url;
-				# @todo FIXME: Class depends on skin
+				# @todo FIXME: C lass depends on skin
 				$login_url['class'] = 'link-https';
 				if ( isset( $createaccount_url ) ) {
 					$https_url = preg_replace( '/^http:/', 'https:', $title->getFullURL("type=signup") );
@@ -213,7 +237,7 @@ class MWSkin extends Skin {
 				# anonuserpage
 				$links->addLink( 'user.links.userpage', array(
 					'text' => $username,
-					'href' => &$userpageUrlDetails['href'];,
+					'href' => &$userpageUrlDetails['href'],
 					'exists' => $userpageUrlDetails['exists'],
 					'active' => ( $pageurl == $userpageUrlDetails['href'] )
 				) );
@@ -234,10 +258,13 @@ class MWSkin extends Skin {
 	}
 
 	protected function setupPageLinks( $links ) {
-		global $wgDisableLangConversion;
+		global $wgContLang;
 		/**
 		 * page.** links
 		 */
+		$out = $this->getOutput();
+		$request = $this->getRequest();
+		$user = $this->getUser();
 		$title = $this->getRelevantTitle(); // Display tabs for the relevant title rather than always the title itself
 		$onPage = $title->equals( $this->getTitle() );
 
@@ -249,6 +276,8 @@ class MWSkin extends Skin {
 		 */
 		$preventActiveTabs = false;
 		wfRunHooks( 'SkinTemplatePreventOtherActiveTabs', array( &$this, &$preventActiveTabs ) );
+
+		$namespaces = array();
 
 		// Checks if page is some kind of content
 		if ( $title->canExist() ) {
@@ -277,21 +306,54 @@ class MWSkin extends Skin {
 			if ( $subjectPage->isMainPage() ) {
 				array_unshift( $subjectMsg, 'mainpage-nstab' );
 			}
-			$links->addLink( 'pages.namespaces.subject', $this->tabAction(
-				$subjectPage, $subjectMsg, !$isTalk && !$preventActiveTabs, '', $userCanRead
-			) );
+			$text = wfMessageFallback( $subjectMsg )->setContext( $this->getContext() );
+			if ( !$text->exists() ) {
+				$text = $wgContLang->getFormattedNsText(
+					MWNamespace::getSubject( $talkPage->getNamespace() ) );
+			}
+			$namespaces['subject'] = array(
+				'text' => $text,
+				'href' => $userCanRead
+					? $subjectPage->getContentURL()
+					: $subjectPage->getLocalURL(),
+				'exists' => !$userCanRead || $subjectPage->isKnown()
+			);
 			// $content_navigation['namespaces'][$subjectId]['context'] = 'subject';
-			$links->addLink( 'page.namespaces.talk', $this->tabAction(
-				$talkPage, array( "nstab-$talkId", 'talk' ), $isTalk && !$preventActiveTabs, '', $userCanRead
-			) );
+			$text = wfMessageFallback( array( "nstab-$talkId", 'talk' ) )->setContext( $this->getContext() );
+			if ( !$text->exists() ) {
+				$text = $wgContLang->getFormattedNsText(
+					MWNamespace::getSubject( $talkPage->getNamespace() ) );
+			}
+			$namespaces['talk'] = array(
+				'text' => $text,
+				'href' => $userCanRead
+					? $talkPage->getContentURL()
+					: $talkPage->getLocalURL(),
+				'exists' => !$userCanRead || $talkPage->isKnown(),
+			);
 			// content_navigation['namespaces'][$talkId]['context'] = 'talk';
 		} else {
 			// If it's not content, it's got to be a special page
-			$links->addLink( 'page.namespaces.special', array(
-				'active' => true,
+			$namespaces['special'] = array(
 				'text' => $this->msg( 'nstab-special' ),
 				'href' => $request->getRequestURL(), // @bug 2457, 2510
-			) );
+			);
+		}
+
+		$activeNamespace = 'subject';
+		if ( !$title->canExist() ) {
+			$activeNamespace = 'special';
+		} elseif ( !$title->isTalkPage() ) {
+			$activeNamespace = 'talk';
+		}
+
+		wfRunHooks( 'SkinNamespaceLinks', array( $this, $namespaces, &$activeNamespace ) );
+
+		foreach ( $namespaces as $key => $link ) {
+			if ( $activeNamespace == $key ) {
+				$link['active'] = true;
+			}
+			$links->addLink( "page.namespaces.$key", $link );
 		}
 
 		/**
@@ -299,15 +361,23 @@ class MWSkin extends Skin {
 		 */
 		if ( $title->canExist() && $userCanRead ) {
 			wfProfileIn( __METHOD__ . '-views' );
+			// Determines if this is a talk page
+			$isTalk = $title->isTalkPage();
+
 			// Adds view view link
 			if ( $title->exists() ) {
-				$links->addLink( 'page.views.view', $this->tabAction(
-					$isTalk ? $talkPage : $subjectPage,
-					array( "$skname-view-view", 'view' ),
-					( $onPage && ($action == 'view' || $action == 'purge' ) ), '', true
-				);
-				// XXX: Reincorporate this, or not?
-				// $content_navigation['views']['view']['redundant'] = true; // signal to hide this from simple content_actions
+				$text = wfMessageFallback( "$skname-view-view", 'view' )->setContext( $this->getContext() );
+				if ( !$text->exists() ) {
+					$text = $wgContLang->getFormattedNsText(
+						MWNamespace::getSubject( $title->getNamespace() ) );
+				}
+				$links->addLink( 'page.views.view', array(
+					'active' => ( $onPage && ($action == 'view' || $action == 'purge' ) ),
+					'text' => $text,
+					'href' => $title->getContentURL(),
+					'exists' => $title->isKnown(),
+					'primary' => true, // don't collapse this in vector (XXX: Does this apply to the new system?)
+				) );
 			}
 
 			// Checks if user can edit the current page if it exists or create it otherwise
@@ -325,7 +395,7 @@ class MWSkin extends Skin {
 				$msgKey = $title->exists() || ( $title->getNamespace() == NS_MEDIAWIKI && $title->getDefaultMessageText() !== false ) ?
 					"edit" : "create";
 				$links->addLink( 'page.views.edit', array(
-					'active' => ( $isEditing && ( $section !== 'new' || !$showNewSection ) )
+					'active' => ( $isEditing && ( $section !== 'new' || !$showNewSection ) ),
 					'class' => $isTalkClass,
 					'text' => wfMessageFallback( "$skname-view-$msgKey", $msgKey )->setContext( $this->getContext() ),
 					'href' => $title->getLocalURL( $this->editUrlOptions() ),
@@ -400,7 +470,7 @@ class MWSkin extends Skin {
 							'text' => wfMessageFallback( "$skname-action-$msgKey", "{$msgKey}_short" )
 								->setContext( $this->getContext() )->numParams( $n ),
 							'href' => $undelTitle->getLocalURL( array( 'target' => $title->getPrefixedDBkey() ) )
-						);
+						) );
 					}
 				}
 			}
@@ -431,7 +501,7 @@ class MWSkin extends Skin {
 					'active' => $onPage && ( $action == 'watch' || $action == 'unwatch' ),
 					'text' => $this->msg( $mode ), // uses 'watch' or 'unwatch' message
 					'href' => $title->getLocalURL( array( 'action' => $mode, 'token' => $token ) )
-				);
+				) );
 			}
 			wfProfileOut( __METHOD__ . '-actions' );
 		}
@@ -442,12 +512,12 @@ class MWSkin extends Skin {
 		if ( $out->isArticleRelated() ) {
 			$links->addLink( 'page.links.whatlinkshere', array(
 				'text' => $this->msg( 'whatlinkshere' ),
-				'href' => SpecialPage::getTitleFor( 'Whatlinkshere', $this->thispage )->getLocalUrl()
+				'href' => SpecialPage::getTitleFor( 'Whatlinkshere', $out->getTitle()->getPrefixedDBkey() )->getLocalUrl()
 			) );
 			if ( $this->getTitle()->getArticleID() ) {
-				$links->addLink( 'page.links.recentchangeslinked'] = array(
+				$links->addLink( 'page.links.recentchangeslinked', array(
 					'text' => $this->msg( 'recentchangeslinked-toolbox' ),
-					'href' => SpecialPage::getTitleFor( 'Recentchangeslinked', $this->thispage )->getLocalUrl()
+					'href' => SpecialPage::getTitleFor( 'Recentchangeslinked', $out->getTitle()->getPrefixedDBkey() )->getLocalUrl()
 				) );
 			}
 		}
@@ -497,27 +567,31 @@ class MWSkin extends Skin {
 		if ( $user ) {
 			$rootUser = $user->getName();
 
-			$nav_urls['contributions'] = array(
+			$links->addLink( 'page.user.contributions', array(
+				'text' => $this->msg( 'contributions' ),
 				'href' => self::makeSpecialUrlSubpage( 'Contributions', $rootUser )
-			);
+			) );
 
 			if ( $user->isLoggedIn() ) {
 				$logPage = SpecialPage::getTitleFor( 'Log' );
-				$nav_urls['log'] = array(
+				$links->addLink( 'page.user.log', array(
+					'text' => $this->msg( 'log' ),
 					'href' => $logPage->getLocalUrl( array( 'user' => $rootUser ) )
-				);
+				) );
 			}
 
 			if ( $this->getUser()->isAllowed( 'block' ) ) {
-				$nav_urls['blockip'] = array(
+				$links->addLink( 'page.user.blockip', array(
+					'text' => $this->msg( 'blockip' ),
 					'href' => self::makeSpecialUrlSubpage( 'Block', $rootUser )
-				);
+				) );
 			}
 
 			if ( $this->showEmailUser( $user ) ) {
-				$nav_urls['emailuser'] = array(
+				$links->addLink( 'page.user.emailuser', array(
+					'text' => $this->msg( 'emailuser' ),
 					'href' => self::makeSpecialUrlSubpage( 'Emailuser', $rootUser )
-				);
+				) );
 			}
 		}
 
@@ -560,6 +634,10 @@ class MWSkin extends Skin {
 	}
 
 	protected function setupRelatedLinks( $links ) {
+		global $wgDisableLangConversion;
+		$user = $this->getUser();
+		$title = $this->getRelevantTitle();
+		$userCanRead = $title->quickUserCan( 'read', $user );
 		/**
 		 * related.variants.* links
 		 */
@@ -589,7 +667,7 @@ class MWSkin extends Skin {
 						'href' => $title->getLocalURL( array( 'variant' => $code ) ),
 						'lang' => $code,
 						'hreflang' => $code
-					);
+					) );
 				}
 			}
 		}
@@ -604,21 +682,18 @@ class MWSkin extends Skin {
 		if ( $wgUploadNavigationUrl ) {
 			$href = $wgUploadNavigationUrl;
 		} elseif( UploadBase::isEnabled() && UploadBase::isAllowed( $this->getUser() ) === true ) {
-
+			$href = self::makeSpecialUrl( 'Upload' );
 		}
 		if ( $href ) {
-			
+			$links->addLink( 'global.upload', array(
+				'text' => $this->msg( 'upload' ),
+				'href' => $href,
+			) );
 		}
-			? 
-			: 
-		if( $wgUploadNavigationUrl ) {
-			$nav_urls['upload'] = array( 'href' => $wgUploadNavigationUrl );
-		} elseif( UploadBase::isEnabled() && UploadBase::isAllowed( $this->getUser() ) === true ) {
-			$nav_urls['upload'] = array( 'href' => self::makeSpecialUrl( 'Upload' ) );
-		} else {
-			$nav_urls['upload'] = false;
-		}
-		$nav_urls['specialpages'] = array( 'href' => self::makeSpecialUrl( 'Specialpages' ) );
+		$links->addLink( 'global.specialpages', array(
+			'text' => $this->msg( 'specialpages' ),
+			'href' => self::makeSpecialUrl( 'Specialpages' )
+		) );
 	}
 
 	function setupSkinUserCss( OutputPage $out ) {
