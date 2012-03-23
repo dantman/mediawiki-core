@@ -735,6 +735,9 @@ $2",
 'ns-specialprotected'  => 'Pagina\'s in de naamruimte "{{ns:special}}" kunnen niet bewerkt worden.',
 'titleprotected'       => "Het aanmaken van deze pagina is beveiligd door [[User:$1|$1]].
 De gegeven reden is ''$2''.",
+'filereadonlyerror'    => 'Het was niet mogelijk het bestand "$1" aan te passen omdat de bestandsrepository "$2" op dit moment alleen-lezen is.
+
+De opgegeven reden is "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Onjuiste configuratie: onbekende virusscanner: ''$1''.",
@@ -1910,6 +1913,9 @@ Als het probleem aanhoudt, neem dan contact op met een [[Special:ListUsers/sysop
 'backend-fail-contenttype'   => 'Kon het inhoudstype van het bestand om op "$1" op te slaan niet bepalen.',
 'backend-fail-batchsize'     => 'Taak met $1 {{PLURAL:$1|bestandshandeling|bestandshandelingen}} in het opslagbackend; de limiet is $2 {{PLURAL:$2|handeling|handelingen}}.',
 
+'filejournal-fail-dbconnect' => 'Het was niet mogelijk een verbinding te maken met de journaldatabase voor het opslagbackend "$1".',
+'filejournal-fail-dbquery'   => 'Het was niet mogelijk de journaldatabase bij te werken voor het opslagbackend "$1".',
+
 # Lock manager
 'lockmanager-notlocked'        => 'Het was niet mogelijk "$1" vrij te geven; dit object is niet vergrendeld.',
 'lockmanager-fail-closelock'   => 'Het was niet mogelijk het vergrendelingsbestand voor "$1" te sluiten.',
@@ -2247,6 +2253,11 @@ U kunt ook kiezen voor specifieke logboeken en filteren op gebruiker (hoofdlette
 'allpagesbadtitle'  => 'De opgegeven paginanaam is ongeldig of had een intertaal- of interwikivoorvoegsel.
 Mogelijk bevatte de naam karakters die niet gebruikt mogen worden in paginanamen.',
 'allpages-bad-ns'   => '{{SITENAME}} heeft geen naamruimte "$1".',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'U bekijkt een cacheversie van deze pagina, die maximaal $1 oud is.',
+'cachedspecial-viewing-cached-ts'  => 'U bekijkt een cacheversie van deze pagina, die mogelijk niet volledig is bijgewerkt.',
+'cachedspecial-refresh-now'        => 'Meest recente weergeven.',
 
 # Special:Categories
 'categories'                    => 'Categorieën',
@@ -4068,5 +4079,15 @@ Anders kunt u ook het eenvoudige formulier hieronder gebruiken. Uw commentaar za
 'api-error-unknownerror'                  => 'Onbekende fout: "$1"',
 'api-error-uploaddisabled'                => 'Uploaden is niet mogelijk in deze wiki.',
 'api-error-verification-error'            => 'Dit bestand is mogelijk beschadigd of heeft een onjuiste extensie.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|seconde|seconden}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuut|minuten}}',
+'duration-hours'     => '$1 {{PLURAL:$1|uur|uren}}',
+'duration-days'      => '$1 {{PLURAL:$1|dag|dagen}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|week|weken}}',
+'duration-years'     => '$1 {{PLURAL:$1|jaar|jaar}}',
+'duration-decades'   => '$1 {{PLURAL:$1|decennium|decennia}}',
+'duration-centuries' => '$1 {{PLURAL:$1|eeuw|eeuwen}}',
 
 );

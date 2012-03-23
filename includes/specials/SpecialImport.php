@@ -279,7 +279,16 @@ class SpecialImport extends SpecialPage {
 						Xml::label( $this->msg( 'import-interwiki-namespace' )->text(), 'namespace' ) .
 					"</td>
 					<td class='mw-input'>" .
-						Xml::namespaceSelector( $this->namespace, '' ) .
+						Html::namespaceSelector(
+							array(
+								'selected' => $this->namespace,
+								'all' => '',
+							), array(
+								'name'  => 'namespace',
+								'id'    => 'namespace',
+								'class' => 'namespaceselector',
+							)
+						) .
 					"</td>
 				</tr>
 				<tr>
@@ -390,7 +399,7 @@ class ImportReporter extends ContextSource {
 			$comment = $detail; // quick
 			$dbw = wfGetDB( DB_MASTER );
 			$latest = $title->getLatestRevID();
-			$nullRevision = Revision::newNullRevision( $dbw, $title->getArticleId(), $comment, true );
+			$nullRevision = Revision::newNullRevision( $dbw, $title->getArticleID(), $comment, true );
 			if (!is_null($nullRevision)) {
 				$nullRevision->insertOn( $dbw );
 				$page = WikiPage::factory( $title );

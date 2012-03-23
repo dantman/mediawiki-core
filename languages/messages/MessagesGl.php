@@ -608,7 +608,10 @@ $2',
 'customjsprotected'    => 'Non dispón de permisos para modificar esta páxina de JavaScript, dado que contén a configuración persoal doutro usuario.',
 'ns-specialprotected'  => 'Non se poden editar as páxinas no espazo de nomes {{ns:special}}.',
 'titleprotected'       => "Este título foi protexido da creación por [[User:$1|$1]].
-A razón dada foi ''$2''.",
+O motivo achegado é ''$2''.",
+'filereadonlyerror'    => 'Non se puido modificar o ficheiro "$1" porque o repositorio "$2" está en modo de só lectura.
+
+O motivo achegado é "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Configuración errónea: escáner de virus descoñecido: ''$1''",
@@ -1755,12 +1758,16 @@ Se o problema persiste, póñase en contacto cun [[Special:ListUsers/sysop|admin
 'backend-fail-closetemp'     => 'Non se puido pechar o ficheiro temporal.',
 'backend-fail-read'          => 'Non se puido ler o ficheiro "$1".',
 'backend-fail-create'        => 'Non se puido crear o ficheiro "$1".',
+'backend-fail-maxsize'       => 'Non se puido crear o ficheiro "$1" porque {{PLURAL:$2|é de máis de $2 byte|supera os $2 bytes}}.',
 'backend-fail-readonly'      => 'Nestes intres, o sistema de almacenamento "$1" está en modo de só lectura. A razón dada é: "$2"',
 'backend-fail-synced'        => 'O ficheiro "$1" está nun estado inconsistente dentro do sistema de almacenamento interno',
 'backend-fail-connect'       => 'Non se puido conectar co sistema de almacenamento "$1".',
 'backend-fail-internal'      => 'Houbo un erro descoñecido no sistema de almacenamento "$1".',
 'backend-fail-contenttype'   => 'Non se puido determinar o tipo de contido do ficheiro a almacenar en "$1".',
 'backend-fail-batchsize'     => 'O sistema de almacenamento recibiu un feixe de $1 {{PLURAL:$1|operación|operacións}} de ficheiro; o límite está en $2 {{PLURAL:$2|operación|operacións}}.',
+
+'filejournal-fail-dbconnect' => 'Non se pode conectar coa base de datos do rexistro do sistema de almacenamento "$1".',
+'filejournal-fail-dbquery'   => 'Non se pode actualizar a base de datos do rexistro do sistema de almacenamento "$1".',
 
 # Lock manager
 'lockmanager-notlocked'        => 'Non se puido desbloquear "$1". Non está bloqueado.',
@@ -2092,6 +2099,11 @@ Pode precisar máis a vista seleccionando o tipo de rexistro, o nome do usuario 
 'allpagesprefix'    => 'Mostrar as páxinas que comezan co prefixo:',
 'allpagesbadtitle'  => 'O título dado á páxina non era válido ou contiña un prefixo inter-linguas ou inter-wikis. Pode que conteña un ou máis caracteres que non se poden empregar nos títulos.',
 'allpages-bad-ns'   => '{{SITENAME}} carece do espazo de nomes "$1".',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Está a ver unha versión da páxina gardada na caché, que pode ser de hai $1.',
+'cachedspecial-viewing-cached-ts'  => 'Está a ver unha versión da páxina gardada na caché, que pode non estar completamente actualizada.',
+'cachedspecial-refresh-now'        => 'Ir á versión máis recente.',
 
 # Special:Categories
 'categories'                    => 'Categorías',
@@ -3885,5 +3897,16 @@ En caso contrario, pode empregar o formulario sinxelo inferior. O seu comentario
 'api-error-unknownerror'                  => 'Erro descoñecido: "$1".',
 'api-error-uploaddisabled'                => 'As cargas están desactivadas neste wiki.',
 'api-error-verification-error'            => 'Este ficheiro podería estar corrupto ou ter unha extensión incorrecta.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|segundo|segundos}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuto|minutos}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hora|horas}}',
+'duration-days'      => '$1 {{PLURAL:$1|día|días}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|semana|semanas}}',
+'duration-years'     => '$1 {{PLURAL:$1|ano|anos}}',
+'duration-decades'   => '$1 {{PLURAL:$1|década|décadas}}',
+'duration-centuries' => '$1 {{PLURAL:$1|século|séculos}}',
+'duration-millennia' => '$1 {{PLURAL:$1|milenio|milenios}}',
 
 );

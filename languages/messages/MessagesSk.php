@@ -22,6 +22,7 @@
  * @author Rudko
  * @author Sp5uhe
  * @author Tchoř
+ * @author Teslaton
  * @author Urhixidur
  * @author Valasek
  * @author Wizzard
@@ -658,11 +659,14 @@ Požiadavka: $2',
 'cascadeprotected'     => 'Táto stránka bola zamknutá proti úpravám, pretože je použitá na {{PLURAL:$1|nasledovnej stránke, ktorá je zamknutá|nasledovných stránkach, ktoré sú zamknuté}} voľbou „kaskádového zamknutia“:
 $2',
 'namespaceprotected'   => "Nemáte povolenie upravovať stránky v mennom priestore '''$1'''.",
-'customcssprotected'   => 'Nemáte právo upravovať túto CSS stránku, pretože obsahuje osobné nastavenie iného užívateľa.',
-'customjsprotected'    => 'Nemáte právo upravovať túto JavaScript stránku, pretože obsahuje osobné nastavenie iného užívateľa.',
+'customcssprotected'   => 'Nemáte právo upravovať túto CSS stránku, pretože obsahuje osobné nastavenie iného používateľa.',
+'customjsprotected'    => 'Nemáte právo upravovať túto JavaScript stránku, pretože obsahuje osobné nastavenie iného používateľa.',
 'ns-specialprotected'  => 'Stránky v mennom pristore {{ns:special}} nie je možné upravovať.',
 'titleprotected'       => "Používateľ [[User:$1|$1]] zabránil vytváraniu stránky s týmto názvom.
 Udaný dôvod: ''$2''.",
+'filereadonlyerror'    => "Nebolo možné modifikovať súbor „$1“, protože úložisko „$2“ je momentálne v režime len na čítanie.
+
+Udaný dôvod: „''$3''“.",
 
 # Virus scanner
 'virus-badscanner'     => "Chybná konfigurácia: neznámy antivírus: ''$1''",
@@ -752,7 +756,7 @@ Z tohto dôvodu nemôžu návštevníci z tejto IP adresy momentálne vytvoriť 
 'noemailprefs'               => 'Tieto nástroje budú prístupné po vyplnení emailovej adresy vo vašich nastaveniach.',
 'emailconfirmlink'           => 'Potvrďte vašu e-mailovú adresu',
 'invalidemailaddress'        => 'Emailovú adresu nemožno akceptovať, pretože sa zdá, že má neplatný formát. Zadajte adresu v správnom tvare alebo nechajte príslušné políčko prázdne.',
-'cannotchangeemail'          => 'Na tejto wiki nie je možné meniť e-mailové adresy užívateľského konta.',
+'cannotchangeemail'          => 'Na tejto wiki nie je možné meniť e-mailové adresy používateľského konta.',
 'accountcreated'             => 'Účet vytvorený',
 'accountcreatedtext'         => 'Používateľský účet $1 bol vytvorený.',
 'createaccount-title'        => 'Vytvorenie účtu na {{GRAMMAR:lokál|{{SITENAME}}}}',
@@ -798,7 +802,7 @@ Je možné, že sa vám už podarilo úspešne zmeniť svoje heslo alebo ste si 
 'passwordreset-username'           => 'Používateľské meno:',
 'passwordreset-domain'             => 'Doména:',
 'passwordreset-capture'            => 'Zobraziť výsledný e-mail?',
-'passwordreset-capture-help'       => 'Ak označíte toto políčko, bude e-mail (s dočasným heslom) okrem zaslania užívateľovi zobrazený aj vám.',
+'passwordreset-capture-help'       => 'Ak označíte toto políčko, bude e-mail (s dočasným heslom) okrem zaslania používateľovi zobrazený aj vám.',
 'passwordreset-email'              => 'Emailová adresa:',
 'passwordreset-emailtitle'         => 'Podrobnosti o účte na {{GRAMMAR:lokál|{{SITENAME}}}}',
 'passwordreset-emailtext-ip'       => 'Niekto (pravdepodobne vy z IP adresy $1) požiadal pripomenutie podrobností o vašom
@@ -825,7 +829,7 @@ ignorovať a ďalej používať vaše staré heslo.',
 Dočasné heslo:$2',
 'passwordreset-emailsent'          => 'Email s heslom bol odoslaný.',
 'passwordreset-emailsent-capture'  => 'Bol vytvorený pripomienkový e-mail, ktorý je zobrazený nižšie.',
-'passwordreset-emailerror-capture' => 'Bol vytvorený pripomienkový e-mail, ktorý je zobrazený nižšie, ale nepodarilo sa ho odoslať užívateľovi: $1',
+'passwordreset-emailerror-capture' => 'Bol vytvorený pripomienkový e-mail, ktorý je zobrazený nižšie, ale nepodarilo sa ho odoslať používateľovi: $1',
 
 # Special:ChangeEmail
 'changeemail'          => 'Zmena e-mailovej adresy',
@@ -1611,6 +1615,7 @@ Musí obsahovať menej ako $1 {{PLURAL:$1|znak|znaky|znakov}}.',
 'newsectionsummary'                 => '/* $1 */ nová sekcia',
 'rc-enhanced-expand'                => 'Zobraziť podrobnosti (vyžaduje JavaScript)',
 'rc-enhanced-hide'                  => 'Skryť podrobnosti',
+'rc-old-title'                      => 'pôvodne vytvorené ako "$1"',
 
 # Recent changes linked
 'recentchangeslinked'          => 'Súvisiace úpravy',
@@ -1787,12 +1792,16 @@ Ak problém pretrváva, kontaktujte [[Special:ListUsers/sysop|správcu systému]
 'backend-fail-closetemp'     => 'Nebolo možné zatvoriť dočasný súbor.',
 'backend-fail-read'          => 'Nebolo možné prečítať súbor „$1“.',
 'backend-fail-create'        => 'Nebolo možné vytvoriť súbor „$1“.',
+'backend-fail-maxsize'       => 'Súbor $1 nie je možné vytvoriť, pretože je väčší ako {{PLURAL:$2|$2 bajtov|$2 bajt}}.',
 'backend-fail-readonly'      => 'Úložisko „$1“ je momentálne v režime len na čítanie. Udaný dôvod: „$2“',
 'backend-fail-synced'        => 'Súbor „$1“ je v nekonzistentnom stave v rámci vnútorného úložiska',
 'backend-fail-connect'       => 'Nepodarilo sa pripojiť k úložisku „$1“.',
 'backend-fail-internal'      => 'Vyskytla sa neznáma chyba v úložisku „$1“.',
 'backend-fail-contenttype'   => 'Nebolo možné určiť typ obsahu súboru, ktorý sa má uložiť na „$1“.',
 'backend-fail-batchsize'     => 'Do úložiska bola zaslaná dávka s $1 {{PLURAL:$1|operáciou|operáciami}}; limit je $2 {{PLURAL:$2|operácia|operácie|operácií}}.',
+
+'filejournal-fail-dbconnect' => 'Nepodarilo sa pripojiť k žurnálovej databáze úložiska „$1“.',
+'filejournal-fail-dbquery'   => 'Nepodarilo sa aktualizovať žurnálovú databázu úložiska „$1“.',
 
 # Lock manager
 'lockmanager-notlocked'        => 'Nepodarilo sa odomknúť zámok „$1“; nie je zamknutý.',
@@ -2117,6 +2126,11 @@ Môžete zúžiť rozsah, ak zvolíte typ záznamu, používateľské meno alebo
 'allpagesprefix'    => 'Zobraziť stránky s predponou:',
 'allpagesbadtitle'  => 'Zadaný názov stránky je neplatný alebo mal medzijazykový alebo interwiki prefix. Môže obsahovať jeden alebo viac znakov, ktoré nie je možné použiť v názve stránky.',
 'allpages-bad-ns'   => '{{SITENAME}} nemá menný priestor „$1“.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Prezeráte si kópiu stránky z vyrovnávacej pamäte, môže byť stará až $1.',
+'cachedspecial-viewing-cached-ts'  => 'Prezeráte si kópiu stránky z vyrovnávacej pamäte, nemusí byť úplne aktuálna.',
+'cachedspecial-refresh-now'        => 'Zobraziť aktuálnu.',
 
 # Special:Categories
 'categories'                    => 'Kategórie',
@@ -2596,7 +2610,7 @@ z/od momentálne zablokovanej IP adresy/používateľa.',
 'emaillink'                       => 'poslať email',
 'autoblocker'                     => 'Boli ste automaticky zablokovaný, pretože vašu IP adresu nedávno použil „[[User:$1|$1]]“.
 Uvedený dôvod zablokovania používateľa $2 bol: „$2“',
-'blocklogpage'                    => 'Záznam_blokovaní',
+'blocklogpage'                    => 'Záznam blokovaní',
 'blocklog-showlog'                => 'Tento používateľ bol v minulosti zablokovaný. Záznam blokovaní uvádza nasledovný dôvod:',
 'blocklog-showsuppresslog'        => 'Tento používateľ bol v minulosti zablokovaný a skrytý. Záznam potlačení uvádza nasledovný dôvod:',
 'blocklogentry'                   => 'zablokoval/a "[[$1]]" s časom ukončenia $2 $3',
@@ -2963,7 +2977,7 @@ Umožnuje do zhrnutia pridanie dôvodu.',
 'handheld.css'    => '/* Tu umiestnené CSS bude ovplyvňovať prenosné zariadenia vychádzajúceho zo štýlu nastaveného v $wgHandheldStyle */',
 
 # Scripts
-'common.js'      => '/* Tu uvedený JavaScript sa nahrá všetkým užívateľom pri každom nahraní stránky. */',
+'common.js'      => '/* Tu uvedený JavaScript sa nahrá všetkým používateľom pri každom nahraní stránky. */',
 'standard.js'    => '/* Tu sa nachádzajúci JavaScript sa načíta používateľom vzhľadu Klasický */',
 'nostalgia.js'   => '/* Tu sa nachádzajúci JavaScript sa načíta používateľom vzhľadu Nostalgia */',
 'cologneblue.js' => '/* Tu sa nachádzajúci JavaScript sa načíta používateľom vzhľadu Kolínska modrá */',
@@ -3797,7 +3811,7 @@ Obrázky sa zobrazia v plnom rozlíšení, ostatné typy súborov sa spustia v p
 'dberr-info'        => '(Spojenie s databázovým serverom neúspešné: $1)',
 'dberr-usegoogle'   => 'Zatiaľ môžete skúsiť hľadať pomocou Google.',
 'dberr-outofdate'   => 'Pamätajte, že ich indexy nemusia byť aktuálne.',
-'dberr-cachederror' => 'Toto je kópia požadovanej ztránky z vyrovnávacej pamäte a nemusí byť aktuálna.',
+'dberr-cachederror' => 'Toto je kópia požadovanej stránky z vyrovnávacej pamäte a nemusí byť aktuálna.',
 
 # HTML forms
 'htmlform-invalid-input'       => 'Niekotrý z údajov, ktoré ste zadali je problematický',
@@ -3900,5 +3914,16 @@ V opačnom prípade môžete použiť zjednodušený formulár nižšie. Váš k
 'api-error-unknownerror'                  => 'Neznáma chyba: „$1“',
 'api-error-uploaddisabled'                => 'Nahrávanie je na tejto wiki zakázané.',
 'api-error-verification-error'            => 'Tento súbor môže byť poškodený, alebo má zlú príponu.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekundy|sekúnd}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minúta|minúty|minút}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hodina|hodiny|hodín}}',
+'duration-days'      => '$1 {{PLURAL:$1|deň|dni|dní}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|týždeň|týždne|týždňov}}',
+'duration-years'     => '$1 {{PLURAL:$1|rok|roky|rokov}}',
+'duration-decades'   => '$1 {{PLURAL:$1|dekáda|dekády|dekád}}',
+'duration-centuries' => '$1 {{PLURAL:$1|storočie|storočia|storočí}}',
+'duration-millennia' => '$1 {{PLURAL:$1|tisícročie|tisícročia|tisícročí}}',
 
 );

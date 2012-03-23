@@ -861,6 +861,12 @@ ol:lang(ckb) li {
 	list-style-type: arabic-indic;
 }
 
+ol:lang(hi) li,
+ol:lang(mr) li {
+	list-style-type: -moz-devanagari;
+	list-style-type: devanagari;
+}
+
 ol:lang(as) li,
 ol:lang(bn) li {
 	list-style-type: -moz-bengali;
@@ -1032,6 +1038,11 @@ table.floatleft {
 	overflow: hidden;
 	height: 0;
 	zoom: 1; /* http://webaim.org/techniques/skipnav/#iequirk */
+}
+
+/* Print footer should be hidden by default in screen. */
+.printfooter {
+	display: none;
 }
 
 /* For developpers */

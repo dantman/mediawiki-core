@@ -1094,7 +1094,7 @@ class LocalFile extends File {
 			$latest = $descTitle->getLatestRevID();
 			$nullRevision = Revision::newNullRevision(
 				$dbw,
-				$descTitle->getArticleId(),
+				$descTitle->getArticleID(),
 				$log->getRcComment(),
 				false
 			);
@@ -1418,7 +1418,8 @@ class LocalFile extends File {
 			$this->locked++;
 		}
 
-		return $dbw->selectField( 'image', '1', array( 'img_name' => $this->getName() ), __METHOD__ );
+		return $dbw->selectField( 'image', '1',
+			array( 'img_name' => $this->getName() ), __METHOD__, array( 'FOR UPDATE' ) );
 	}
 
 	/**

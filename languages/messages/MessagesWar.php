@@ -14,25 +14,6 @@
  * @author לערי ריינהארט
  */
 
-$namespaceNames = array(
-	NS_MEDIA            => 'Medya',
-	NS_SPECIAL          => 'Pinaurog',
-	NS_TALK             => 'Hiruhimangraw',
-	NS_USER             => 'Gumaramit',
-	NS_USER_TALK        => 'Hiruhimangaw_hiton_gumaramit',
-	NS_PROJECT_TALK     => 'Hiruhimangraw_hiton_$1',
-	NS_FILE             => 'Fayl',
-	NS_FILE_TALK        => 'Hiruhimangraw_hiton_fayl',
-	NS_MEDIAWIKI        => 'MediaWiki',
-	NS_MEDIAWIKI_TALK   => 'Hiruhimangraw_hiton_MediaWiki',
-	NS_TEMPLATE         => 'Batakan',
-	NS_TEMPLATE_TALK    => 'Hiruhimangraw_hiton_batakan',
-	NS_HELP             => 'Bulig',
-	NS_HELP_TALK        => 'Hiruhimangaw_hiton_bulig',
-	NS_CATEGORY         => 'Kaarangay',
-	NS_CATEGORY_TALK    => 'Hiruhimangraw_hiton_kaarangay',
-);
-
 $specialPageAliases = array(
 	'Allpages'                  => array( 'NgatananngaPakli' ),
 	'Categories'                => array( 'Mga_kaarangay' ),
@@ -425,10 +406,10 @@ Ayaw paghingalimot hin pagbalyo han imo [[Special:Preferences|{{SITENAME}} mga g
 'remembermypassword'      => "Hinumdumi an akon pan-sakob dinhi nga panngaykay ''(browser)'' (para ha pinakamaiha $1 {{PLURAL:$1|ka adlaw|ka mga adlaw}})",
 'yourdomainname'          => 'Imo dominyo:',
 'login'                   => 'Sakob',
-'nav-login-createaccount' => 'Sakob / paghimo hin bag-o nga akawnt',
+'nav-login-createaccount' => 'Magpalista nga masakob / paghimo hin bag-o nga akawnt',
 'loginprompt'             => "Kinahanglan mo hin mga kuki (''cookie'') para makapag log-in ha {{SITENAME}}.",
-'userlogin'               => 'Sakob/Pagrehistro',
-'userloginnocreate'       => 'Sakob',
+'userlogin'               => 'Magpasabot nga masakob / paghimo hin akawnt',
+'userloginnocreate'       => 'Magpasabot nga masakob',
 'logout'                  => 'Gawas',
 'userlogout'              => 'Gawas',
 'notloggedin'             => 'Diri sakob',
@@ -531,7 +512,7 @@ Kun pidliton mo an \"{{int:savearticle}}\" utro, an imo ginliwat in matitipig bi
 'whitelistedittext'                => 'Kinahanglan mo mag-$1 para makaliwat han mga pakli.',
 'nosuchsectiontitle'               => 'Waray kaagi-i an bahin',
 'loginreqtitle'                    => 'Nagkikinahanglan hin pan-sakob',
-'loginreqlink'                     => 'Pansakob',
+'loginreqlink'                     => 'Magpasabot nga masakob',
 'loginreqpagetext'                 => 'Kinahanglan mo mag-$1 para makakita ha iba nga mga pakli.',
 'accmailtitle'                     => 'Ginpadara na an tigaman-pagsulod.',
 'newarticle'                       => '(Bag-o)',

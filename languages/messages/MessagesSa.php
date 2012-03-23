@@ -15,6 +15,7 @@
  * @author Hrishikesh.kb
  * @author Htt
  * @author Kaustubh
+ * @author Krinkle
  * @author Mahitgar
  * @author Naveen Sankar
  * @author Omnipaedista
@@ -43,7 +44,7 @@ $linkPrefixExtension = false;
 
 $namespaceNames = array(
 	NS_MEDIA            => 'माध्यमम्',
-	NS_SPECIAL          => 'विशेषम्',
+	NS_SPECIAL          => 'विशेष',
 	NS_TALK             => 'सम्भाषणम्',
 	NS_USER             => 'योजकः',
 	NS_USER_TALK        => 'योजकसम्भाषणम्',
@@ -62,7 +63,6 @@ $namespaceNames = array(
 
 $namespaceAliases = array(
 	'माध्यम'             => NS_MEDIA,
-	'विशेष'              => NS_SPECIAL,
 	'संभाषणं'            => NS_TALK,
 	'योजकसंभाषणं'        => NS_USER_TALK,
 	'$1संभाषणं'         => NS_PROJECT_TALK,
@@ -535,6 +535,7 @@ $1',
 'versionrequiredtext' => 'एतत्पृष्ठं प्रयोक्तुं मीडियाविकि इत्येतस्य $1तमा आवृत्तिः आवश्यकी। पश्यतु [[Special:Version|आवृत्ति-सूचिका]]',
 
 'ok'                      => 'अस्तु',
+'pagetitle'               => '',
 'retrievedfrom'           => '"$1" इत्यस्माद् उद्धृतम्',
 'youhavenewmessages'      => 'भवदर्थम् $1 सन्ति। ($2).',
 'newmessageslink'         => 'नूतनाः सन्देशाः',
@@ -1177,7 +1178,7 @@ $2
 'prefs-registration'        => 'पंजीकरण कालः:',
 'yourrealname'              => 'वास्तविकं नाम:',
 'yourlanguage'              => 'भाषा:',
-'yournick'                  => ' नूतनाः हस्ताक्षराः:',
+'yournick'                  => 'नूतनाः हस्ताक्षराः:',
 'prefs-help-signature'      => 'संभाषणपृष्ठगताः संवादाः "<nowiki>~~~~</nowiki>" इति लिखित्वा हस्ताक्षरोपेताः कर्त्तव्याः। एतानि चिह्नानि पृष्ठरक्षणपश्चात् भवतः हस्ताक्षरान् समयमुद्रां च प्रदर्शयिष्यन्ति।',
 'badsig'                    => 'अमान्याः (त्रुटिपूर्णाः) हि एते अपक्वाः हस्ताक्षराः।
 एचटीएमएल्-टैग इत्येतानि पुनरीक्षितव्यानि भवता।',
@@ -1830,6 +1831,13 @@ $2
 'htmlform-int-invalid'         => 'भवता निर्दिष्टं मौल्यं पूर्णाङ्कः न ।',
 'htmlform-float-invalid'       => 'भवता निर्दिष्टं मौल्यं संख्या न ।',
 'htmlform-selectorother-other' => 'अन्य',
+
+# New logging system
+'logentry-move-move'                  => '$1 इति प्रयोक्त्रा $3 इत्येतत् $4 इत्येतत् प्रति चालितम्',
+'logentry-move-move-noredirect'       => '$1 इति प्रयोक्त्रा $3 इति पृष्ठम् $4 इत्येतत् प्रति चालितं, अनुप्रेषणेन विना',
+'logentry-move-move_redir'            => '↓
+$1 इत्यनेन $3 इति पृष्ठम् $4 इत्येतत् प्रति चालितं, अनुप्रेषणम् अतिक्रम्य',
+'logentry-move-move_redir-noredirect' => '$1 इति प्रयोक्त्रा $3 इति पृष्ठं $4 इत्येतत् प्रति चालितम्, अनुप्रेषणम् अतिक्रम्य, अनुप्रेषणमोचनेन च विना।',
 
 # Feedback
 'feedback-subject' => 'विषय:',

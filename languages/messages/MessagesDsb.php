@@ -538,6 +538,9 @@ Wótpšašanje: $2',
 'customjsprotected'    => 'Njamaš pšawo, aby toś ten JavaScriptowy bok wobźěłał, dokulaž wopśimujo  wósobinske nastajenja drugego wužywarja.',
 'ns-specialprotected'  => 'Njejo móžno, boki w rumje {{ns:special}} wobźěłaś.',
 'titleprotected'       => "Bok z toś tym mjenim bu wót [[User:$1|$1]] pśeśiwo napóranjeju šćitany. Pśicyna jo ''$2''.",
+'filereadonlyerror'    => 'Njejo móžno dataju "$1" změniś, dokulaž datajowy repozitorium "$2" jo jano cytajobny.
+
+Pódana pśicyna jo "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Špatna konfiguracija: njeznaty wirusowy scanner: ''$1''",
@@ -1628,6 +1631,9 @@ $1',
 'backend-fail-contenttype'   => 'Wopśimjeśowy typ dataje, kótaraž ma se na "$1" składowaś, njedajo se zwěsćiś.',
 'backend-fail-batchsize'     => 'Štapjelowa dataja, kótaraž wopśimujo {{PLURAL:$1|jadnu operaciju|$1 operaciji|$1 operacije|$1 operacijow}},  jo se  na składowański backend pósłała; limit jo $2 {{PLURAL:$1|operaciju|operaciji|operacije|operacijow}}.',
 
+'filejournal-fail-dbconnect' => 'Njejo žeden zwisk ze žurnaloweju datoweju banku za składowański backend "$1" móžno.',
+'filejournal-fail-dbquery'   => 'Žurnalowa datowa banka za składowański backend "$1" njedajo se aktualizěrowaś.',
+
 # Lock manager
 'lockmanager-notlocked'        => '"$1" njedajo se wótwóriś; njejo zastajony.',
 'lockmanager-fail-closelock'   => 'Zastajańska dataja njedajo se za "$1" zacyniś.',
@@ -1950,6 +1956,11 @@ Pšosym glědaj na to, až druge websedła móžu k drugej dataji z direktnym UR
 'allpagesprefix'    => 'Boki pokazaś (z prefiksom):',
 'allpagesbadtitle'  => 'Zapódane mě boka njejo płaśece: Jo móžno, až ma pśedstajonu rěcnu resp. interwikijowu krotceńku abo wopśimjejo jadno abo wěcej znamuškow, kótarež njamgu se za mjenja bokow wužywaś.',
 'allpages-bad-ns'   => 'Mjenjowy rum „$1“ w {{SITENAME}} njeeksistěrujo.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Woglědujoš se pufrowanu wersiju toś togo boka, kótaraž móžo do $1 stara byś.',
+'cachedspecial-viewing-cached-ts'  => 'Woglědujoš se pufrowanu wersiju toś togo boka, kótaraž by mógła njeaktualna byś.',
+'cachedspecial-refresh-now'        => 'Aktualnu wersiju se woglědaś.',
 
 # Special:Categories
 'categories'                    => 'Kategorije',
@@ -3677,5 +3688,15 @@ Hować móžoš slědujucy jadnory formular wužywaś. Twój komentar pśidajo s
 'api-error-unknownerror'                  => 'Njeznata zmólka: "$1".',
 'api-error-uploaddisabled'                => 'Nagraśa su na toś tom wikiju znjemóžnjone.',
 'api-error-verification-error'            => 'Toś ta dataja by mógła wobkškóźona byś abo wopacnu kóńcowku měś.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekunźe|sekundy|sekundow}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuta|minuśe|minuty|minutow}}',
+'duration-hours'     => '$1 {{PLURAL:$1|góźina|góźinje|góźiny|góźinow}}',
+'duration-days'      => '$1 {{PLURAL:$1|źeń|dnja|dny|dnjow}}',
+'duration-weeks'     => '$1 {{PLURAL: $1|tyźeń|tyźenja|tyźenje|tyźenjow}}',
+'duration-years'     => '$1 {{PLURAL: $1|lěto|lěśe|lěta|lět}}',
+'duration-decades'   => '$1 {{PLURAL:$1|lětźasetk|lětźasetka|lětźasetki|lětźastkow}}',
+'duration-centuries' => '$1 {{PLURAL:$1|stolěśe|stolěśi|stolěśa|stolěśow}}',
 
 );

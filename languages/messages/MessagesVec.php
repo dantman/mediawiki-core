@@ -330,6 +330,7 @@ $messages = array(
 'printableversion'  => 'Version par la stanpa',
 'permalink'         => 'Link parmanente',
 'print'             => 'Stanpa',
+'view'              => 'Varda',
 'edit'              => 'Canbia',
 'create'            => 'Crea',
 'editthispage'      => 'Canbia sta pagina',
@@ -508,10 +509,12 @@ I dati che ghè qua drento no i xe azornà.",
 Funsion: $1<br />
 Query: $2',
 'viewsource'           => 'Varda el testo',
+'viewsource-title'     => 'Varda el testo de $1',
 'actionthrottled'      => 'Asion ritardà',
 'actionthrottledtext'  => "Come misura de sicuresa contro e o spam, l'esecusion de alcune asion e a xè limità a on numaro masimo de volte en on determinà periodo de tenpo, limite che en questo caso xè sta superà. Se prega de riprovare tra qualche minuto.",
 'protectedpagetext'    => 'Sta pagina la xe stà proteta de modo che nissuni possa canbiarla.',
 'viewsourcetext'       => 'Se pole vardar e copiar el testo de sta pagina:',
+'viewyourtext'         => "Xè posibile vedàre e copiare el codexe sorzente de le '''to modifighe''' a sta pajina:",
 'protectedinterface'   => "Sta pagina la gà drento un testo de l'interfacia utente del software, quindi la xe proteta parché nissuni la strussia.",
 'editinginterface'     => "'''Ocio:''' El testo de sta pajina el fa parte de l'interfacia utente del sito. Tute łe modifeghe aportae a sta pajina se riflete so i mesaji visuałizà par tuti i utenti.
 Par łe tradusion, considera ła posibiłità de usare [//translatewiki.net/wiki/Main_Page?setlang=vec translatewiki.net], el projeto MediaWiki par ła localizasion.",
@@ -519,6 +522,8 @@ Par łe tradusion, considera ła posibiłità de usare [//translatewiki.net/wiki
 'cascadeprotected'     => 'So sta pajina no xè posibiłe efetuare modifeghe parché xè sta inclusa {{PLURAL:$1|ne ła pajina indicà de seguito, che xè sta proteta|ne łe pajine indicae de seguito, che e xè sta protete}} sełesionando ła protesion "ricorsiva":
 $2',
 'namespaceprotected'   => "No se dispone de i parmesi nesesari par modifegare łe pajine del namespace '''$1'''.",
+'customcssprotected'   => "Nò se dispone dei parmesi necesari a la modifega de sta pajina CSS, in quanto la contien le inpostasion personali de n'altro utente.",
+'customjsprotected'    => "Nò se dispone dei parmesi necesari a la modifega de sta pajina JavaScript, in quanto la contien le inpostasion personali de n'altro utente.",
 'ns-specialprotected'  => 'No xè posibiłe modifegare łe pajine spesałi.',
 'titleprotected'       => 'Ła creasion de na pajina con sto titoło xè sta blocà da [[User:$1|$1]].
 Ła modivasion xè ła seguente: "$2".',
@@ -567,6 +572,8 @@ Tòtene uno difarente.',
 'createaccounterror'         => "No se pole crear l'utente: $1",
 'nocookiesnew'               => "Ła rejistrasion xè sta conpletà, ma no xè sta posibiłe asedare a {{SITENAME}} parché i cookie i xè disativai. Riprovare l'aceso con el nome utente e ła password pena creai dopo aver ativà i cookie nel proprio browser.",
 'nocookieslogin'             => "L'aceso a {{SITENAME}} richiede l'uso de i cookie, che i risulta disativai. Riprovare l'aceso dopo aver ativà i cookie nel proprio browser.",
+'nocookiesfornew'            => "L'account utente nò'l xè stà creà, parchè nò gavemo podùo confermar la so fonte.
+Asicurate de 'ver ativà i cookie, ricarica sta pajina e riprova.",
 'noname'                     => 'El nome utente indicà no xè vałido.',
 'loginsuccesstitle'          => 'Aceso efetuà',
 'loginsuccess'               => "'''Te si sta conesso al server de {{SITENAME}} con el nome utente de \"\$1\".'''",
@@ -738,6 +745,8 @@ L'ultimo ełemento del rejistro de i blochi xè riportà de seguito par informas
 'usercsspreview'                   => "'''Sta qua la xe solo n'anteprima del proprio CSS personal.
 Le modifiche no le xe gnancora stà salvà!'''",
 'userjspreview'                    => "'''Sta qua la xe solo n'anteprima par proar el proprio JavaScript personal; le modifiche no le xe gnancora stà salvà!'''",
+'sitecsspreview'                   => "'''Sta qua la xe solo n'anteprima del proprio CSS personal. Le modifiche no le xe gnancora stà salvà!'''",
+'sitejspreview'                    => "'''Sta qua la xe solo n'anteprima par proar el proprio JavaScript personal; le modifiche no le xe gnancora stà salvà!'''",
 'userinvalidcssjstitle'            => "'''Ocio:'''  No ghe xe nissuna skin con nome \"\$1\". Nota che le pagine par i .css e .js personalizà le gà l'iniziale del titolo minuscola, par esenpio {{ns:user}}:Esenpio/vector.css e no {{ns:user}}:Esenpio/Vector.css.",
 'updated'                          => '(Agiornà)',
 'note'                             => "'''Nota:'''",
@@ -1341,6 +1350,7 @@ Co qualcheduni te scrivarà, nol vedarà mia el to indirizo.',
 'action-userrights'           => 'canbiar tuti i diriti dei utenti',
 'action-userrights-interwiki' => 'canbiar i diriti dei utenti su altre wiki',
 'action-siteadmin'            => 'blocar e desblocar el database',
+'action-sendemail'            => 'Manda e-mail',
 
 # Recent changes
 'nchanges'                          => '$1 {{PLURAL:$1|canbiamento|canbiamenti}}',
@@ -1975,8 +1985,8 @@ Par riscontri e ulteriore assistensa:
 'delete-legend'          => 'Scancela',
 'historywarning'         => "'''Ocio:''' La pàxena che te sì drio scancełar la gà na cronołogia con circa $1 {{PLURAL:$1|revision|revision}}:",
 'confirmdeletetext'      => 'Te ste par scansełare na pajina co tuta ła so cronołosia. Par cortesia, conferma che xè to intension prosedere a tałe scansełasion, che te ghe piena consapevołeza de łe conseguense de ła to axion e che esa xè conforme a łe linee guida stabiłie en [[{{MediaWiki:Policy-url}}]].',
-'actioncomplete'         => 'Axion conpletà',
-'actionfailed'           => 'Azion mia riussìa',
+'actioncomplete'         => 'Asion conpletà',
+'actionfailed'           => 'Asion mia riussìa',
 'deletedtext'            => "''$1'' xe stà scanselà.
 Varda $2 par n'elenco de le ultime pagine scanselà.",
 'dellogpage'             => 'Registro de scancelassion',
@@ -1995,7 +2005,7 @@ Varda $2 par n'elenco de le ultime pagine scanselà.",
 'delete-warning-toobig'  => 'La cronologia de sta pagina le xe longa assè (oltre $1 {{PLURAL:$1|revision|revisioni}}). La so scancelazion la pode crear dei problemi de funzionamento al database de {{SITENAME}}; procedi con cautela.',
 
 # Rollback
-'rollback'          => 'Anula le modifiche',
+'rollback'          => 'Anuła łe modifighe',
 'rollback_short'    => 'Rollback',
 'rollbacklink'      => 'rollback',
 'rollbackfailed'    => 'Ripristino mìa riussìo',
@@ -2020,6 +2030,7 @@ L'ultima modefega l'è stà fata da [[User:$3|$3]] ([[User talk:$3|discussion]]{
 'unprotectedarticle'          => 'gà sblocà "[[$1]]"',
 'movedarticleprotection'      => 'gà canbià la protesion da "[[$2]]" a "[[$1]]"',
 'protect-title'               => 'Canbia el livèl de protezion par "$1"',
+'protect-title-notallowed'    => 'Varda el livelo de protesion de " $1 "',
 'prot_1movedto2'              => '[[$1]] spostà a [[$2]]',
 'protect-legend'              => 'Conferma la protezion',
 'protectcomment'              => 'Motivassion:',
@@ -2171,6 +2182,9 @@ $1',
 'whatlinkshere-filters'    => 'Filtri',
 
 # Block/unblock
+'autoblockid'                     => 'Autobloco #$1',
+'block'                           => 'Bloca utente',
+'unblock'                         => 'Sbloca utente',
 'blockip'                         => 'Bloco utente',
 'blockip-title'                   => "Bloca l'utente",
 'blockip-legend'                  => "Bloca l'utente",
@@ -2187,6 +2201,7 @@ $1',
 ** Conportamenti intimidatori o molestie
 ** Uso indebito de più account
 ** Nome utente non cònsono',
+'ipb-hardblock'                   => 'Inpedissighe agli utenti rejistrai de contribuire da sto indirizo IP',
 'ipbcreateaccount'                => 'Inpedissi la creazion de altri account',
 'ipbemailban'                     => "Inpedìsseghe a l'utente de mandar e-mail",
 'ipbenableautoblock'              => "Bloca automaticamente l'ultimo indirizo IP doparà da l'utente e i sucessivi con cui vien tentà modifiche",
@@ -2197,11 +2212,14 @@ $1',
 'ipbotherreason'                  => 'Altri motivi/detagli:',
 'ipbhidename'                     => 'Scondi el nome utente da le modìfeghe e da i elenchi.',
 'ipbwatchuser'                    => "Tien d'ocio la pagina utente e la pagina de discussion de sto utente",
+'ipb-disableusertalk'             => "Inpedissi a sto utente de modifegar la propia pajina de discussion mentre l'è blocà",
 'ipb-change-block'                => "Bloca de novo l'utente co ste inpostassion",
+'ipb-confirm'                     => 'Conferma el bloco',
 'badipaddress'                    => "L'indirisso IP indicà no'l xè mìa coreto.",
 'blockipsuccesssub'               => 'Bloco eseguìo',
 'blockipsuccesstext'              => "[[Special:Contributions/$1|$1]] l'è sta bloccà.<br />
 Varda [[Special:BlockList|lista IP bloccati]] par védar tuti i blochi.",
+'ipb-blockingself'                => 'Sito drio blocar te steso! Sito sicuro de voerlo fare?',
 'ipb-edit-dropdown'               => 'Motivi par el bloco',
 'ipb-unblock-addr'                => 'Sbloca $1',
 'ipb-unblock'                     => 'Sbloca un utente o un indirizo IP',
@@ -2211,6 +2229,7 @@ Varda [[Special:BlockList|lista IP bloccati]] par védar tuti i blochi.",
 'unblockiptext'                   => 'Dòpara el modulo qua soto par ridarghe el dirito de scritura a un indirizzo IP precedentemente blocà.',
 'ipusubmit'                       => 'Cava sto bloco',
 'unblocked'                       => '[[User:$1|$1]] el xe stà sblocà',
+'unblocked-range'                 => '$1 xè stà sblocà',
 'unblocked-id'                    => 'El bloco $1 el xe stà cavà',
 'ipblocklist'                     => 'Utenti blocà',
 'ipblocklist-legend'              => 'Cata fora un utente blocà',
@@ -2288,6 +2307,7 @@ Tiente in mente de [[Special:UnlockDB|sblocarlo]] co te ghè finìo de far manut
 'unlockdbsuccesstext' => 'El database de {{SITENAME}} el xe stà sblocà.',
 'lockfilenotwritable' => "Inpossibile scrìvar sul file de ''lock'' del database. Ghe vole acesso in scritura a sto file da parte del server web, par blocar e sblocar el database.",
 'databasenotlocked'   => "El database no l'è mìa blocà.",
+'lockedbyandtime'     => '(da $1 el $2 ale $3)',
 
 # Move page
 'move-page'                    => 'Spostamento de $1',
@@ -2564,6 +2584,10 @@ Questo xe probabilmente dovùo a la presenza de un colegamento a un sito foresto
 'spambot_username'    => 'MediaWiki - sistema de rimozion del spam',
 'spam_reverting'      => "Ripristinà l'ultima version priva de colegamenti a $1",
 'spam_blanking'       => 'Pàxena svodà, tute łe version le contegneva cołegamenti a $1',
+
+# Info page
+'pageinfo-title'        => 'Informasion par "$1"',
+'pageinfo-header-edits' => 'Modìfeghe',
 
 # Patrolling
 'markaspatrolleddiff'                 => 'Segna la modifica come verificà',
@@ -3055,6 +3079,9 @@ Nota che te pol anca [[Special:EditWatchlist|modificar la lista con l'interfacia
 'watchlisttools-edit' => "Varda e canbia le pagine tegnùe d'ocio",
 'watchlisttools-raw'  => 'Canbia la lista in formato testo',
 
+# Signatures
+'signature' => '[[{{ns:user}}:$1|$2]] ([[{{ns:user_talk}}:$1|msj]])',
+
 # Core parser functions
 'unknown_extension_tag' => 'Tag estension sconossiùo: "$1"',
 'duplicate-defaultsort' => 'Ocio: la ciave de ordinamento predefinìa "$2" la va in conflito co\' quela de prima "$1".',
@@ -3183,8 +3210,35 @@ Le imagini le vien mostrà a la risoluzion pi granda che se pol, par i altri tip
 'sqlite-no-fts'  => '$1 sensa la possibilità de riserca completa nel testo',
 
 # New logging system
-'revdelete-restricted'   => 'aplicà restrizioni ai aministradori',
-'revdelete-unrestricted' => 'gà cavà le limitazion par i aministradori',
-'newuserlog-byemail'     => 'password spedìa par e-mail',
+'logentry-delete-delete'              => '$1 ga scanselà la pajina $3',
+'logentry-delete-restore'             => '$1 ga ripristinà "$3"',
+'logentry-delete-event'               => '$1 ga canbià la vixibilità de {{PLURAL:$5|n\'asion del registro|$5 asion del registro}} de "$3": $4',
+'logentry-delete-revision'            => '$1 ga canbià la vixibilità de {{PLURAL:$5|na revixion|$5 revixion}} de la pajina"$3": $4',
+'logentry-delete-event-legacy'        => '$1 ga canbià la vixibilità de calche asion del registro de "$3"',
+'logentry-delete-revision-legacy'     => '$1 ga canbià la vixibilità par le revixion de la pajina $3',
+'logentry-suppress-delete'            => '$1 ga sconto la pajina "$3"',
+'logentry-suppress-event'             => '$1 ga canbià de scondón la vixibilità de {{PLURAL:$5|n\'asion del registro|$5 asion del registro}} de "$3": $4',
+'logentry-suppress-revision'          => '$1 ga canbià de scondón la vixibilità de {{PLURAL:$5|na revixion|$5 revixion}} de "$3": $4',
+'logentry-suppress-event-legacy'      => '$1 ga canbià de scondón la vixibilità de calche asion del registro de "$3"',
+'logentry-suppress-revision-legacy'   => '$1 ga canbià de scondón la vixibilità de calche revixion de $3',
+'revdelete-content-hid'               => 'contegnùo sconto',
+'revdelete-summary-hid'               => 'ogeto de la modifega sconto',
+'revdelete-uname-hid'                 => 'nome utente sconto',
+'revdelete-content-unhid'             => 'contegnùo ripristinà',
+'revdelete-summary-unhid'             => 'ogeto ripristinà',
+'revdelete-uname-unhid'               => 'nome utente ripristinà',
+'revdelete-restricted'                => 'aplicà restrizioni ai aministradori',
+'revdelete-unrestricted'              => 'gà cavà le limitazion par i aministradori',
+'logentry-move-move'                  => '$1 ga spostà la pajina $3 a $4',
+'logentry-move-move-noredirect'       => '$1 ga spostà la pajina $3 a $4 sensa metare un rimando',
+'logentry-move-move_redir'            => '$1 ga spostà la pajina $3 a $4 metendo un rimando',
+'logentry-move-move_redir-noredirect' => '$1 ga spostà la pajina $3 a $4 al posto de un rimando sensa metare un rimando',
+'logentry-patrol-patrol'              => '$1 ga segnà la revixion $4 de la pajina $3 come verifegà',
+'logentry-patrol-patrol-auto'         => '$1 ga segnà automategamente la revixion $4 de la pajina $3 come verifegà',
+'logentry-newusers-newusers'          => '$1 ga creà na utensa',
+'logentry-newusers-create'            => '$1 ga creà na utensa',
+'logentry-newusers-create2'           => '$1 ga creà na utensa $3',
+'logentry-newusers-autocreate'        => "L'utensa $1 xè stà creà automategamente",
+'newuserlog-byemail'                  => 'password spedìa par e-mail',
 
 );

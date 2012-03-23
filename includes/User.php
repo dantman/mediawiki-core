@@ -165,8 +165,8 @@ class User {
 	//@{
 	var $mId, $mName, $mRealName, $mPassword, $mNewpassword, $mNewpassTime,
 		$mEmail, $mTouched, $mToken, $mEmailAuthenticated,
-		$mEmailToken, $mEmailTokenExpires, $mRegistration, $mGroups, $mOptionOverrides,
-		$mCookiePassword, $mEditCount, $mAllowUsertalk;
+		$mEmailToken, $mEmailTokenExpires, $mRegistration, $mEditCount,
+		$mGroups, $mOptionOverrides;
 	//@}
 
 	/**
@@ -208,6 +208,11 @@ class User {
 	 * @var Block
 	 */
 	var $mBlock;
+
+	/**
+	 * @var bool
+	 */
+	var $mAllowUsertalk;
 
 	/**
 	 * @var Block
@@ -472,11 +477,6 @@ class User {
 		$nt = Title::makeTitleSafe( NS_USER, $name );
 		if( is_null( $nt ) ) {
 			# Illegal name
-			return null;
-		}
-
-		if ( User::isIP( $name ) ) {
-			# Cannot exist
 			return null;
 		}
 
@@ -836,23 +836,20 @@ class User {
 	}
 
 	/**
-	 * Return a random password. Sourced from mt_rand, so it's not particularly secure.
-	 * @todo hash random numbers to improve security, like generateToken()
+	 * Return a random password.
 	 *
 	 * @return String new random password
 	 */
 	public static function randomPassword() {
 		global $wgMinimalPasswordLength;
-		$pwchars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-		$l = strlen( $pwchars ) - 1;
-
-		$pwlength = max( 7, $wgMinimalPasswordLength );
-		$digit = mt_rand( 0, $pwlength - 1 );
-		$np = '';
-		for ( $i = 0; $i < $pwlength; $i++ ) {
-			$np .= $i == $digit ? chr( mt_rand( 48, 57 ) ) : $pwchars[ mt_rand( 0, $l ) ];
-		}
-		return $np;
+		// Decide the final password length based on our min password length, stopping at a minimum of 10 chars
+		$length = max( 10, $wgMinimalPasswordLength );
+		// Multiply by 1.25 to get the number of hex characters we need
+		$length = $length * 1.25;
+		// Generate random hex chars
+		$hex = MWCryptRand::generateHex( $length );
+		// Convert from base 16 to base 32 to get a proper password like string
+		return wfBaseConvert( $hex, 16, 32 );
 	}
 
 	/**
@@ -882,7 +879,7 @@ class User {
 			$this->mTouched = '0'; # Allow any pages to be cached
 		}
 
-		$this->setToken(); # Random
+		$this->mToken = null; // Don't run cryptographic functions till we need a token
 		$this->mEmailAuthenticated = null;
 		$this->mEmailToken = '';
 		$this->mEmailTokenExpires = null;
@@ -989,11 +986,11 @@ class User {
 			return false;
 		}
 
-		if ( $request->getSessionData( 'wsToken' ) !== null ) {
-			$passwordCorrect = $proposedUser->getToken() === $request->getSessionData( 'wsToken' );
+		if ( $request->getSessionData( 'wsToken' ) ) {
+			$passwordCorrect = $proposedUser->getToken( false ) === $request->getSessionData( 'wsToken' );
 			$from = 'session';
-		} elseif ( $request->getCookie( 'Token' ) !== null ) {
-			$passwordCorrect = $proposedUser->getToken() === $request->getCookie( 'Token' );
+		} elseif ( $request->getCookie( 'Token' ) ) {
+			$passwordCorrect = $proposedUser->getToken( false ) === $request->getCookie( 'Token' );
 			$from = 'cookie';
 		} else {
 			# No session or persistent login cookie
@@ -1098,6 +1095,9 @@ class User {
 			}
 			$this->mTouched = wfTimestamp( TS_MW, $row->user_touched );
 			$this->mToken = $row->user_token;
+			if ( $this->mToken == '' ) {
+				$this->mToken = null;
+			}
 			$this->mEmailAuthenticated = wfTimestampOrNull( TS_MW, $row->user_email_authenticated );
 			$this->mEmailToken = $row->user_email_token;
 			$this->mEmailTokenExpires = wfTimestampOrNull( TS_MW, $row->user_email_token_expires );
@@ -1273,10 +1273,6 @@ class User {
 		// overwriting mBlockedby, surely?
 		$this->load();
 
-		$this->mBlockedby = 0;
-		$this->mHideName = 0;
-		$this->mAllowUsertalk = 0;
-
 		# We only need to worry about passing the IP address to the Block generator if the
 		# user is not immune to autoblocks/hardblocks, and they are the current user so we
 		# know which IP address they're actually coming from
@@ -1287,30 +1283,37 @@ class User {
 		}
 
 		# User/IP blocking
-		$this->mBlock = Block::newFromTarget( $this->getName(), $ip, !$bFromSlave );
-		if ( $this->mBlock instanceof Block ) {
-			wfDebug( __METHOD__ . ": Found block.\n" );
-			$this->mBlockedby = $this->mBlock->getByName();
-			$this->mBlockreason = $this->mBlock->mReason;
-			$this->mHideName = $this->mBlock->mHideName;
-			$this->mAllowUsertalk = !$this->mBlock->prevents( 'editownusertalk' );
-		}
+		$block = Block::newFromTarget( $this->getName(), $ip, !$bFromSlave );
 
 		# Proxy blocking
-		if ( $ip !== null && !$this->isAllowed( 'proxyunbannable' ) && !in_array( $ip, $wgProxyWhitelist ) ) {
+		if ( !$block instanceof Block && $ip !== null && !$this->isAllowed( 'proxyunbannable' )
+			&& !in_array( $ip, $wgProxyWhitelist ) ) 
+		{
 			# Local list
 			if ( self::isLocallyBlockedProxy( $ip ) ) {
-				$this->mBlockedby = wfMsg( 'proxyblocker' );
-				$this->mBlockreason = wfMsg( 'proxyblockreason' );
+				$block = new Block;
+				$block->setBlocker( wfMsg( 'proxyblocker' ) );
+				$block->mReason = wfMsg( 'proxyblockreason' );
+				$block->setTarget( $ip );
+			} elseif ( $this->isAnon() && $this->isDnsBlacklisted( $ip ) ) {
+				$block = new Block;
+				$block->setBlocker( wfMsg( 'sorbs' ) );
+				$block->mReason = wfMsg( 'sorbsreason' );
+				$block->setTarget( $ip );
 			}
+		}
 
-			# DNSBL
-			if ( !$this->mBlockedby && !$this->getID() ) {
-				if ( $this->isDnsBlacklisted( $ip ) ) {
-					$this->mBlockedby = wfMsg( 'sorbs' );
-					$this->mBlockreason = wfMsg( 'sorbsreason' );
-				}
-			}
+		if ( $block instanceof Block ) {
+			wfDebug( __METHOD__ . ": Found block.\n" );
+			$this->mBlock = $block;
+			$this->mBlockedby = $block->getByName();
+			$this->mBlockreason = $block->mReason;
+			$this->mHideName = $block->mHideName;
+			$this->mAllowUsertalk = !$block->prevents( 'editownusertalk' );
+		} else {
+			$this->mBlockedby = '';
+			$this->mHideName = 0;
+			$this->mAllowUsertalk = false;
 		}
 
 		# Extensions
@@ -2020,10 +2023,14 @@ class User {
 
 	/**
 	 * Get the user's current token.
+	 * @param $forceCreation Force the generation of a new token if the user doesn't have one (default=true for backwards compatibility)
 	 * @return String Token
 	 */
-	public function getToken() {
+	public function getToken( $forceCreation = true ) {
 		$this->load();
+		if ( !$this->mToken && $forceCreation ) {
+			$this->setToken();
+		}
 		return $this->mToken;
 	}
 
@@ -2037,27 +2044,10 @@ class User {
 		global $wgSecretKey, $wgProxyKey;
 		$this->load();
 		if ( !$token ) {
-			if ( $wgSecretKey ) {
-				$key = $wgSecretKey;
-			} elseif ( $wgProxyKey ) {
-				$key = $wgProxyKey;
-			} else {
-				$key = microtime();
-			}
-			$this->mToken = md5( $key . mt_rand( 0, 0x7fffffff ) . wfWikiID() . $this->mId );
+			$this->mToken = MWCryptRand::generateHex( USER_TOKEN_LENGTH );
 		} else {
 			$this->mToken = $token;
 		}
-	}
-
-	/**
-	 * Set the cookie password
-	 *
-	 * @param $str String New cookie password
-	 */
-	private function setCookiePassword( $str ) {
-		$this->load();
-		$this->mCookiePassword = md5( $str );
 	}
 
 	/**
@@ -2821,7 +2811,7 @@ class User {
 				'user_email' => $this->mEmail,
 				'user_email_authenticated' => $dbw->timestampOrNull( $this->mEmailAuthenticated ),
 				'user_touched' => $dbw->timestamp( $this->mTouched ),
-				'user_token' => $this->mToken,
+				'user_token' => strval( $this->mToken ),
 				'user_email_token' => $this->mEmailToken,
 				'user_email_token_expires' => $dbw->timestampOrNull( $this->mEmailTokenExpires ),
 			), array( /* WHERE */
@@ -2887,9 +2877,10 @@ class User {
 			'user_email' => $user->mEmail,
 			'user_email_authenticated' => $dbw->timestampOrNull( $user->mEmailAuthenticated ),
 			'user_real_name' => $user->mRealName,
-			'user_token' => $user->mToken,
+			'user_token' => strval( $user->mToken ),
 			'user_registration' => $dbw->timestamp( $user->mRegistration ),
 			'user_editcount' => 0,
+			'user_touched' => $dbw->timestamp( self::newTouchedTimestamp() ),
 		);
 		foreach ( $params as $name => $value ) {
 			$fields["user_$name"] = $value;
@@ -2908,6 +2899,9 @@ class User {
 	 */
 	public function addToDatabase() {
 		$this->load();
+
+		$this->mTouched = self::newTouchedTimestamp();
+
 		$dbw = wfGetDB( DB_MASTER );
 		$seqVal = $dbw->nextSequenceValue( 'user_user_id_seq' );
 		$dbw->insert( 'user',
@@ -2920,9 +2914,10 @@ class User {
 				'user_email' => $this->mEmail,
 				'user_email_authenticated' => $dbw->timestampOrNull( $this->mEmailAuthenticated ),
 				'user_real_name' => $this->mRealName,
-				'user_token' => $this->mToken,
+				'user_token' => strval( $this->mToken ),
 				'user_registration' => $dbw->timestamp( $this->mRegistration ),
 				'user_editcount' => 0,
+				'user_touched' => $dbw->timestamp( $this->mTouched ),
 			), __METHOD__
 		);
 		$this->mId = $dbw->insertId();
@@ -3184,7 +3179,7 @@ class User {
 		} else {
 			$token = $request->getSessionData( 'wsEditToken' );
 			if ( $token === null ) {
-				$token = self::generateToken();
+				$token = MWCryptRand::generateHex( 32 );
 				$request->setSessionData( 'wsEditToken', $token );
 			}
 			if( is_array( $salt ) ) {
@@ -3199,10 +3194,10 @@ class User {
 	 *
 	 * @param $salt String Optional salt value
 	 * @return String The new random token
+	 * @deprecated since 1.20; Use MWCryptRand for secure purposes or wfRandomString for pesudo-randomness
 	 */
 	public static function generateToken( $salt = '' ) {
-		$token = dechex( mt_rand() ) . dechex( mt_rand() );
-		return md5( $token . $salt );
+		return MWCryptRand::generateHex( 32 );
 	}
 
 	/**
@@ -3308,12 +3303,11 @@ class User {
 		global $wgUserEmailConfirmationTokenExpiry;
 		$now = time();
 		$expires = $now + $wgUserEmailConfirmationTokenExpiry;
-		$expiration = wfTimestamp( TS_MW, $expires );
-		$token = self::generateToken( $this->mId . $this->mEmail . $expires );
-		$hash = md5( $token );
 		$this->load();
+		$token = MWCryptRand::generateHex( 32 );
+		$hash = md5( $token );
 		$this->mEmailToken = $hash;
-		$this->mEmailTokenExpires = $expiration;
+		$this->mEmailTokenExpires = wfTimestamp( TS_MW, $expires );
 		return $token;
 	}
 
@@ -3862,7 +3856,7 @@ class User {
 
 		if( $wgPasswordSalt ) {
 			if ( $salt === false ) {
-				$salt = substr( wfGenerateToken(), 0, 8 );
+				$salt = MWCryptRand::generateHex( 8 );
 			}
 			return ':B:' . $salt . ':' . md5( $salt . '-' . md5( $password ) );
 		} else {
@@ -3949,7 +3943,7 @@ class User {
 			return true; // disabled
 		}
 		$log = new LogPage( 'newusers', false );
-		$log->addEntry( 'autocreate', $this->getUserPage(), '', array( $this->getId() ) );
+		$log->addEntry( 'autocreate', $this->getUserPage(), '', array( $this->getId() ), $this );
 		return true;
 	}
 

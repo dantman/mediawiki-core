@@ -195,7 +195,7 @@ class PageArchive {
 					'ar_timestamp' => $dbr->timestamp( $timestamp ) ),
 			__METHOD__ );
 		if( $row ) {
-			return Revision::newFromArchiveRow( $row, array( 'page' => $this->title->getArticleId() ) );
+			return Revision::newFromArchiveRow( $row, array( 'page' => $this->title->getArticleID() ) );
 		} else {
 			return null;
 		}
@@ -405,13 +405,12 @@ class PageArchive {
 		$article->loadPageData( 'fromdbmaster' );
 		$oldcountable = $article->isCountable();
 
-		$options = 'FOR UPDATE'; // lock page
 		$page = $dbw->selectRow( 'page',
 			array( 'page_id', 'page_latest' ),
 			array( 'page_namespace' => $this->title->getNamespace(),
 				   'page_title'     => $this->title->getDBkey() ),
 			__METHOD__,
-			$options
+			array( 'FOR UPDATE' ) // lock page
 		);
 		if( $page ) {
 			$makepage = false;
@@ -1160,7 +1159,7 @@ class SpecialUndelete extends SpecialPage {
 
 	private function formatRevisionRow( $row, $earliestLiveTime, $remaining ) {
 		$rev = Revision::newFromArchiveRow( $row,
-			array( 'page' => $this->mTargetObj->getArticleId() ) );
+			array( 'page' => $this->mTargetObj->getArticleID() ) );
 		$stxt = '';
 		$ts = wfTimestamp( TS_MW, $row->ar_timestamp );
 		// Build checkboxen...
@@ -1400,7 +1399,7 @@ class SpecialUndelete extends SpecialPage {
 		// Show file deletion warnings and errors
 		$status = $archive->getFileStatus();
 		if( $status && !$status->isGood() ) {
-			$out->addWikiText( $status->getWikiText( 'undelete-error-short', 'undelete-error-long' ) );
+			$out->addWikiText( '<div class="error">' . $status->getWikiText( 'undelete-error-short', 'undelete-error-long' ) . '</div>' );
 		}
 	}
 }

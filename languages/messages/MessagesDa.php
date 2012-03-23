@@ -1660,6 +1660,7 @@ Informer venligst en [[Special:ListUsers/sysop|systemadministrator]].',
 'backend-fail-closetemp'     => 'Kunne ikke lukke midlertidig fil.',
 'backend-fail-read'          => 'Kunne ikke læse filen $1.',
 'backend-fail-create'        => 'Kunne ikke oprette filen $1.',
+'backend-fail-maxsize'       => 'Kunne ikke oprette filen $1, da den er større end {{PLURAL:$2|$2 byte|$2 bytes}}.',
 'backend-fail-readonly'      => 'Lagrings-backend "$1" er i øjeblikket skrivebeskyttet. Den angivne begrundelse var: " $2 "',
 'backend-fail-synced'        => 'Filen "$1" er i en inkonsistent tilstand inden for de interne lagringsbackends',
 'backend-fail-connect'       => 'Kunne ikke forbinde til lagringsbackend "$1".',
@@ -1992,6 +1993,9 @@ Du kan afgrænse visningen ved at vælge en logtype, brugernavn eller påvirket 
 'allpagesprefix'    => 'Vis sider med præfiks:',
 'allpagesbadtitle'  => 'Det indtastede sidenavn er ugyldigt: Det har enten et foranstillet sprog-, en Interwiki-forkortelse eller indeholder et eller flere tegn, som ikke må anvendes i sidenavne.',
 'allpages-bad-ns'   => 'Navnerummet $1 findes ikke på {{SITENAME}}.',
+
+# SpecialCachedPage
+'cachedspecial-refresh-now' => 'Vis seneste.',
 
 # Special:Categories
 'categories'                    => 'Kategorier',
@@ -3715,5 +3719,15 @@ Ellers kan du bruge den enkle formular nedenfor. Din kommentar vil blive tilføj
 'api-error-unknownerror'                  => 'Ukendt fejl: "$1".',
 'api-error-uploaddisabled'                => 'Oplægning af filer er slået fra på denne wiki.',
 'api-error-verification-error'            => 'Denne fil kan være beskadiget, eller den har måske en forkert filendelse.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekund|sekunder}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minut|minutter}}',
+'duration-hours'     => '$1 {{PLURAL:$1|time|timer}}',
+'duration-days'      => '$1 {{PLURAL:$1|dag|dage}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|uge|uger}}',
+'duration-years'     => '$1 {{PLURAL:$1|år|år}}',
+'duration-decades'   => '$1 {{PLURAL:$1|årti|årtier}}',
+'duration-centuries' => '$1 {{PLURAL:$1|århundrede|århundreder}}',
 
 );

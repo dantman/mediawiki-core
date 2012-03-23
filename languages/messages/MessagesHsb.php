@@ -535,6 +535,9 @@ $2',
 'ns-specialprotected'  => 'Specialne strony njedadźa so wobdźěłać.',
 'titleprotected'       => 'Tutón titul bu přećiwo wutworjenju přez [[User:$1|$1]] škitany.
 Podata přičina je \'\'"$2"\'\'.',
+'filereadonlyerror'    => 'Njeje móžno dataju "$1" změnić, dokelž datajowy repozitorij "$2" je jenož čitajomny.
+
+Podata přičina je "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Špatna konfiguracija: Njeznaty wirusowy skener: ''$1''",
@@ -1630,6 +1633,9 @@ $1',
 'backend-fail-contenttype'   => 'Wobsahowy typ dataje, kotraž ma so na "$1" składować, njeda so zwěsćić.',
 'backend-fail-batchsize'     => 'Staplowa dataja, kotraž {{PLURAL:$1|jednu operaciju|$1 operaciji|$1 operacije|$1 operacijow}} wobsahuje,  je so  na składowanski backend pósłała; limit je $2 {{PLURAL:$2|operaciju|operaciji|operacije|operacijow}} .',
 
+'filejournal-fail-dbconnect' => 'Njeje žadyn zwisk ze žurnalowej datowej banku za składowanski backend "$1" móžno.',
+'filejournal-fail-dbquery'   => 'Žurnalowa datowa banka za składowanski backend "$1" njeda so aktualizować.',
+
 # Lock manager
 'lockmanager-notlocked'        => '"$1" njeda so wotewrić; njeje zawrjeny.',
 'lockmanager-fail-closelock'   => 'Zawrjenska dataja njeda so za "$1" začinić.',
@@ -1949,6 +1955,11 @@ Prošu wobkedźbuj, zo druhe websydła móža na dataju z direktnym URL wotkazow
 'allpagesprefix'    => 'Strony pokazać z prefiksom:',
 'allpagesbadtitle'  => 'Mjeno strony, kotrež sy zapodał, njebě płaćiwe. Měješe pak mjezyrěčny, pak mjezywikijowy prefiks abo wobsahowaše jedne abo wjace znamješkow, kotrež w titlach dowolene njejsu.',
 'allpages-bad-ns'   => 'Mjenowy rum „$1" w {{grammar:lokatiw|{{SITENAME}}}} njeeksistuje.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Wobhladuješ sej pufrowanu wersiju tuteje strony, kotraž móže do $1 stara być.',
+'cachedspecial-viewing-cached-ts'  => 'Wobhladuješ sej pufrowanu wersiju tuteje strony, kotraž móhła njeaktualna być.',
+'cachedspecial-refresh-now'        => 'Aktualnu wersiju sej wobhladać.',
 
 # Special:Categories
 'categories'                    => 'Kategorije',
@@ -3664,5 +3675,15 @@ Hewak móžeš slědowacy jednory formular wužiwać. Twój komentar přida so s
 'api-error-unknownerror'                  => 'Njeznaty zmylk: "$1".',
 'api-error-uploaddisabled'                => 'Nahraća su na tutym wikiju znjemóžnjene.',
 'api-error-verification-error'            => 'Tuta dataja móhła wobkškodźena być abo wopačny sufiks měć.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekundźe|sekundy|sekundow}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|mjeńšina|mjeńšinje|mjeńšiny|mjeńšin}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hodźina|hodźinje|hodźiny|hodźin}}',
+'duration-days'      => '$1 {{PLURAL:$1|dźeń|dnjej|dny|dnjow}}',
+'duration-weeks'     => '$1 {{PLURAL: $1|tydźeń|njedźeli|njedźele|njedźel}}',
+'duration-years'     => '$1 {{PLURAL: $1|lěto|lěće|lěta|lět}}',
+'duration-decades'   => '$1 {{PLURAL:$1|lětdźesatk|lětdźesatkaj|lětdźesatki|lětdźesatkow}}',
+'duration-centuries' => '$1 {{PLURAL:$1|lětstotk|lětstotkaj|lětstotki|lětstotkow}}',
 
 );
