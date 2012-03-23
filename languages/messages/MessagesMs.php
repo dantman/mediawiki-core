@@ -580,6 +580,9 @@ Pertanyaan: $2',
 'customjsprotected'    => 'Anda tidak dibenarkan menyunting laman JavaScript ini kerana ia mengandungi tetapan peribadi pengguna lain.',
 'ns-specialprotected'  => 'Laman khas tidak boleh disunting.',
 'titleprotected'       => "Tajuk ini telah dilindungi oleh [[User:$1|$1]] daripada dicipta. Sebab yang diberikan ialah ''$2''.",
+'filereadonlyerror'    => 'Fail "$1" tidak dapat diubah suai kerana repositori fail "$2" berada dalam ragam baca sahaja.
+
+Sebab yang diberikan ialah "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Konfigurasi rosak: pengimbas virus yang tidak diketahui: ''$1''",
@@ -1693,6 +1696,9 @@ Sila hubungi [[Special:ListUsers/sysop|pentadbir sistem]].',
 'backend-fail-contenttype'   => 'Jenis kandungan fail untuk disimpan di "$1" tidak dapat ditentukan.',
 'backend-fail-batchsize'     => 'Backend storan diberi $1 operasi fail dalam satu kelompok; hadnya ialah $2 operasi.',
 
+'filejournal-fail-dbconnect' => 'Tidak dapat bersambung dengan pangkalan data jurnal untuk backend storan "$1".',
+'filejournal-fail-dbquery'   => 'Pangkalan data jurnal untuk backend storan "$1" tidak dapat dikemaskinikan.',
+
 # Lock manager
 'lockmanager-notlocked'        => '"$1" tidak dapat dibuka; ia tidak terkunci.',
 'lockmanager-fail-closelock'   => 'Fail kunci untuk "$1" tidak dapat ditutup.',
@@ -2018,6 +2024,11 @@ serta mungkin mempunyai maklumat lanjut mengenai buku yang anda cari:',
 'allpagesbadtitle'  => 'Tajuk laman yang dinyatakan tidak sah atau mempunyai awalam antara bahasa atau antara wiki. Ia mungkin mengandungi aksara yang tidak boleh digunakan dalam tajuk laman.',
 'allpages-bad-ns'   => '{{SITENAME}} tidak mempunyai ruang nama "$1".',
 
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Anda sedang melihat versi dalam cache laman ini yang mungkin selama $1.',
+'cachedspecial-viewing-cached-ts'  => 'Anda sedang melihat versi dalam cache laman ini yang mungkin tidak lengkap sepenuhnya.',
+'cachedspecial-refresh-now'        => 'Lihat yang terkini.',
+
 # Special:Categories
 'categories'                    => 'Kategori',
 'categoriespagetext'            => '{{PLURAL:$1|Kategori|Kategori-kategori}} berikut mengandungi laman-laman atau media.
@@ -2295,10 +2306,10 @@ Ini adalah tetapan semasa bagi laman '''$1''':",
 'protect-otherreason'         => 'Sebab lain/tambahan:',
 'protect-otherreason-op'      => 'Sebab lain',
 'protect-dropdown'            => '*Sebab lazim
-** Vandalisme
-** Spam
-** Perang sunting
-** Laman popular',
+** Laku musnah berlebihan
+** Spam berlebihan
+** Perang sunting yang tidak membina
+** Laman yang terlalu ramai pelawat',
 'protect-edit-reasonlist'     => 'Ubah sebab-sebab perlindungan',
 'protect-expiry-options'      => '1 jam:1 hour,1 hari:1 day,1 minggu:1 week,2 minggu:2 weeks,1 bulan:1 month,3 bulan:3 months,6 bulan:6 months,1 tahun:1 year,selama-lamanya:infinite',
 'restriction-type'            => 'Keizinan:',
@@ -2339,9 +2350,9 @@ sebelum penghapusan. Teks sebenar bagi semua semakan yang dihapuskan hanya boleh
 atau semakan tersebut telah dipulihkan atau dibuang daripada arkib.',
 'undelete-nodiff'              => 'Tiada semakan sebelumnya.',
 'undeletebtn'                  => 'Pulihkan',
-'undeletelink'                 => 'lihat/pulih',
+'undeletelink'                 => 'lihat/pulihkan',
 'undeleteviewlink'             => 'papar',
-'undeletereset'                => 'set semula',
+'undeletereset'                => 'Set semula',
 'undeleteinvert'               => 'Kecualikan pilihan',
 'undeletecomment'              => 'Sebab:',
 'undeletedrevisions'           => '$1 semakan dipulihkan',
@@ -2378,12 +2389,12 @@ $1',
 'blanknamespace'                => '(Utama)',
 
 # Contributions
-'contributions'       => 'Sumbangan',
+'contributions'       => 'Sumbangan pengguna',
 'contributions-title' => 'Sumbangan oleh $1',
 'mycontris'           => 'Sumbangan saya',
 'contribsub2'         => 'Oleh $1 ($2)',
 'nocontribs'          => 'Tiada sebarang perubahan yang sepadan dengan kriteria-kriteria ini.',
-'uctop'               => ' (puncak)',
+'uctop'               => '(puncak)',
 'month'               => 'Sebelum bulan:',
 'year'                => 'Sebelum tahun:',
 
@@ -2420,7 +2431,7 @@ $1',
 'whatlinkshere-hidetrans'  => '$1 penyertaan',
 'whatlinkshere-hidelinks'  => '$1 pautan',
 'whatlinkshere-hideimages' => '$1 pautan imej',
-'whatlinkshere-filters'    => 'Tapis',
+'whatlinkshere-filters'    => 'Penapis',
 
 # Block/unblock
 'autoblockid'                     => 'Sekat #$1 secara automatik',
@@ -2474,7 +2485,7 @@ dirosakkan).',
 'ipb-blocklist-contribs'          => 'Sumbangan oleh $1',
 'unblockip'                       => 'Nyahsekat pengguna',
 'unblockiptext'                   => 'Gunakan borang di bawah untuk membuang sekatan bagialamat IP atau nama pengguna yang telah disekat.',
-'ipusubmit'                       => 'Tarik sekatan ini',
+'ipusubmit'                       => 'Tarik balik sekatan ini',
 'unblocked'                       => '[[User:$1|$1]] telah dinyahsekat',
 'unblocked-range'                 => '$1 telah dinyahsekat',
 'unblocked-id'                    => 'Sekatan $1 telah dibuang',
@@ -2495,7 +2506,7 @@ dirosakkan).',
 'ipblocklist-localblock'          => 'Sekatan tempatan',
 'ipblocklist-otherblocks'         => '{{PLURAL:$1|Sekatan|Sekatan-sekatan}} lain',
 'infiniteblock'                   => 'selama-lamanya',
-'expiringblock'                   => 'sehingga $1 pada $2',
+'expiringblock'                   => 'sehingga $1, $2',
 'anononlyblock'                   => 'pengguna tanpa nama sahaja',
 'noautoblockblock'                => 'sekatan automatik dipadamkan',
 'createaccountblock'              => 'pembukaan akaun baru disekat',
@@ -2525,7 +2536,7 @@ Sila lihat juga [[Special:BlockList|senarai sekatan IP]] yang sedang berkuatkuas
 'block-log-flags-noemail'         => 'e-mail disekat',
 'block-log-flags-nousertalk'      => 'tidak boleh menyunting laman perbincangan sendiri',
 'block-log-flags-angry-autoblock' => 'sekatan automatik tambahan diaktifkan',
-'block-log-flags-hiddenname'      => 'nama pengguna tersembunyi',
+'block-log-flags-hiddenname'      => 'nama pengguna tersorok',
 'range_block_disabled'            => 'Kebolehan penyelia untuk membuat sekatan julat dimatikan.',
 'ipb_expiry_invalid'              => 'Waktu tamat tidak sah.',
 'ipb_expiry_temp'                 => 'Sekatan nama pengguna terselindung sepatutnya kekal.',
@@ -2539,9 +2550,10 @@ Sila lihat juga [[Special:BlockList|senarai sekatan IP]] yang sedang berkuatkuas
 'ip_range_invalid'                => 'Julat IP tidak sah.',
 'ip_range_toolarge'               => 'Sekatan julat yang lebih luas daripada /$1 adalah tidak dibenarkan.',
 'blockme'                         => 'Sekat saya',
-'proxyblocker'                    => 'Sekatan proksi',
+'proxyblocker'                    => 'Penyekat proksi',
 'proxyblocker-disabled'           => 'Fungsi ini dimatikan.',
-'proxyblockreason'                => 'Alamat IP anda telah disekat kerana ia merupakan proksi terbuka. Sila hubungi penyedia perkhidmatan Internet anda atau pihak sokongan teknikal dan beritahu mereka mengenai masalah berat ini.',
+'proxyblockreason'                => 'Alamat IP anda telah disekat kerana ia merupakan proksi terbuka.
+Sila hubungi penyedia perkhidmatan Internet anda atau pihak sokongan teknikal dan beritahu mereka mengenai masalah keselamatan yang berat ini.',
 'proxyblocksuccess'               => 'Berjaya.',
 'sorbsreason'                     => 'Alamat IP anda telah disenaraikan sebagai proksi terbuka dalam DNSBL yang digunakan oleh {{SITENAME}}.',
 'sorbs_create_account_reason'     => 'Alamat IP anda telah disenaraikan sebagai proksi terbuka dalam DNSBL yang digunakan oleh {{SITENAME}}. Oleh itu, anda tidak dibenarkan membuka akaun baru.',
@@ -2567,9 +2579,9 @@ sahkan bahawa anda betul-betul mahu melakukan tindakan ini.',
 'unlockconfirm'       => 'Ya, saya betul-betul mahu membuka kunci pangkalan data.',
 'lockbtn'             => 'Kunci pangkalan data',
 'unlockbtn'           => 'Buka kunci pangkalan data',
-'locknoconfirm'       => 'Anda tidak menyemak kotak pengesahan.',
-'lockdbsuccesssub'    => 'Pangkalan data dikunci.',
-'unlockdbsuccesssub'  => 'Kunci pangkalan data dibuka.',
+'locknoconfirm'       => 'Anda tidak meraitkan petak pengesahan.',
+'lockdbsuccesssub'    => 'Pangkalan data berjaya dikunci',
+'unlockdbsuccesssub'  => 'Kunci pangkalan data dibuka',
 'lockdbsuccesstext'   => 'Pangkalan data telah dikunci.
 <br />Pastikan anda [[Special:UnlockDB|membukanya semula]] selepas penyelenggaraan selesai.',
 'unlockdbsuccesstext' => 'Kunci pangkalan data {{SITENAME}} telah dibuka.',
@@ -2578,8 +2590,8 @@ sahkan bahawa anda betul-betul mahu melakukan tindakan ini.',
 'lockedbyandtime'     => '(oleh $1 di $2 pada $3)',
 
 # Move page
-'move-page'                    => 'Pindah $1',
-'move-page-legend'             => 'Pindah laman',
+'move-page'                    => 'Pindahkan $1',
+'move-page-legend'             => 'Pindahkan laman',
 'movepagetext'                 => "Gunakan borang di bawah untuk menukar nama laman dan memindahkan semua maklumat sejarahnya ke nama baru. Tajuk yang lama akan dijadikan lencongan ke tajuk yang baru. Anda juga boleh mengemaskinikan semua lencongan yang menuju ke tajuk asal supaya menuju ke tajuk baru. Sebaliknya, anda boleh menyemak sekiranya terdapat [[Special:DoubleRedirects|lencongan berganda]] atau [[Special:BrokenRedirects|lencongan rosak]]. Anda bertanggungjawab memastikan semua pautan bersambung ke laman yang sepatutnya.
 
 Sila ambil perhatian bahawa laman tersebut '''tidak''' akan dipindahkan sekiranya laman dengan tajuk yang baru tadi telah wujud, melainkan apabila
@@ -2603,7 +2615,7 @@ sila pastikan anda faham akibat yang mungkin timbul sebelum meneruskannya.",
 * Anda membuang tanda kotak di bawah.
 
 Dalam kes tersebut, anda terpaksa melencongkan atau menggabungkan laman secara manual, jika perlu.",
-'movearticle'                  => 'Pindah laman:',
+'movearticle'                  => 'Pindahkan laman:',
 'moveuserpage-warning'         => "'''Amaran:''' Anda sudah hendak memindahkan suatu laman pengguna. Sila ambil perhatian bahawa hanya laman tersebut akan dipindahkan dan nama pengguna yang berkenaan ''tidak'' berubah.",
 'movenologin'                  => 'Belum log masuk.',
 'movenologintext'              => 'Anda mesti [[Special:UserLogin|log masuk]] terlebih dahulu untuk memindahkan laman.',
@@ -2611,12 +2623,12 @@ Dalam kes tersebut, anda terpaksa melencongkan atau menggabungkan laman secara m
 'movenotallowedfile'           => 'Anda tidak mempunyai keizinan untuk memindahkan fail.',
 'cant-move-user-page'          => 'Anda tidak mempunyai keizinan untuk memindahkan laman pengguna (tidak termasuk sublaman-sublamannya).',
 'cant-move-to-user-page'       => 'Anda tidak mempunyai keizinan untuk memindahkan sesebuah laman ke mana-mana laman pengguna (kecuali sebagai sublamannya sahaja).',
-'newtitle'                     => 'Kepada tajuk baru:',
+'newtitle'                     => 'Ke tajuk baru:',
 'move-watch'                   => 'Pantau laman ini',
-'movepagebtn'                  => 'Pindah laman',
+'movepagebtn'                  => 'Pindahkan laman',
 'pagemovedsub'                 => 'Pemindahan berjaya',
 'movepage-moved'               => '\'\'\'"$1" telah dipindahkan ke "$2"\'\'\'',
-'movepage-moved-redirect'      => 'Sebuah lencongan telah dicipta.',
+'movepage-moved-redirect'      => 'Satu lencongan telah diwujudkan.',
 'movepage-moved-noredirect'    => 'Penciptaan lencongan telah dihalang.',
 'articleexists'                => 'Laman dengan nama tersebut telah pun wujud,
 atau nama yang anda pilih tidak sah.
@@ -2635,7 +2647,7 @@ Sila pilih nama lain.',
 'movelogpagetext'              => 'Yang berikut ialah senarai pemindahan laman.',
 'movesubpage'                  => '{{PLURAL:$1|Sublaman|Sublaman}}',
 'movesubpagetext'              => 'Laman ini mempunyai $1 sublaman berikut.',
-'movenosubpage'                => 'Laman ini tidak mempunyai sublaman.',
+'movenosubpage'                => 'Laman ini tiada sublaman.',
 'movereason'                   => 'Sebab:',
 'revertmove'                   => 'balik',
 'delete_and_move'              => 'Hapus dan pindah',
@@ -2650,10 +2662,10 @@ Laman destinasi "[[:$1]]" telah pun wujud. Adakah anda mahu menghapuskannya supa
 'immobile-target-namespace-iw' => 'Pautan interwiki tidak boleh dijadikan sasaran untuk pemindahan laman.',
 'immobile-source-page'         => 'Anda tidak boleh memindahkan laman ini.',
 'immobile-target-page'         => 'Anda tidak boleh memindahkan laman ke tajuk itu.',
-'imagenocrossnamespace'        => 'Tidak boleh memindah fail ke ruang nama lain',
+'imagenocrossnamespace'        => 'Anda tidak boleh memindahkan fail ke ruang nama bukan fail',
 'nonfile-cannot-move-to-file'  => 'Laman bukan fail tidak boleh dipindahkan ke ruang nama fail',
 'imagetypemismatch'            => 'Sambungan baru fail tersebut tidak sepadan dengan jenisnya',
-'imageinvalidfilename'         => 'Nama fail imej sasaran tidak sah',
+'imageinvalidfilename'         => 'Nama fail sasaran tidak sah',
 'fix-double-redirects'         => 'Kemas kinikan semua lencongan yang menuju ke tajuk asal',
 'move-leave-redirect'          => 'Lencongkan ke tajuk baru',
 'protectedpagemovewarning'     => "'''Amaran:''' Laman ini telah dikunci supaya hanya mereka yang mempunyai keistimewaan penyelia boleh mengalihkannya.
@@ -2661,7 +2673,7 @@ Masukan log terakhir ditunjukkan di bawah untuk rujukan:",
 'semiprotectedpagemovewarning' => "'''Nota:''' Laman ini telah dikunci agar hanya pengguna berdaftar sahaja boleh memindahkannya.
 Masukan log terakhir ditunjukkan di bawah untuk rujukan:",
 'move-over-sharedrepo'         => '== Fail wujud ==
-[[:$1]] telah wujud di gedung kongsi. Fail yang menggunakan tajuk ini akan mengatasi fail di gedung kongsi.',
+[[:$1]] telah wujud di gedung kongsi. Fail baru yang menggunakan tajuk ini akan mengatasi fail di gedung kongsi ini.',
 'file-exists-sharedrepo'       => 'Nama fail yang dipilih telah pun digunakan dalam gedung kongsi. Sila pilih nama lain.',
 
 # Export
@@ -2678,9 +2690,9 @@ Dalam pilihan kedua tadi, anda juga boleh menggunakan pautan, umpamanya [[{{#Spe
 '''Catatan:''' Ciri eksport sejarah penuh laman melalui borang ini telah dimatikan atas sebab-sebab prestasi.",
 'exportlistauthors' => 'Sertakan senarai penuh penyumbang untuk setiap laman',
 'export-submit'     => 'Eksport',
-'export-addcattext' => 'Tambah laman daripada kategori:',
+'export-addcattext' => 'Tambahkan laman dari kategori:',
 'export-addcat'     => 'Tambahkan',
-'export-addnstext'  => 'Tambah laman dari ruang nama:',
+'export-addnstext'  => 'Tambahkan laman dari ruang nama:',
 'export-addns'      => 'Tambahkan',
 'export-download'   => 'Simpan sebagai fail',
 'export-templates'  => 'Sertakan templat',
@@ -2690,7 +2702,7 @@ Dalam pilihan kedua tadi, anda juga boleh menggunakan pautan, umpamanya [[{{#Spe
 'allmessages'                   => 'Pesanan sistem',
 'allmessagesname'               => 'Nama',
 'allmessagesdefault'            => 'Teks mesej asal',
-'allmessagescurrent'            => 'Teks semasa',
+'allmessagescurrent'            => 'Teks pesanan semasa',
 'allmessagestext'               => 'Ini ialah senarai pesanan sistem yang terdapat dalam ruang nama MediaWiki.
 Sila lawat [//www.mediawiki.org/wiki/Localisation Penyetempatan MediaWiki] dan [//translatewiki.net translatewiki.net] sekiranya anda mahu menyumbang dalam menyetempatkan dan menterjemah perisian MediaWiki.',
 'allmessagesnotsupportedDB'     => "'''{{ns:special}}:Allmessages''' tidak boleh digunakan kerana '''\$wgUseDatabaseMessages''' dipadamkan.",
@@ -2806,14 +2818,14 @@ Simpan dalam komputer anda dan muat naiknya di sini.',
 'tooltip-search'                      => 'Cari dalam {{SITENAME}}',
 'tooltip-search-go'                   => 'Pergi ke laman dengan nama tepat ini, jika ada',
 'tooltip-search-fulltext'             => 'Cari laman dengan teks ini',
-'tooltip-p-logo'                      => 'Laman Utama',
+'tooltip-p-logo'                      => 'Kunjungi laman utama',
 'tooltip-n-mainpage'                  => 'Kunjungi Laman Utama',
 'tooltip-n-mainpage-description'      => 'Kunjungi laman utama',
 'tooltip-n-portal'                    => 'Maklumat mengenai projek ini',
 'tooltip-n-currentevents'             => 'Cari maklumat latar belakang mengenai peristiwa semasa',
 'tooltip-n-recentchanges'             => 'Senarai perubahan terkini dalam wiki ini.',
 'tooltip-n-randompage'                => 'Buka laman rawak',
-'tooltip-n-help'                      => 'Tempat mencari jawapan.',
+'tooltip-n-help'                      => 'Tempat mencari jawapan',
 'tooltip-t-whatlinkshere'             => 'Senarai laman wiki yang mengandungi pautan ke laman ini',
 'tooltip-t-recentchangeslinked'       => 'Perubahan terkini bagi semua laman yang dipaut dari laman ini',
 'tooltip-feed-rss'                    => 'Suapan RSS bagi laman ini',
@@ -2965,7 +2977,7 @@ Dengan menjalankannya, komputer anda mungkin akan terjejas.",
 'newimages'             => 'Galeri fail baru',
 'imagelisttext'         => "Yang berikut ialah senarai bagi '''$1''' fail yang disusun secara $2.",
 'newimages-summary'     => 'Laman khas ini memaparkan senarai fail muat naik terakhir.',
-'newimages-legend'      => 'Nama fail',
+'newimages-legend'      => 'Penapis',
 'newimages-label'       => 'Nama fail (atau sebahagian daripadanya):',
 'showhidebots'          => '($1 bot)',
 'noimages'              => 'Tiada imej.',
@@ -3189,7 +3201,7 @@ Ruangan-ruangan yang lain pula akan disembunyikan pada asali.
 'exif-originalimagewidth'          => 'Lebar imej sebelum dipangkas',
 
 # EXIF attributes
-'exif-compression-1' => 'Tidak dimampat',
+'exif-compression-1' => 'Tak termampat',
 'exif-compression-2' => 'Pengekodan panjang jalan Huffman Terubahsuai 1-Dimensi Kumpulan 3 CCITT',
 'exif-compression-3' => 'Pengekodan faks Kumpulan 3 CCITT',
 'exif-compression-4' => 'Pengekodan faks Kumpulan 4 CCITT',
@@ -3789,5 +3801,15 @@ Ataupun, anda boleh menggunakan borang yang mudah di bawah. Ulasan anda akan dic
 'api-error-unknownerror'                  => 'Ralat tidak dikenali: "$1".',
 'api-error-uploaddisabled'                => 'Ciri muat naik dimatikan di wiki ini.',
 'api-error-verification-error'            => 'Fail ini mungkin tercemar atau tersalah sambungannya.',
+
+# Durations
+'duration-seconds'   => '$1 saat',
+'duration-minutes'   => '$1 minit',
+'duration-hours'     => '$1 jam',
+'duration-days'      => '$1 hari',
+'duration-weeks'     => '$1 minggu',
+'duration-years'     => '$1 tahun',
+'duration-decades'   => '$1 dekad',
+'duration-centuries' => '$1 abad',
 
 );

@@ -186,9 +186,19 @@ class SpecialProtectedpages extends SpecialPage {
 	 * @return String
 	 */
 	protected function getNamespaceMenu( $namespace = null ) {
-		return "<span style='white-space: nowrap'>" .
-			Xml::label( wfMsg( 'namespace' ), 'namespace' ) . '&#160;'
-			. Xml::namespaceSelector( $namespace, '' ) . "</span>";
+		return Html::rawElement( 'span', array( 'style' => 'white-space: nowrap;' ),
+			Html::namespaceSelector(
+				array(
+					'selected' => $namespace,
+					'all' => '',
+					'label' => $this->msg( 'namespace' )->text()
+				), array(
+					'name'  => 'namespace',
+					'id'    => 'namespace',
+					'class' => 'namespaceselector',
+				)
+			)
+		);
 	}
 
 	/**

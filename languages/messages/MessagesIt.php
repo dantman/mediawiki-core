@@ -643,6 +643,9 @@ $2',
 'ns-specialprotected'  => 'Non è possibile modificare le pagine speciali.',
 'titleprotected'       => "La creazione di una pagina con questo titolo è stata bloccata da [[User:$1|$1]].
 La motivazione è la seguente: ''$2''.",
+'filereadonlyerror'    => 'Non è stato possibile modificare il file "$1" poiché il repository di file "$2" è in modalità di sola lettura.
+
+La motivazione è "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Errore di configurazione: antivirus sconosciuto: ''$1''",
@@ -758,7 +761,7 @@ Riprovare più tardi.',
 'resetpass-no-info'         => "Devi aver effettuato l'accesso per accedere a questa pagina direttamente.",
 'resetpass-submit-loggedin' => 'Cambia password',
 'resetpass-submit-cancel'   => 'Annulla',
-'resetpass-wrong-oldpass'   => 'Password temporanea o corrente non valida.
+'resetpass-wrong-oldpass'   => 'Password temporanea o attuale non valida.
 La password potrebbe essere stata già cambiata, oppure potrebbe essere stata richiesta una nuova password temporanea.',
 'resetpass-temp-password'   => 'Password temporanea:',
 
@@ -1122,7 +1125,7 @@ $1",
 'revdel-restore-visible'      => 'revisioni visibili',
 'pagehist'                    => 'Cronologia della pagina',
 'deletedhist'                 => 'Cronologia cancellata',
-'revdelete-hide-current'      => "Impossibile nascondere l'oggetto con data $1 $2 in quanto è la revisione corrente.",
+'revdelete-hide-current'      => "Impossibile nascondere l'oggetto con data $1 $2 in quanto è la revisione attuale.",
 'revdelete-show-no-access'    => 'Impossibile mostrare l\'oggetto con data $1 $2 in quanto è stato identificato come "riservato" e non si dispone del relativo accesso.',
 'revdelete-modify-no-access'  => 'Impossibile modificare l\'oggetto con data $1 $2 in quanto è stato identificato come "riservato" e non si dispone del relativo accesso.',
 'revdelete-modify-missing'    => "Impossibile modificare l'oggetto con ID $1 in quanto non è presente nel database.",
@@ -1544,8 +1547,8 @@ Il tuo indirizzo non viene rivelato quando gli altri utenti ti contattano.',
 'rclinks'                           => 'Mostra le $1 modifiche più recenti apportate negli ultimi $2 giorni<br />$3',
 'diff'                              => 'diff',
 'hist'                              => 'cron',
-'hide'                              => 'nascondi',
-'show'                              => 'mostra',
+'hide'                              => 'Nascondi',
+'show'                              => 'Mostra',
 'minoreditletter'                   => 'm',
 'newpageletter'                     => 'N',
 'boteditletter'                     => 'b',
@@ -1721,6 +1724,7 @@ $1',
 'backend-fail-closetemp'     => 'Impossibile chiudere il file temporaneo.',
 'backend-fail-read'          => 'Impossibile leggere il file  $1 .',
 'backend-fail-create'        => 'Impossibile creare il file  $1 .',
+'backend-fail-maxsize'       => 'Impossibile creare il file $1 perché è più grande di {{PLURAL:$2|un|$2}} byte.',
 'backend-fail-readonly'      => 'Il backend "$1" è attualmente di sola lettura. La ragione indicata è: "$2"',
 'backend-fail-synced'        => 'Il file "$1" è in uno stato non coerente nei backend di memoria interna.',
 'backend-fail-connect'       => 'Impossibile connettersi al backend di memoria "$1".',
@@ -1820,7 +1824,7 @@ Se vengono filtrati per utente, saranno mostrati solamente quei file per i quali
 'filehist-deleteall'        => 'cancella tutto',
 'filehist-deleteone'        => 'cancella',
 'filehist-revert'           => 'ripristina',
-'filehist-current'          => 'corrente',
+'filehist-current'          => 'attuale',
 'filehist-datetime'         => 'Data/Ora',
 'filehist-thumb'            => 'Miniatura',
 'filehist-thumbtext'        => 'Miniatura della versione delle $1',
@@ -2053,6 +2057,9 @@ Potrebbero essere presenti immagini che sono usate da altri siti con un collegam
 'allpagesprefix'    => 'Mostra le pagine che iniziano con:',
 'allpagesbadtitle'  => 'Il titolo indicato per la pagina non è valido o contiene prefissi interlingua o interwiki. Potrebbe inoltre contenere uno o più caratteri il cui uso non è ammesso nei titoli.',
 'allpages-bad-ns'   => 'Il namespace "$1" non esiste su {{SITENAME}}.',
+
+# SpecialCachedPage
+'cachedspecial-refresh-now' => 'Mostra la più recente.',
 
 # Special:Categories
 'categories'                    => 'Categorie',
@@ -2558,7 +2565,7 @@ Il blocco dell\'utente $1 è stato imposto per il seguente motivo: "$2".',
 'ip_range_toolarge'               => 'Non è possibile bloccare range superiori al /$1',
 'blockme'                         => 'Bloccami',
 'proxyblocker'                    => 'Blocco dei proxy aperti',
-'proxyblocker-disabled'           => 'Questa funzione non è attiva.',
+'proxyblocker-disabled'           => 'Questa funzione è disabilitata.',
 'proxyblockreason'                => 'Questo indirizzo IP è stato bloccato perché risulta essere un proxy aperto. Si prega di contattare il proprio fornitore di accesso a Internet o il supporto tecnico e informarli di questo grave problema di sicurezza.',
 'proxyblocksuccess'               => 'Fatto.',
 'sorbsreason'                     => 'Questo indirizzo IP è elencato come proxy aperto nella blacklist DNSBL utilizzata da {{SITENAME}}.',
@@ -2774,7 +2781,7 @@ Tutte le operazioni di importazione trans-wiki sono registrate nel [[Special:Log
 
 # JavaScriptTest
 'javascripttest'                           => 'Sperimentazione JavaScript',
-'javascripttest-disabled'                  => 'Questa funzione è disabilitata.',
+'javascripttest-disabled'                  => 'Questa funzione non è abilitata su questo wiki.',
 'javascripttest-title'                     => 'In esecuzione test per $1',
 'javascripttest-pagetext-noframework'      => "Questa pagina è riservata all'esecuzione di test di JavaScript.",
 'javascripttest-pagetext-unknownframework' => 'Framework di test sconosciuto "$1".',
@@ -3804,5 +3811,16 @@ Le immagini vengono mostrate alla massima risoluzione disponibile, per gli altri
 'api-error-unknownerror'                  => 'Errore sconosciuto: "$1".',
 'api-error-uploaddisabled'                => 'Il caricamento è disabilitato su questa wiki.',
 'api-error-verification-error'            => "Questo file potrebbe essere danneggiato, o avere l'estensione sbagliata.",
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|secondo|secondi}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuto|minuti}}',
+'duration-hours'     => '$1 {{PLURAL:$1|ora|ore}}',
+'duration-days'      => '$1 {{PLURAL:$1|giorno|giorni}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|settimana|settimane}}',
+'duration-years'     => '$1 {{PLURAL:$1|anno|anni}}',
+'duration-decades'   => '$1 {{PLURAL:$1|decade|decadi}}',
+'duration-centuries' => '$1 {{PLURAL:$1|secolo|secoli}}',
+'duration-millennia' => '$1 {{PLURAL:$1|millennio|millenni}}',
 
 );

@@ -9,6 +9,7 @@
  *
  * @author Dbc334
  * @author Freakolowsky
+ * @author Irena Plahuta
  * @author McDutchie
  * @author Smihael
  * @author XJamRastafire
@@ -570,6 +571,9 @@ $2',
 'ns-specialprotected'  => 'Posebnih strani ni mogoče urejati.',
 'titleprotected'       => "Uporabnik [[User:$1|$1]] je preprečil ustvarjanje strani s takim naslovom.
 Podani razlog je bil »''$2''«.",
+'filereadonlyerror'    => "Ne morem spremeniti datoteke »$1«, ker je skladišče datotek »$2« v načinu, ki dovoljuje samo branje.
+
+Podano pojasnilo je »''$3''«.",
 
 # Virus scanner
 'virus-badscanner'     => "Slaba konfiguracija: neznani virus skener: ''$1''",
@@ -1723,6 +1727,9 @@ Prosimo, preverite veljavnost in dostopnost naslova URL ter poskusite ponovno.
 'backend-fail-contenttype'   => 'Ne morem določiti vrsto vsebine datoteke za shranjevanje pri »$1«.',
 'backend-fail-batchsize'     => 'Skladiščnemu zaledju je dana vrsta $1 {{PLURAL:$1|datotečne operacije|datotečnih operacij}}; omejitev {{PLURAL:$2|je $2 operacija|sta $2 operaciji|so $2 operacije|je $2 operacij}}.',
 
+'filejournal-fail-dbconnect' => 'Ne morem se povezati z listovno zbirko podatkov za skladiščno zaledje »$1«.',
+'filejournal-fail-dbquery'   => 'Ne morem posodobiti listovne zbirke podatkov za skladiščno zaledje »$1«.',
+
 # Lock manager
 'lockmanager-notlocked'        => 'Ne morem odkleniti »$1«, saj ni zaklenjeno.',
 'lockmanager-fail-closelock'   => 'Ne morem zapreti zaklenitvene datoteke »$1«.',
@@ -2055,6 +2062,11 @@ Prosimo, upoštevajte, da se lahko druge spletne strani povezujejo na datoteko z
 'allpagesbadtitle'  => 'Podan naslov strani je neveljaven oz. ima predpono interjezik ali interwiki.
 Morda vsebuje enega ali več znakov, ki niso dovoljeni v naslovih.',
 'allpages-bad-ns'   => '{{SITENAME}} nima imenskega prostora »$1«.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Ogledujete si predpomnjeno različico strani, ki je lahko stara $1.',
+'cachedspecial-viewing-cached-ts'  => 'Ogledujete si predpomnjeno različico strani, ki morda ni popolnoma posodobljena.',
+'cachedspecial-refresh-now'        => 'Ogled najnovejše.',
 
 # Special:Categories
 'categories'                    => 'Kategorije',
@@ -3820,5 +3832,16 @@ V nasprotnem primeru lahko uporabite preprost obrazec spodaj. Vašo pripombo bom
 'api-error-unknownerror'                  => 'Neznana napaka: »$1«.',
 'api-error-uploaddisabled'                => 'Nalaganje je onemogočeno na tem wikiju.',
 'api-error-verification-error'            => 'Ta datoteka je morda poškodovana ali ima napačno končnico.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekundi|sekunde|sekund}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuta|minuti|minute|minut}}',
+'duration-hours'     => '$1 {{PLURAL:$1|ura|uri|ure|ur}}',
+'duration-days'      => '$1 {{PLURAL:$1|dan|dneva|dnevi|dni}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|teden|tedna|tedni|tednov}}',
+'duration-years'     => '$1 {{PLURAL:$1|leto|leti|leta|let}}',
+'duration-decades'   => '$1 {{PLURAL:$1|desetletje|desetletji|desetletja|desetletij}}',
+'duration-centuries' => '$1 {{PLURAL:$1|stoletje|stoletji|stoletja|stoletij}}',
+'duration-millennia' => '$1 {{PLURAL:$1|tisočletje|tisočletji|tisočletja|tisočletij}}',
 
 );

@@ -43,7 +43,7 @@ class SpecialWatchlist extends SpecialPage {
 		// Add feed links
 		$wlToken = $user->getOption( 'watchlisttoken' );
 		if ( !$wlToken ) {
-			$wlToken = sha1( mt_rand() . microtime( true ) );
+			$wlToken = MWCryptRand::generateHex( 40 );
 			$user->setOption( 'watchlisttoken', $wlToken );
 			$user->saveSettings();
 		}
@@ -328,8 +328,17 @@ class SpecialWatchlist extends SpecialPage {
 		$form .= $lang->pipeList( $links );
 		$form .= Xml::openElement( 'form', array( 'method' => 'post', 'action' => $this->getTitle()->getLocalUrl(), 'id' => 'mw-watchlist-form-namespaceselector' ) );
 		$form .= '<hr /><p>';
-		$form .= Xml::label( $this->msg( 'namespace' )->text(), 'namespace' ) . '&#160;';
-		$form .= Xml::namespaceSelector( $nameSpace, '' ) . '&#160;';
+		$form .= Html::namespaceSelector(
+			array(
+				'selected' => $nameSpace,
+				'all' => '',
+				'label' => $this->msg( 'namespace' )->text()
+			), array(
+				'name'  => 'namespace',
+				'id'    => 'namespace',
+				'class' => 'namespaceselector',
+			)
+		) . '&#160;';
 		$form .= Xml::checkLabel( $this->msg( 'invert' )->text(), 'invert', 'nsinvert', $invert ) . '&#160;';
 		$form .= Xml::submitButton( $this->msg( 'allpagessubmit' )->text() ) . '</p>';
 		$form .= Html::hidden( 'days', $values['days'] );

@@ -686,7 +686,7 @@ Databáze vrátila chybu „$3: $4“',
 'enterlockreason'      => 'Udejte důvod zamčení, včetně odhadu, za jak dlouho dojde k odemčení.',
 'readonlytext'         => 'Databáze je nyní uzamčena, takže nelze ukládat nové doplňky a změny. Důvodem je pravděpodobně pravidelná údržba, po které se vše vrátí do normálního stavu.
 
-Správce, který databázi zamkl, zanechal následující zprávu: $1',
+Správce serveru, který databázi zamkl, poskytl toto zdůvodnění: $1',
 'missing-article'      => 'V databázi nebyl nalezen požadovaný text stránky „$1“ $2.
 
 Toto je obvykle způsobeno tím, že jste následovali zastaralý odkaz na rozdíl verzí nebo historickou verzi stránky, jež byla smazána.
@@ -736,6 +736,9 @@ $2',
 'customjsprotected'    => 'Nemáte povoleno editovat tuto stránku s JavaScriptem, protože obsahuje osobní nastavení jiného uživatele.',
 'ns-specialprotected'  => 'Stránky ve jmenném prostoru {{ns:special}} nelze editovat.',
 'titleprotected'       => "Stránku s tímto názvem nelze založit, protože název zamknul uživatel [[User:$1|$1]] s odůvodněním: ''$2''.",
+'filereadonlyerror'    => "Nelze změnit soubor „$1“, protože úložiště souborů „$2“ je momentálně pouze pro čtení.
+
+Udaný důvod: „''$3''“.",
 
 # Virus scanner
 'virus-badscanner'     => "Špatná konfigurace: neznámý antivirový program: ''$1''",
@@ -1847,6 +1850,9 @@ Kontaktuje prosím [[Special:ListUsers/sysop|správce]].',
 'backend-fail-contenttype'   => 'Nelze určit typ obsahu souboru k uložení do „$1“.',
 'backend-fail-batchsize'     => 'Koncový úložný systém přijal dávku s $1 {{PLURAL:souborovou operací|souborovými operacemi}}; maximum je {{PLURAL:$2|$2}}.',
 
+'filejournal-fail-dbconnect' => 'Nelze se připojit k žurnálové databázi pro koncový úložný systém „$1“.',
+'filejournal-fail-dbquery'   => 'Nepodařilo se aktualizovat žurnálovou databázi pro koncový úložný systém „$1“.',
+
 # Lock manager
 'lockmanager-notlocked'        => 'Soubor „$1“ nelze odemknout, neboť není zamčen.',
 'lockmanager-fail-closelock'   => 'Soubor se zámkem pro „$1“ nelze zavřít.',
@@ -1968,6 +1974,7 @@ Níže jsou zobrazeny informace, které obsahuje jeho [$2 tamější stránka s 
 'uploadnewversion-linktext' => 'Načíst novou verzi tohoto souboru',
 'shared-repo-from'          => 'z {{grammar:2sg|$1}}',
 'shared-repo'               => 'sdíleného úložiště',
+'filepage.css'              => '/* Zde uvedené CSS se vkládá na stránky s popisem souboru, včetně cizích klientských wiki */',
 
 # File reversion
 'filerevert'                => 'Vrátit zpět $1',
@@ -2171,6 +2178,11 @@ Zobrazení můžete zúžit výběrem typu záznamu, uživatelského jména (zá
 'allpagesprefix'    => 'Zobrazit stránky začínající na:',
 'allpagesbadtitle'  => 'Zadaný název stránky nebyl platný nebo obsahoval předponu mezijazykového či interwiki odkazu. Možná obsahoval znaky, které v názvu nejsou dovoleny.',
 'allpages-bad-ns'   => '{{SITENAME}} nemá jmenný prostor "$1".',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Prohlížíte si cachovanou verzi této stránky, která může být až $1 stará.',
+'cachedspecial-viewing-cached-ts'  => 'Prohlížíte si cachovanou verzi této stránky, která nemusí být zcela aktuální.',
+'cachedspecial-refresh-now'        => 'Zobrazit nejnovější.',
 
 # Special:Categories
 'categories'                    => 'Kategorie',
@@ -2976,30 +2988,39 @@ Uložte jej na svůj disk a nahrajte ho sem.',
 'tooltip-summary'                     => 'Zadejte stručné shrnutí',
 
 # Stylesheets
-'common.css'      => '/* Zde uvedené CSS bude ovlivňovat všechny styly */',
-'standard.css'    => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Klasický“  */',
-'nostalgia.css'   => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Nostalgie“  */',
-'cologneblue.css' => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Kolínská modř“  */',
-'monobook.css'    => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Monobook“ */',
-'myskin.css'      => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Můj vzhled“ */',
-'chick.css'       => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Kuře“ */',
-'simple.css'      => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Jednoduchý“ */',
-'modern.css'      => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Moderní“ */',
-'vector.css'      => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Vektor“ */',
-'print.css'       => '/* Zde uvedené CSS bude ovlivňovat tiskový výstup */',
-'handheld.css'    => '/* Zde uvedené CSS bude ovlivňovat přenosná zařízení vycházející ze stylu nastaveného v proměnné $wgHandheldStyle */',
+'common.css'              => '/* Zde uvedené CSS bude ovlivňovat všechny styly */',
+'standard.css'            => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Klasický“  */',
+'nostalgia.css'           => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Nostalgie“  */',
+'cologneblue.css'         => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Kolínská modř“  */',
+'monobook.css'            => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Monobook“ */',
+'myskin.css'              => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Můj vzhled“ */',
+'chick.css'               => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Kuře“ */',
+'simple.css'              => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Jednoduchý“ */',
+'modern.css'              => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Moderní“ */',
+'vector.css'              => '/* Zde uvedené CSS bude ovlivňovat pouze styl „Vektor“ */',
+'print.css'               => '/* Zde uvedené CSS bude ovlivňovat tiskový výstup */',
+'handheld.css'            => '/* Zde uvedené CSS bude ovlivňovat přenosná zařízení vycházející ze stylu nastaveného v proměnné $wgHandheldStyle */',
+'noscript.css'            => '/* Zde uvedené CSS bude ovlivňovat uživatele s vypnutým JavaScriptem */',
+'group-autoconfirmed.css' => '/* Zde uvedené CSS bude ovlivňovat pouze automaticky schválené uživatele */',
+'group-bot.css'           => '/* Zde uvedené CSS bude ovlivňovat pouze boty */',
+'group-sysop.css'         => '/* Zde uvedené CSS bude ovlivňovat pouze správce */',
+'group-bureaucrat.css'    => '/* Zde uvedené CSS bude ovlivňovat pouze byrokraty */',
 
 # Scripts
-'common.js'      => '/* Zde uvedený JavaScript bude použit pro všechny uživatele při načtení každé stránky.  */',
-'standard.js'    => '/* JavaScript pro uživatele používající vzhled „Klasický“ */',
-'nostalgia.js'   => '/* JavaScript pro uživatele používající vzhled „Nostalgie“  */',
-'cologneblue.js' => '/* JavaScript pro uživatele používající vzhled „Kolínská modř“  */',
-'monobook.js'    => '/* JavaScript pro uživatele používající vzhled MonoBook */',
-'myskin.js'      => '/* JavaScript pro uživatele používající vzhled „Můj vzhled“ */',
-'chick.js'       => '/* JavaScript pro uživatele používající vzhled „Kuře“ */',
-'simple.js'      => '/* JavaScript pro uživatele používající vzhled „Jednoduchý“ */',
-'modern.js'      => '/* JavaScript pro uživatele používající vzhled „Moderní“ */',
-'vector.js'      => '/* JavaScript pro uživatele používající vzhled „Vektor“ */',
+'common.js'              => '/* Zde uvedený JavaScript bude použit pro všechny uživatele při načtení každé stránky.  */',
+'standard.js'            => '/* JavaScript pro uživatele používající vzhled „Klasický“ */',
+'nostalgia.js'           => '/* JavaScript pro uživatele používající vzhled „Nostalgie“  */',
+'cologneblue.js'         => '/* JavaScript pro uživatele používající vzhled „Kolínská modř“  */',
+'monobook.js'            => '/* JavaScript pro uživatele používající vzhled MonoBook */',
+'myskin.js'              => '/* JavaScript pro uživatele používající vzhled „Můj vzhled“ */',
+'chick.js'               => '/* JavaScript pro uživatele používající vzhled „Kuře“ */',
+'simple.js'              => '/* JavaScript pro uživatele používající vzhled „Jednoduchý“ */',
+'modern.js'              => '/* JavaScript pro uživatele používající vzhled „Moderní“ */',
+'vector.js'              => '/* JavaScript pro uživatele používající vzhled „Vektor“ */',
+'group-autoconfirmed.js' => '/* Zde uvedený JavaScript bude použit pouze pro automaticky schválené uživatele */',
+'group-bot.js'           => '/* Zde uvedený JavaScript bude použit pouze pro boty */',
+'group-sysop.js'         => '/* Zde uvedený JavaScript bude použit pouze pro správce */',
+'group-bureaucrat.js'    => '/* Zde uvedený JavaScript bude použit pouze pro byrokraty */',
 
 # Metadata
 'notacceptable' => 'Tento wiki server není schopen poskytnout data ve formátu, který by váš klient byl schopen přečíst.',
@@ -3632,8 +3653,9 @@ Opravdu si přejete znovu tuto stránku založit?',
 'confirm-unwatch-top'    => 'Vyjmout tuto stránku ze sledovaných?',
 
 # Separators for various lists, etc.
-'ellipsis' => '…',
-'percent'  => '$1&nbsp;%',
+'autocomment-prefix' => '–&#32;',
+'ellipsis'           => '…',
+'percent'            => '$1&nbsp;%',
 
 # Multipage image navigation
 'imgmultipageprev' => '← předchozí stránka',
@@ -3660,7 +3682,7 @@ Opravdu si přejete znovu tuto stránku založit?',
 'autosumm-new'     => 'Založena nová stránka: $1',
 
 # Size units
-'size-kilobytes' => '$1 kB',
+'size-kilobytes' => '$1 KB',
 
 # Live preview
 'livepreview-loading' => 'Nahrávám…',
@@ -3975,5 +3997,16 @@ Jinak můžete využít jednoduchý formulář níže. Váš komentář bude př
 'api-error-unknownerror'                  => 'Neznámá chyba: „$1“.',
 'api-error-uploaddisabled'                => 'Načítání souborů je na této wiki vypnuto.',
 'api-error-verification-error'            => 'Soubor je možná poškozen nebo má špatnou příponu.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekundy|sekund}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minuta|minuty|minut}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hodina|hodiny|hodin}}',
+'duration-days'      => '$1 {{PLURAL:$1|den|dny|dní}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|týden|týdny|týdnů}}',
+'duration-years'     => '$1 {{PLURAL:$1|rok|roky|let}}',
+'duration-decades'   => '$1 {{PLURAL:$1|dekáda|dekády|dekád}}',
+'duration-centuries' => '$1 {{PLURAL:$1|století}}',
+'duration-millennia' => '$1 {{PLURAL:$1|tisíciletí}}',
 
 );

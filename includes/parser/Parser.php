@@ -273,8 +273,6 @@ class Parser {
 		 * Must not consist of all title characters, or else it will change
 		 * the behaviour of <nowiki> in a link.
 		 */
-		# $this->mUniqPrefix = "\x07UNIQ" . Parser::getRandomString();
-		# Changed to \x7f to allow XML double-parsing -- TS
 		$this->mUniqPrefix = "\x7fUNIQ" . self::getRandomString();
 		$this->mStripState = new StripState( $this->mUniqPrefix );
 
@@ -327,6 +325,11 @@ class Parser {
 		wfProfileIn( $fname );
 
 		$this->startParse( $title, $options, self::OT_HTML, $clearState );
+
+		# Remove the strip marker tag prefix from the input, if present.
+		if ( $clearState ) {
+			$text = str_replace( $this->mUniqPrefix, '', $text );
+		}
 
 		$oldRevisionId = $this->mRevisionId;
 		$oldRevisionObject = $this->mRevisionObject;
@@ -558,7 +561,7 @@ class Parser {
 	 * @return string
 	 */
 	static public function getRandomString() {
-		return dechex( mt_rand( 0, 0x7fffffff ) ) . dechex( mt_rand( 0, 0x7fffffff ) );
+		return wfRandomString( 16 );
 	}
 
 	/**
@@ -1697,7 +1700,7 @@ class Parser {
 
 		$holders = new LinkHolderArray( $this );
 
-		# split the entire text string on occurences of [[
+		# split the entire text string on occurrences of [[
 		$a = StringUtils::explode( '[[', ' ' . $s );
 		# get the first element (all text up to first [[), and remove the space we added
 		$s = $a->current();
@@ -2381,7 +2384,7 @@ class Parser {
 	}
 
 	/**
-	 * Split up a string on ':', ignoring any occurences inside tags
+	 * Split up a string on ':', ignoring any occurrences inside tags
 	 * to prevent illegal overlapping.
 	 *
 	 * @param $str String the string to split
@@ -4066,14 +4069,16 @@ class Parser {
 			}
 
 			# The safe header is a version of the header text safe to use for links
-			# Avoid insertion of weird stuff like <math> by expanding the relevant sections
-			$safeHeadline = $this->mStripState->unstripBoth( $headline );
 
 			# Remove link placeholders by the link text.
 			#     <!--LINK number-->
 			# turns into
 			#     link text with suffix
-			$safeHeadline = $this->replaceLinkHoldersText( $safeHeadline );
+			# Do this before unstrip since link text can contain strip markers
+			$safeHeadline = $this->replaceLinkHoldersText( $headline );
+
+			# Avoid insertion of weird stuff like <math> by expanding the relevant sections
+			$safeHeadline = $this->mStripState->unstripBoth( $safeHeadline );
 
 			# Strip out HTML (first regex removes any tag not allowed)
 			# Allowed tags are <sup> and <sub> (bug 8393), <i> (bug 26375) and <b> (r105284)
@@ -5641,6 +5646,16 @@ class Parser {
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * Remove any strip markers found in the given text.
+	 *
+	 * @param $text Input string
+	 * @return string
+	 */
+	function killMarkers( $text ) {
+		return $this->mStripState->killMarkers( $text );
 	}
 
 	/**

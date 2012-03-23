@@ -400,10 +400,6 @@ Prüfen Sie die URL auf Fehler, den Online-Status der Seite und versuchem Sie er
 Wenn das Problem weiter besteht, informieren Sie einen [[Special:ListUsers/sysop|System-Administrator]].',
 
 # img_auth script messages
-'img-auth-nopathinfo' => 'PATH_INFO fehlt.
-Ihr Server ist nicht dafür eingerichtet, diese Information weiterzugeben.
-Sie könnte CGI-gestützt sein und kann daher img_auth nicht ermöglichen.
-Siehe http://www.mediawiki.org/wiki/Manual:Image_Authorization.',
 'img-auth-nologinnWL' => 'Sie sind nicht angemeldet und „$1“ ist nicht in der weißen Liste.',
 'img-auth-isdir'      => 'Sie versuchen, auf ein Verzeichnis „$1“ zuzugreifen.
 Nur Dateizugriff ist erlaubt.',
@@ -436,6 +432,10 @@ Nur Dateizugriff ist erlaubt.',
 # Book sources
 'booksources-invalid-isbn' => 'Vermutlich ist die ISBN ungültig.
 Bitte prüfen Sie, ob sie korrekt von der Quelle übertragen wurde.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Sie sehen die gecachte Version dieser Seite, die bis zu $1 alt sein kann.',
+'cachedspecial-viewing-cached-ts'  => 'Sie sehen die gecachte Version dieser Seite, die möglicherweise nicht aktuell ist.',
 
 # E-mail user
 'mailnologintext' => 'Sie müssen [[Special:UserLogin|angemeldet sein]] und eine bestätigte E-Mail-Adresse in Ihren [[Special:Preferences|Einstellungen]] eingetragen haben, um anderen Benutzern E-Mails schicken zu können.',
@@ -606,15 +606,13 @@ Alle Transwiki-Import-Aktionen werden im [[Special:Log/import|Import-Logbuch]] p
 'javascripttest-pagetext-skins' => 'Wählen Sie eine Benutzeroberfläche zur Durchführung der Tests aus:',
 
 # Tooltip help for the actions
-'tooltip-pt-userpage'            => 'Ihre Benutzerseite',
-'tooltip-pt-anonuserpage'        => 'Benutzerseite der IP-Adresse, von der aus Sie Änderungen durchführen',
-'tooltip-pt-mytalk'              => 'Ihre Diskussionsseite',
-'tooltip-pt-mycontris'           => 'Liste Ihrer Beiträge',
-'tooltip-n-mainpage'             => 'Besuchen Sie die Hauptseite',
-'tooltip-n-mainpage-description' => 'Besuchen Sie die Hauptseite',
-'tooltip-n-portal'               => 'Über das Projekt, was Sie tun können, wo was zu finden ist',
-'tooltip-watch'                  => 'Diese Seite zu Ihrer Beobachtungsliste hinzufügen',
-'tooltip-summary'                => 'Geben Sie eine kurze Zusammenfassung ein.',
+'tooltip-pt-userpage'     => 'Ihre Benutzerseite',
+'tooltip-pt-anonuserpage' => 'Benutzerseite der IP-Adresse, von der aus Sie Änderungen durchführen',
+'tooltip-pt-mytalk'       => 'Ihre Diskussionsseite',
+'tooltip-pt-mycontris'    => 'Liste Ihrer Beiträge',
+'tooltip-n-portal'        => 'Über das Projekt, was Sie tun können, wo was zu finden ist',
+'tooltip-watch'           => 'Diese Seite zu Ihrer Beobachtungsliste hinzufügen',
+'tooltip-summary'         => 'Geben Sie eine kurze Zusammenfassung ein.',
 
 # Metadata
 'notacceptable' => 'Der Wiki-Server kann die Daten nicht für Ihr Ausgabegerät aufbereiten.',

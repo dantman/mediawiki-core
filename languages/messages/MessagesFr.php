@@ -745,6 +745,9 @@ $2',
 'ns-specialprotected'  => 'Les pages dans l’espace de noms « {{ns:special}} » ne peuvent pas être modifiées.',
 'titleprotected'       => "Ce titre a été protégé à la création par [[User:$1|$1]].
 Le motif avancé est « ''$2'' ».",
+'filereadonlyerror'    => 'Impossible de modifier le fichier "$1" parce que le répertoire de fichiers "$2" est en lecture seule.
+
+Le motif fourni est "\'\'$3\'\'".',
 
 # Virus scanner
 'virus-badscanner'     => "Mauvaise configuration : scanneur de virus inconnu : ''$1''",
@@ -1861,6 +1864,9 @@ Si le problème persiste, contactez un [[Special:ListUsers/sysop|administrateur]
 'backend-fail-contenttype'   => 'Impossible de déterminer le type de contenu du fichier à stocker en "$1".',
 'backend-fail-batchsize'     => 'Le support de stockage a fourni un lot de $1 {{PLURAL:$1|opération|opérations}} de fichier; la limite est $2 {{PLURAL:$2|opération|opérations}}.',
 
+'filejournal-fail-dbconnect' => 'Impossible de se connecter à la base de données du journal pour le terminal de stockage "$1".',
+'filejournal-fail-dbquery'   => 'Impossible de mettre à jour la base de données du journal pour le terminal de stockage "$1".',
+
 # Lock manager
 'lockmanager-notlocked'        => 'Impossible de déverrouiller « $1 » ; elle n’est pas verrouillée.',
 'lockmanager-fail-closelock'   => 'Impossible de fermer le fichier de verrou pour « $1 ».',
@@ -2190,6 +2196,11 @@ Vous pouvez personnaliser l’affichage en sélectionnant le type de journal, le
 'allpagesprefix'    => 'Afficher les pages commençant par le préfixe :',
 'allpagesbadtitle'  => 'Le titre de page indiqué est incorrect : il contient un préfixe inter-langue ou inter-wiki réservé, ou contient un ou plusieurs caractères inutilisables dans les titres.',
 'allpages-bad-ns'   => '{{SITENAME}} n’a pas d’espace de noms « $1 ».',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => "Vous visualisez une version de cette page mise en cache, qui peut être dater d'au plus $1.",
+'cachedspecial-viewing-cached-ts'  => 'Vous visualisez une version de cette page mise en cache, qui pourrait ne pas être complètement à jour.',
+'cachedspecial-refresh-now'        => 'Voir le plus récent.',
 
 # Special:Categories
 'categories'                    => 'Liste des catégories',
@@ -3991,5 +4002,16 @@ Sinon, vous pouvez utiliser le formulaire simplifié ci-dessous. Votre commentai
 'api-error-unknownerror'                  => 'Erreur inconnue : « $1 ».',
 'api-error-uploaddisabled'                => 'Le versement est désactivé sur ce wiki.',
 'api-error-verification-error'            => 'Ce fichier peut être corrompu, ou son extension est incorrecte.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|seconde|secondes}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minute|minutes}}',
+'duration-hours'     => '$1 {{PLURAL:$1|heure|heures}}',
+'duration-days'      => '$1 {{PLURAL:$1|jour|jours}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|semaine|semaines}}',
+'duration-years'     => '$1 {{PLURAL:$1|année|années}}',
+'duration-decades'   => '$1 {{PLURAL:$1|décennie|décennies}}',
+'duration-centuries' => '$1 {{PLURAL:$1|siècle|siècles}}',
+'duration-millennia' => '$1 {{PLURAL:$1|millénaire|millénaires}}',
 
 );

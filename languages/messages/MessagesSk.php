@@ -664,6 +664,9 @@ $2',
 'ns-specialprotected'  => 'Stránky v mennom pristore {{ns:special}} nie je možné upravovať.',
 'titleprotected'       => "Používateľ [[User:$1|$1]] zabránil vytváraniu stránky s týmto názvom.
 Udaný dôvod: ''$2''.",
+'filereadonlyerror'    => "Nebolo možné modifikovať súbor „$1“, protože úložisko „$2“ je momentálne v režime len na čítanie.
+
+Udaný dôvod: „''$3''“.",
 
 # Virus scanner
 'virus-badscanner'     => "Chybná konfigurácia: neznámy antivírus: ''$1''",
@@ -1797,6 +1800,9 @@ Ak problém pretrváva, kontaktujte [[Special:ListUsers/sysop|správcu systému]
 'backend-fail-contenttype'   => 'Nebolo možné určiť typ obsahu súboru, ktorý sa má uložiť na „$1“.',
 'backend-fail-batchsize'     => 'Do úložiska bola zaslaná dávka s $1 {{PLURAL:$1|operáciou|operáciami}}; limit je $2 {{PLURAL:$2|operácia|operácie|operácií}}.',
 
+'filejournal-fail-dbconnect' => 'Nepodarilo sa pripojiť k žurnálovej databáze úložiska „$1“.',
+'filejournal-fail-dbquery'   => 'Nepodarilo sa aktualizovať žurnálovú databázu úložiska „$1“.',
+
 # Lock manager
 'lockmanager-notlocked'        => 'Nepodarilo sa odomknúť zámok „$1“; nie je zamknutý.',
 'lockmanager-fail-closelock'   => 'Nepodarilo sa zatvoriť súbor zámku pre „$1“.',
@@ -2120,6 +2126,11 @@ Môžete zúžiť rozsah, ak zvolíte typ záznamu, používateľské meno alebo
 'allpagesprefix'    => 'Zobraziť stránky s predponou:',
 'allpagesbadtitle'  => 'Zadaný názov stránky je neplatný alebo mal medzijazykový alebo interwiki prefix. Môže obsahovať jeden alebo viac znakov, ktoré nie je možné použiť v názve stránky.',
 'allpages-bad-ns'   => '{{SITENAME}} nemá menný priestor „$1“.',
+
+# SpecialCachedPage
+'cachedspecial-viewing-cached-ttl' => 'Prezeráte si kópiu stránky z vyrovnávacej pamäte, môže byť stará až $1.',
+'cachedspecial-viewing-cached-ts'  => 'Prezeráte si kópiu stránky z vyrovnávacej pamäte, nemusí byť úplne aktuálna.',
+'cachedspecial-refresh-now'        => 'Zobraziť aktuálnu.',
 
 # Special:Categories
 'categories'                    => 'Kategórie',
@@ -3800,7 +3811,7 @@ Obrázky sa zobrazia v plnom rozlíšení, ostatné typy súborov sa spustia v p
 'dberr-info'        => '(Spojenie s databázovým serverom neúspešné: $1)',
 'dberr-usegoogle'   => 'Zatiaľ môžete skúsiť hľadať pomocou Google.',
 'dberr-outofdate'   => 'Pamätajte, že ich indexy nemusia byť aktuálne.',
-'dberr-cachederror' => 'Toto je kópia požadovanej ztránky z vyrovnávacej pamäte a nemusí byť aktuálna.',
+'dberr-cachederror' => 'Toto je kópia požadovanej stránky z vyrovnávacej pamäte a nemusí byť aktuálna.',
 
 # HTML forms
 'htmlform-invalid-input'       => 'Niekotrý z údajov, ktoré ste zadali je problematický',
@@ -3903,5 +3914,16 @@ V opačnom prípade môžete použiť zjednodušený formulár nižšie. Váš k
 'api-error-unknownerror'                  => 'Neznáma chyba: „$1“',
 'api-error-uploaddisabled'                => 'Nahrávanie je na tejto wiki zakázané.',
 'api-error-verification-error'            => 'Tento súbor môže byť poškodený, alebo má zlú príponu.',
+
+# Durations
+'duration-seconds'   => '$1 {{PLURAL:$1|sekunda|sekundy|sekúnd}}',
+'duration-minutes'   => '$1 {{PLURAL:$1|minúta|minúty|minút}}',
+'duration-hours'     => '$1 {{PLURAL:$1|hodina|hodiny|hodín}}',
+'duration-days'      => '$1 {{PLURAL:$1|deň|dni|dní}}',
+'duration-weeks'     => '$1 {{PLURAL:$1|týždeň|týždne|týždňov}}',
+'duration-years'     => '$1 {{PLURAL:$1|rok|roky|rokov}}',
+'duration-decades'   => '$1 {{PLURAL:$1|dekáda|dekády|dekád}}',
+'duration-centuries' => '$1 {{PLURAL:$1|storočie|storočia|storočí}}',
+'duration-millennia' => '$1 {{PLURAL:$1|tisícročie|tisícročia|tisícročí}}',
 
 );
