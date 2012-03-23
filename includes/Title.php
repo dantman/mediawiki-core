@@ -1487,6 +1487,28 @@ class Title {
 	}
 
 	/**
+	 * Returns a link sutitable for use in most content purposes.
+	 * If the title is known returns a normal getLocalURL link.
+	 * If the title is not known returns a redlink=1 edit link
+	 *
+	 * @return String the URL
+	 */
+	public function getContentURL() {
+		// Interwikis can't be redlinks
+		if ( $this->mInterwiki != '' ) {
+			return $this->getLocalURL();
+		}
+
+		if ( $this->isKnown() ) {
+			// If it's known link directly to the article
+			return $this->getLocalURL();
+		} else {
+			// If it's not then use a redlink edit link
+			return $this->getLocalURL( 'action=edit&redlink=1' );
+		}
+	}
+
+	/**
 	 * Get the edit URL for this Title
 	 *
 	 * @return String the URL, or a null string if this is an
