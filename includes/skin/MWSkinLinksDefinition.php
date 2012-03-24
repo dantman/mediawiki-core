@@ -7,10 +7,11 @@
 
 class MWSkinLinksDefinition {
 
-	protected $groups;
+	protected $groups, $ruleTree;
 
 	public function __construct( $string ) {
 		$this->groups = new stdClass;
+		$this->ruleTree = new stdClass;
 		$this->parse( $string );
 	}
 
@@ -84,8 +85,10 @@ class MWSkinLinksDefinition {
 		$group = null;
 		$stack = new SplStack;
 		foreach ( $lines as $line ) {
-			if ( preg_match( '/^\s*#|^\s*$/', $line ) ) {
-				// Comment or blank line, ignore
+			// Strip comments off the line
+			$line = preg_replace( '/\s*#.*$/', '', $line );
+			if ( preg_match( '/^\s*$/', $line ) ) {
+				// Nothing but a comment or blank line, ignore
 				continue;
 			} elseif ( preg_match( '/^\[([-_a-zA-Z0-9]+)\]$/', $line, $m ) ) {
 				$groupName = $m[1];
@@ -149,9 +152,16 @@ class MWSkinLinksDefinition {
 					}
 					$rule->type = $m['start'][0];
 				}
-				$rule->list = new SplDoublyLinkedList; 
+				$rule->list = new SplDoublyLinkedList;
+
+				// Push rule into the tree of rules in the group
 				$stack->top()->list->push( $rule );
 				$stack->push( $rule );
+
+				if ( $rule->name ) {
+					// For actual rules add a branch into the rules tree for efficient lookups
+					$this->addRuleLookup( $rule );
+				}
 			} else {
 				wfWarn( __METHOD__ . ': Invalid line in links definition "' . $line . '".' );
 			}
@@ -173,6 +183,54 @@ class MWSkinLinksDefinition {
 			echo '</ul></li>';
 		}
 		echo '</ul>';
+
+		$y = null;
+		$y = function( $branch ) use( &$y ) {
+			if ( isset( $branch->node ) ) {
+				echo '<ul>';
+				foreach ( $branch->node as $nodeName => $nodes ) {
+					echo '<li>Node: ' . $nodeName . '<ul>';
+					foreach ( $nodes as $i ) {
+						echo '<li>(' . $i->type . ') ' . ( $i->name ? implode( '.', $i->name ) : '{none}' ) . ( $i->as ? ' as ' . $i->as : '' ) . '</li>';
+					}
+					echo '</ul></li>';
+				}
+				echo '</ul>';
+			}
+			if ( isset( $branch->tree ) ) {
+				echo '<ul>';
+				foreach ( $branch->tree as $sBranchName => $subBranch ) {
+					echo '<li>Branch: ' . $sBranchName;
+					$y( $subBranch );
+					echo '</li>';
+				}
+				echo '</ul>';
+			}
+		};
+		$y( $this->ruleTree );
+	}
+
+	protected function addRuleLookup( $rule ) {
+		$name = $rule->name;
+		$branch = $this->ruleTree;
+		while ( count( $name ) > 1 ) {
+			$piece = array_shift( $name );
+			if ( !isset( $branch->tree ) ) {
+				$branch->tree = new stdClass;
+			}
+			if ( !isset( $branch ->tree->{$piece} ) ) {
+				$branch->tree->{$piece} = new stdClass;
+			}
+			$branch = $branch->tree->{$piece};
+		}
+		$last = array_shift( $name );
+		if ( !isset( $branch->node ) ) {
+			$branch->node = new stdClass;
+		}
+		if ( !isset( $branch->node->{$last} ) ) {
+			$branch->node->{$last} = new SplDoublyLinkedList;
+		}
+		$branch->node->{$last}->push( $rule );
 	}
 
 	public function addLink( $origName, $link ) {
@@ -181,6 +239,50 @@ class MWSkinLinksDefinition {
 			wfWarn( __METHOD__ . ': Invalid link name "' . $origName . '".' );
 			continue;
 		}
+
+		$rules = new SplMaxHeap;
+		$branches = array( $this->ruleTree );
+		$pieces = $name; // copy		
+		while( count( $pieces ) > 1 ) {
+			$piece = array_shift( $pieces );
+			$nextBranches = array();
+			foreach ( $branches as $branch ) {
+				if ( isset( $branch->tree ) ) {
+					if ( isset( $branch->tree->{$piece} ) ) {
+						$nextBranches[] = $branch->tree->{$piece};
+					}
+					if ( isset( $branch->tree->{'*'} ) ) {
+						$nextBranches[] = $branch->tree->{'*'};
+					}
+				}
+				if ( isset( $branch->node ) && isset( $branch->node->{'**'} ) ) {
+					foreach ( $branch->node->{'**'} as $node ) {
+						$rules->insert( $node );
+					}
+				}
+			}
+			$branches = $nextBranches;
+		}
+
+		$last = array_shift( $pieces );
+		$keys = array( $last, '*', '**' );
+		foreach ( $branches as $branch ) {
+			if ( $branch->node ) {
+				foreach ( $keys  as $key ) {
+					if ( isset( $branch->node->{$key} ) ) {
+						foreach ( $branch->node->{$key} as $node ) {
+							$rules->insert( $node );
+						}
+					}
+				}
+			}
+		}
+
+		echo '<fieldset><legend>' . implode( '.', $name ) . '</legend><ul>';
+		foreach ( $rules as $rule ) {
+			echo '<li>' . implode( '.', $rule->name ) . '</li>';
+		}
+		echo '</ul></fieldset>';
 
 	}
 

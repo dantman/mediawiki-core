@@ -103,6 +103,7 @@ class MWSkin extends Skin {
 		$request = $this->getRequest();
 		$user = $this->getUser();
 		$title = $this->getTitle();
+		$pageurl = $title->getLocalURL();
 
 		$query = array();
 		if ( !$request->wasPosted() ) {
@@ -128,6 +129,8 @@ class MWSkin extends Skin {
 			}
 		}
 		$returnto = wfArrayToCGI( $a );
+
+		$username = $user->getName();
 
 		$userpage = $user->getUserPage();
 		$userpageUrlDetails = array(
