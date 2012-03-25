@@ -240,7 +240,10 @@ class MWSkinLinksDefinition {
 			continue;
 		}
 
-		$rules = new SplMaxHeap;
+		$rules = new MWSkinLinksRulesList;
+		$additions = new SplDoublyLinkedList;
+		$subtractions = new SplDoublyLinkedList;
+		$insert = new SplQueue;
 		$branches = array( $this->ruleTree );
 		$pieces = $name; // copy		
 		while( count( $pieces ) > 1 ) {
@@ -257,7 +260,7 @@ class MWSkinLinksDefinition {
 				}
 				if ( isset( $branch->node ) && isset( $branch->node->{'**'} ) ) {
 					foreach ( $branch->node->{'**'} as $node ) {
-						$rules->insert( $node );
+						$insert->push( $node );
 					}
 				}
 			}
@@ -271,19 +274,64 @@ class MWSkinLinksDefinition {
 				foreach ( $keys  as $key ) {
 					if ( isset( $branch->node->{$key} ) ) {
 						foreach ( $branch->node->{$key} as $node ) {
-							$rules->insert( $node );
+							$insert->push( $node );
 						}
 					}
 				}
 			}
 		}
 
+		foreach ( $insert as $node ) {
+			switch( $node->type ) {
+			case '+': $additions->push( $node ); break;
+			case '-': $subtractions->push( $node ); break;
+			default: $rules->insert( $node ); break;
+			}
+		}
+
 		echo '<fieldset><legend>' . implode( '.', $name ) . '</legend><ul>';
 		foreach ( $rules as $rule ) {
-			echo '<li>' . implode( '.', $rule->name ) . '</li>';
+			echo '<li> (' . $rule->type . ') ' . implode( '.', $rule->name ) . '</li>';
 		}
 		echo '</ul></fieldset>';
 
 	}
 
 }
+
+class MWSkinLinksRulesList extends SplHeap {
+
+	const A_TOP = +1;
+	const B_TOP = -1;
+
+	public function compare( $aR, $bR ) {
+		$a = $aR->name;
+		$b = $bR->name;
+		do {
+			$aP = array_shift( $a );
+			$bP = array_shift( $b );
+			if ( $aP === $bP ) {
+				// Move on to the next chunk if the same
+				continue;
+			}
+			// Sort things using ** at the start
+			if ( $aP == '**' ) return self::B_TOP;
+			if ( $bP == '**' ) return self::A_TOP;
+			// Sort wildcards towards the start
+			if ( $aP == '*' ) return self::B_TOP;
+			if ( $bP == '*' ) return self::A_TOP;
+			// We need to do /some/ kind of comparison, so in the event
+			// there's a text match that should never happen just string compare
+			return strcmp( $aP, $bP );
+		} while( count( $a ) > 0 && count( $b ) > 0 );
+		 // If we get here then everything up to min( a.length, b.length ) is the same
+		// Sort shorter matches towards the start (if one is longer than 0 then it's the longer one)
+		if ( count( $a ) > 0 ) return self::A_TOP;
+		if ( count( $b ) > 0 ) return self::B_TOP;
+		// If everything is exactly the same
+		return 0;
+	}
+
+}
+
+
