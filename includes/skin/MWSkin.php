@@ -93,6 +93,8 @@ class MWSkin extends Skin {
 		$this->setupPageLinks( $links );
 		$this->setupRelatedLinks( $links );
 		$this->setupGlobalLinks( $links );
+
+		$links->getLinkTree();
 	}
 
 	protected function setupUserLinks( $links ) {

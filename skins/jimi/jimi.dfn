@@ -1,5 +1,6 @@
 [personal_links]
 * user.*.*
+
 [content_navigation]
 * page.namespaces
 * views:
@@ -8,8 +9,10 @@
 ** page.actions.unwatch
 * page.actions
 * related.variants
+
 [related]
 * related.*
+
 [toolbox]
 * page.*.*
 * global.*

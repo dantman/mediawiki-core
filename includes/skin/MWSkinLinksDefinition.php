@@ -4,14 +4,16 @@
  *
  * @file
  */
+use MWSkinTemplateTypes as TT;
 
 class MWSkinLinksDefinition {
 
-	protected $groups, $ruleTree;
+	protected $groups, $ruleTree, $output, $ruleList;
 
 	public function __construct( $string ) {
 		$this->groups = new stdClass;
 		$this->ruleTree = new stdClass;
+		$this->ruleList = new SplDoublyLinkedList;
 		$this->parse( $string );
 	}
 
@@ -153,10 +155,13 @@ class MWSkinLinksDefinition {
 					$rule->type = $m['start'][0];
 				}
 				$rule->list = new SplDoublyLinkedList;
+				$rule->links = new SplDoublyLinkedList;
 
 				// Push rule into the tree of rules in the group
 				$stack->top()->list->push( $rule );
 				$stack->push( $rule );
+
+				$this->ruleList->push( $rule );
 
 				if ( $rule->name ) {
 					// For actual rules add a branch into the rules tree for efficient lookups
@@ -290,11 +295,67 @@ class MWSkinLinksDefinition {
 		}
 
 		echo '<fieldset><legend>' . implode( '.', $name ) . '</legend><ul>';
-		foreach ( $rules as $rule ) {
-			echo '<li> (' . $rule->type . ') ' . implode( '.', $rule->name ) . '</li>';
-		}
+		//foreach ( $rules as $rule ) {
+		//	echo '<li> (' . $rule->type . ') ' . implode( '.', $rule->name ) . '</li>';
+		//}
 		echo '</ul></fieldset>';
 
+		if ( $rules->isEmpty() ) {
+			wfWarn( __METHOD__ . ": Link dropped because there were no matching rules for '" . implode( '.', $name ) . "'." );
+		} else {
+			// The rule on the top of the list is the most specific rule, that is the rule
+			// that this link will be applied to
+			$rule = $rules->top();
+			$rule->links->push( new TT\Link( $link ) );
+		}
+		// @todo handle + and - rules
+
+	}
+
+	protected function finishLinkTree() {
+		if ( isset( $this->output ) ) {
+			return;
+		}
+
+		foreach( $this->ruleList as $rule ) {
+			var_dump( implode( '.', $rule->name ) ); 
+			foreach ( $rule->links as $link ) {
+				var_dump( $link );
+			}
+		}
+/*
+		$output = new TT\NamedMap;
+		foreach ( $this->groups as $groupName => $group ) {
+			$stack = new SplStack;
+			$item = new stdClass;
+			$item->queue = new SplQueue;
+			$item->out = $output;
+			$stack->push( $stack );
+			foreach ( $group->list as $rule ) {
+				$item->queue->enqueue( $rule );
+			}
+
+			$name = $rule->as;
+			$item->out->add( $name, $link );
+
+			while ( !$queue->isEmpty() ) {
+				$rule = $queue->dequeue();
+				$rule->links
+			}
+		}
+		{
+
+			foreach ( $rule->links as $link ) {
+
+			}
+		}
+
+		$this->output = $output;*/
+	}
+
+	public function getLinkTree() {
+		$this->finishLinkTree();
+		return $this->output;
 	}
 
 }
