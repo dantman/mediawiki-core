@@ -273,6 +273,7 @@ $wgAutoloadLocalClasses = array(
 	'WikiExporter' => 'includes/Export.php',
 	'WikiFilePage' =>  'includes/WikiFilePage.php',
 	'WikiImporter' => 'includes/Import.php',
+	'WikiNamespace' => 'includes/Namespace.php',
 	'WikiPage' =>  'includes/WikiPage.php',
 	'WikiRevision' => 'includes/Import.php',
 	'WikiMap' => 'includes/WikiMap.php',

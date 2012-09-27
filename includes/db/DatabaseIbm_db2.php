@@ -943,6 +943,7 @@ class DatabaseIbm_db2 extends DatabaseBase {
 		// Emulating MySQL behaviour of using NULL to signal that sequences
 		// aren't used
 		/*
+		$seqName = $this->sequenceName( $seqName );
 		$safeseq = preg_replace( "/'/", "''", $seqName );
 		$res = $this->query( "VALUES NEXTVAL FOR $safeseq" );
 		$row = $this->fetchRow( $res );

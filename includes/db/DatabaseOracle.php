@@ -693,6 +693,7 @@ class DatabaseOracle extends DatabaseBase {
 	 * @return null
 	 */
 	function nextSequenceValue( $seqName ) {
+		$seqName = $this->sequenceName( $seqName );
 		$res = $this->query( "SELECT $seqName.nextval FROM dual" );
 		$row = $this->fetchRow( $res );
 		$this->mInsertId = $row[0];

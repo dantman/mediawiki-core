@@ -76,6 +76,7 @@ define( 'NS_SPECIAL', -1 );
  * DO NOT assign standard namespaces at 100 or beyond.
  * DO NOT Change integer values as they are most probably hardcoded everywhere
  * see bug #696 which talked about that.
+ * @deprecated
  */
 define( 'NS_MAIN', 0 );
 define( 'NS_TALK', 1 );
@@ -101,6 +102,7 @@ define( 'NS_CATEGORY_TALK', 15 );
  * When writing code that should be compatible with older MediaWiki
  * versions, either stick to the old names or define the new constants
  * yourself, if they're not defined already.
+ * @deprecated
  */
 define( 'NS_IMAGE', NS_FILE );
 define( 'NS_IMAGE_TALK', NS_FILE_TALK );

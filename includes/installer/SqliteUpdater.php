@@ -93,6 +93,11 @@ class SqliteUpdater extends DatabaseUpdater {
 			array( 'addField', 'ipblocks', 'ipb_parent_block_id', 'patch-ipb-parent-block-id.sql' ),
 			array( 'addIndex', 'ipblocks', 'ipb_parent_block_id', 'patch-ipb-parent-block-id-index.sql' ),
 			array( 'dropField', 'category',     'cat_hidden',       'patch-cat_hidden.sql' ),
+
+			// namespace-registry (merge this section into the release this branch gets merged into)
+			array( 'addTable', 'namespace',          'patch-namespace.sql' ),
+			array( 'addTable', 'namespace_text',     'patch-namespace_text.sql' ),
+			array( 'addTable', 'namespace_relation', 'patch-namespace_relation.sql' ),
 		);
 	}
 

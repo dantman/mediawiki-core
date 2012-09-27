@@ -498,6 +498,10 @@ $wgContLang = Language::factory( $wgLanguageCode );
 $wgContLang->initEncoding();
 $wgContLang->initContLang();
 
+// Initialize namespaces before things that need to work with titles
+// but after both language code and caches are loaded since we need both of them.
+// WikiNamespace::initialize();
+
 // Now that variant lists may be available...
 $wgRequest->interpolateTitle();
 $wgUser = RequestContext::getMain()->getUser(); # BackCompat

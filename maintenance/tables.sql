@@ -1489,4 +1489,59 @@ CREATE TABLE /*_*/config (
 -- Should cover *most* configuration - strings, ints, bools, etc.
 CREATE INDEX /*i*/cf_name_value ON /*_*/config (cf_name,cf_value(255));
 
+-- Table holding the wiki's namespace definitions
+CREATE TABLE /*_*/namespace (
+  -- Namespace number for the namespace.
+  -- This is NOT auto-incrementing and carries some historical meaning.
+  ns_id int NOT NULL PRIMARY KEY,
+  -- 
+  ns_key varbinary(255) NOT NULL,
+  -- The type of namespace. Right now 'subject', 'talk', and 'special' are the only
+  -- valid values. But we leave room open in the future for other relationships.
+  ns_type varbinary(255) NOT NULL,
+  -- An ID pointing to the specific namespace_text entry
+  -- which defines the canonical text form of this namespace.
+  -- This may be null TEMPORARILY after namespace is inserted but before a namespace_text is inserted.
+  ns_canonical int unsigned,
+  -- Serialized blob of namespace settings.
+  -- eg: search by default, use subpages, etc... extensions may define other settings too.
+  ns_settings blob NOT NULL
+) /*$wgDBTableOptions*/;
+CREATE UNIQUE INDEX /*i*/namespace_ns_key ON /*_*/namespace (ns_key);
+
+-- Table containing the actual namespace text and aliases
+-- for namespaces in the namespaces table
+CREATE TABLE /*_*/namespace_text (
+  nst_id int unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  -- Namespace number (namespace.ns_id) this namespace text belongs to.
+  nst_namespace int NOT NULL,
+  -- Normalized text for this namespace text. Used for queries, equality, etc...
+  nst_key varbinary(255) NOT NULL,
+  -- Non-normalized text for this namespace. Used for output of the namespace text name.
+  nst_text varbinary(255) NOT NULL
+) /*$wgDBTableOptions*/;
+CREATE INDEX /*i*/namespace_text_nst_namespace ON /*_*/namespace_text (nst_namespace);
+CREATE UNIQUE INDEX /*i*/namespace_text_nst_key ON /*_*/namespace_text (nst_key);
+
+-- Table containing namespace relationships.
+-- ie: Things like "User_talk is the 'talk' of User"
+-- 'subject' must never be used in the type. 'subject' is always inferred as a reverse relationship.
+CREATE TABLE /*_*/namespace_relation (
+  -- The namespace the relationship originates 'from'.
+  -- In the case of a 'talk' relationship this is the subject page.
+  nsr_from int NOT NULL,
+  -- The type of relation. This MUST match the ns_type for the namespace identified by nsr_to.
+  nsr_type varbinary(255) NOT NULL,
+  -- The namespace the relationship points 'to'.
+  -- In the case of a 'talk' relationship this is the talk page.
+  nsr_to int NOT NULL
+) /*$wgDBTableOptions*/;
+-- Index nsr_from so we can query all the relationships for a namespace
+CREATE INDEX /*i*/namespace_relation_nsr_from ON /*_*/namespace_relation (nsr_from);
+-- Every namespace can only have one of a type of relationship.
+CREATE UNIQUE INDEX /*i*/namespace_relation_nsr_from_type ON /*_*/namespace_relation (nsr_from, nsr_type);
+-- Index the on nsr_to so we can query the reverse relationship.
+-- Because a namespace may only be the target of one relationship we make this unique.
+CREATE UNIQUE INDEX /*i*/namespace_relation_nsr_to ON /*_*/namespace_relation (nsr_to);
+
 -- vim: sw=2 sts=2 et

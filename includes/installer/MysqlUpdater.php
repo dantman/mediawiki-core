@@ -214,6 +214,11 @@ class MysqlUpdater extends DatabaseUpdater {
 			array( 'addField', 'ipblocks',      'ipb_parent_block_id',           'patch-ipb-parent-block-id.sql' ),
 			array( 'addIndex', 'ipblocks',      'ipb_parent_block_id',           'patch-ipb-parent-block-id-index.sql' ),
 			array( 'dropField', 'category',     'cat_hidden',       'patch-cat_hidden.sql' ),
+
+			// namespace-registry (merge this section into the release this branch gets merged into)
+			array( 'addTable', 'namespace',          'patch-namespace.sql' ),
+			array( 'addTable', 'namespace_text',     'patch-namespace_text.sql' ),
+			array( 'addTable', 'namespace_relation', 'patch-namespace_relation.sql' ),
 		);
 	}
 
@@ -529,6 +534,7 @@ class MysqlUpdater extends DatabaseUpdater {
 		$this->applyPatch( 'patch-pagelinks.sql', false, "Converting links and brokenlinks tables to pagelinks" );
 
 		global $wgContLang;
+		// @fixme This will not work any longer after we start using the db for namespaces. We may have to hardcode some code.
 		foreach ( MWNamespace::getCanonicalNamespaces() as $ns => $name ) {
 			if ( $ns == 0 ) {
 				continue;

@@ -924,6 +924,7 @@ __INDEXATTR__;
 	 * @return null
 	 */
 	function nextSequenceValue( $seqName ) {
+		$seqName = $this->sequenceName( $seqName );
 		$safeseq = str_replace( "'", "''", $seqName );
 		$res = $this->query( "SELECT nextval('$safeseq')" );
 		$row = $this->fetchRow( $res );

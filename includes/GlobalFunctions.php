@@ -2097,6 +2097,23 @@ function wfSetBit( &$dest, $bit, $state = true ) {
 }
 
 /**
+ * Get the value of a key in an array without php making a warning if it doesn't exist.
+ * Kind of ridiculous php can't even do this natively like python can (ie: `thedict.get('key', None)`).
+ *
+ * @param $arr The array to return the value from.
+ * @param $key The key to look for the value in.
+ * @param $default The default value to return if array does not contain the key.
+ * @return mixed The value from the array.
+ */
+function wfArrayGet( $arr, $key, $default = null ) {
+	if ( array_key_exists( $key, $arr ) ) {
+		return $arr[$key];
+	} else {
+		return $default;
+	}
+}
+
+/**
  * A wrapper around the PHP function var_export().
  * Either print it or add it to the regular output ($wgOut).
  *

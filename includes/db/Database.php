@@ -2300,6 +2300,26 @@ abstract class DatabaseBase implements DatabaseType {
 	}
 
 	/**
+	 * Return the name of a primary key's sequence.
+	 * We use a "table_column_seq" pattern so this makes it easy to pass an
+	 * array with both values in.
+	 *
+	 * eg:
+	 *   $db->sequenceName( array( 'user', 'user_id' ) );
+	 *
+	 * @param mixed $seqName The sequence name. Either a string or an array.
+	 * @return string
+	 * @since 1.20-namespaceregistry
+	 */
+	public function sequenceName( $seqName ) {
+		if ( is_array( $seqName ) ) {
+			list( $table, $column ) = $seqName;
+			return "{$table}_{$column}_seq";
+		}
+		return $seqName;
+	}
+
+	/**
 	 * USE INDEX clause.  Unlikely to be useful for anything but MySQL.  This
 	 * is only needed because a) MySQL must be as efficient as possible due to
 	 * its use on Wikipedia, and b) MySQL 4.0 is kind of dumb sometimes about
