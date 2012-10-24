@@ -7,7 +7,20 @@
  *
  * Based on HistoryPage and SpecialExport
  *
- * License: GPL (http://www.gnu.org/copyleft/gpl.html)
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
  *
  * @author Gabriel Wicke <wicke@wikidev.net>
  * @file
@@ -33,7 +46,7 @@ class RawAction extends FormlessAction {
 	}
 
 	function onView() {
-		global $wgGroupPermissions, $wgSquidMaxage, $wgForcedRawSMaxage, $wgJsMimeType;
+		global $wgSquidMaxage, $wgForcedRawSMaxage, $wgJsMimeType;
 
 		$this->getOutput()->disable();
 		$request = $this->getRequest();
@@ -78,7 +91,7 @@ class RawAction extends FormlessAction {
 		$response->header( 'Content-type: ' . $contentType . '; charset=UTF-8' );
 		# Output may contain user-specific data;
 		# vary generated content for open sessions on private wikis
-		$privateCache = !$wgGroupPermissions['*']['read'] && ( $smaxage == 0 || session_id() != '' );
+		$privateCache = !User::groupHasPermission( '*', 'read' ) && ( $smaxage == 0 || session_id() != '' );
 		# allow the client to cache this for 24 hours
 		$mode = $privateCache ? 'private' : 'public';
 		$response->header( 'Cache-Control: ' . $mode . ', s-maxage=' . $smaxage . ', max-age=' . $maxage );
@@ -120,10 +133,13 @@ class RawAction extends FormlessAction {
 
 		// If it's a MediaWiki message we can just hit the message cache
 		if ( $request->getBool( 'usemsgcache' ) && $title->getNamespace() == NS_MEDIAWIKI ) {
-			$key = $title->getDBkey();
-			$msg = wfMessage( $key )->inContentLanguage();
-			# If the message doesn't exist, return a blank
-			$text = !$msg->exists() ? '' : $msg->plain();
+			// The first "true" is to use the database, the second is to use the content langue
+			// and the last one is to specify the message key already contains the language in it ("/de", etc.)
+			$text = MessageCache::singleton()->get( $title->getDBkey(), true, true, true );
+			// If the message doesn't exist, return a blank
+			if ( $text === false ) {
+				$text = '';
+			}
 		} else {
 			// Get it from the DB
 			$rev = Revision::newFromTitle( $title, $this->getOldId() );
@@ -132,10 +148,29 @@ class RawAction extends FormlessAction {
 				$request->response()->header( "Last-modified: $lastmod" );
 
 				// Public-only due to cache headers
-				$text = $rev->getText();
-				$section = $request->getIntOrNull( 'section' );
-				if ( $section !== null ) {
-					$text = $wgParser->getSection( $text, $section );
+				$content = $rev->getContent();
+
+				if ( $content === null ) {
+					// revision not found (or suppressed)
+					$text = false;
+				} elseif ( !$content instanceof TextContent ) {
+					// non-text content
+					wfHttpError( 415, "Unsupported Media Type", "The requested page uses the content model `"
+										. $content->getModel() . "` which is not supported via this interface." );
+					die();
+				} else {
+					// want a section?
+					$section = $request->getIntOrNull( 'section' );
+					if ( $section !== null ) {
+						$content = $content->getSection( $section );
+					}
+
+					if ( $content === null || $content === false ) {
+						// section not found (or section not supported, e.g. for JS and CSS)
+						$text = false;
+					} else {
+						$text = $content->getNativeData();
+					}
 				}
 			}
 		}

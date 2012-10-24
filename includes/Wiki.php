@@ -62,7 +62,6 @@ class MediaWiki {
 		}
 
 		$this->context = $context;
-		$this->context->setTitle( $this->parseTitle() );
 	}
 
 	/**
@@ -134,6 +133,34 @@ class MediaWiki {
 	}
 
 	/**
+	 * Returns the name of the action that will be executed.
+	 *
+	 * @return string: action
+	 */
+	public function getAction() {
+		static $action = null;
+
+		if ( $action === null ) {
+			$action = Action::getActionName( $this->context );
+		}
+
+		return $action;
+	}
+
+	/**
+	 * Create an Article object of the appropriate class for the given page.
+	 *
+	 * @deprecated in 1.18; use Article::newFromTitle() instead
+	 * @param $title Title
+	 * @param $context IContextSource
+	 * @return Article object
+	 */
+	public static function articleFromTitle( $title, IContextSource $context ) {
+		wfDeprecated( __METHOD__, '1.18' );
+		return Article::newFromTitle( $title, $context );
+	}
+
+	/**
 	 * Performs the request.
 	 * - bad titles
 	 * - read restriction
@@ -142,6 +169,7 @@ class MediaWiki {
 	 * - special pages
 	 * - normal pages
 	 *
+	 * @throws MWException|PermissionsError|BadTitleError|HttpError
 	 * @return void
 	 */
 	private function performRequest() {
@@ -150,7 +178,7 @@ class MediaWiki {
 		wfProfileIn( __METHOD__ );
 
 		$request = $this->context->getRequest();
-		$title = $this->context->getTitle();
+		$requestTitle = $title = $this->context->getTitle();
 		$output = $this->context->getOutput();
 		$user = $this->context->getUser();
 
@@ -274,7 +302,7 @@ class MediaWiki {
 				global $wgArticle;
 				$wgArticle = new DeprecatedGlobal( 'wgArticle', $article, '1.18' );
 
-				$this->performAction( $article );
+				$this->performAction( $article, $requestTitle );
 			} elseif ( is_string( $article ) ) {
 				$output->redirect( $article );
 			} else {
@@ -289,34 +317,6 @@ class MediaWiki {
 		}
 
 		wfProfileOut( __METHOD__ );
-	}
-
-	/**
-	 * Create an Article object of the appropriate class for the given page.
-	 *
-	 * @deprecated in 1.18; use Article::newFromTitle() instead
-	 * @param $title Title
-	 * @param $context IContextSource
-	 * @return Article object
-	 */
-	public static function articleFromTitle( $title, IContextSource $context ) {
-		wfDeprecated( __METHOD__, '1.18' );
-		return Article::newFromTitle( $title, $context );
-	}
-
-	/**
-	 * Returns the name of the action that will be executed.
-	 *
-	 * @return string: action
-	 */
-	public function getAction() {
-		static $action = null;
-		
-		if ( $action === null ) {
-			$action = Action::getActionName( $this->context );
-		}
-
-		return $action;
 	}
 
 	/**
@@ -393,75 +393,14 @@ class MediaWiki {
 	}
 
 	/**
-	 * Cleaning up request by doing deferred updates, DB transaction, and the output
-	 */
-	public function finalCleanup() {
-		wfProfileIn( __METHOD__ );
-		// Now commit any transactions, so that unreported errors after
-		// output() don't roll back the whole DB transaction
-		$factory = wfGetLBFactory();
-		$factory->commitMasterChanges();
-		// Output everything!
-		$this->context->getOutput()->output();
-		// Do any deferred jobs
-		DeferredUpdates::doUpdates( 'commit' );
-		$this->doJobs();
-		wfProfileOut( __METHOD__ );
-	}
-
-	/**
-	 * Do a job from the job queue
-	 */
-	private function doJobs() {
-		global $wgJobRunRate;
-
-		if ( $wgJobRunRate <= 0 || wfReadOnly() ) {
-			return;
-		}
-		if ( $wgJobRunRate < 1 ) {
-			$max = mt_getrandmax();
-			if ( mt_rand( 0, $max ) > $max * $wgJobRunRate ) {
-				return;
-			}
-			$n = 1;
-		} else {
-			$n = intval( $wgJobRunRate );
-		}
-
-		while ( $n-- && false != ( $job = Job::pop() ) ) {
-			$output = $job->toString() . "\n";
-			$t = - microtime( true );
-			$success = $job->run();
-			$t += microtime( true );
-			$t = round( $t * 1000 );
-			if ( !$success ) {
-				$output .= "Error: " . $job->getLastError() . ", Time: $t ms\n";
-			} else {
-				$output .= "Success, Time: $t ms\n";
-			}
-			wfDebugLog( 'jobqueue', $output );
-		}
-	}
-
-	/**
-	 * Ends this task peacefully
-	 */
-	public function restInPeace() {
-		MessageCache::logMessages();
-		wfLogProfilingData();
-		// Commit and close up!
-		$factory = wfGetLBFactory();
-		$factory->commitMasterChanges();
-		$factory->shutdown();
-		wfDebug( "Request ended normally\n" );
-	}
-
-	/**
 	 * Perform one of the "standard" actions
 	 *
 	 * @param $page Page
+	 * @param $requestTitle The original title, before any redirects were applied
 	 */
-	private function performAction( Page $page ) {
+	private function performAction( Page $page, Title $requestTitle ) {
+		global $wgUseSquid, $wgSquidMaxage;
+
 		wfProfileIn( __METHOD__ );
 
 		$request = $this->context->getRequest();
@@ -480,6 +419,13 @@ class MediaWiki {
 
 		$action = Action::factory( $act, $page );
 		if ( $action instanceof Action ) {
+			# Let Squid cache things if we can purge them.
+			if ( $wgUseSquid &&
+				in_array( $request->getFullRequestURL(), $requestTitle->getSquidURLs() )
+			) {
+				$output->setSquidMaxage( $wgSquidMaxage );
+			}
+
 			$action->show();
 			wfProfileOut( __METHOD__ );
 			return;
@@ -546,6 +492,23 @@ class MediaWiki {
 
 		$request = $this->context->getRequest();
 
+		if ( $request->getCookie( 'forceHTTPS' )
+			&& $request->detectProtocol() == 'http'
+			&& $request->getMethod() == 'GET'
+		) {
+			$redirUrl = $request->getFullRequestURL();
+			$redirUrl = str_replace( 'http://' , 'https://' , $redirUrl );
+
+			// Setup dummy Title, otherwise OutputPage::redirect will fail
+			$title = Title::newFromText( NS_MAIN, 'REDIR' );
+			$this->context->setTitle( $title );
+			$output = $this->context->getOutput();
+			$output->redirect( $redirUrl );
+			$output->output();
+			wfProfileOut( __METHOD__ );
+			return;
+		}
+
 		// Send Ajax requests to the Ajax dispatcher.
 		if ( $wgUseAjax && $request->getVal( 'action', 'view' ) == 'ajax' ) {
 
@@ -590,8 +553,95 @@ class MediaWiki {
 		}
 
 		$this->performRequest();
-		$this->finalCleanup();
+
+		// Now commit any transactions, so that unreported errors after
+		// output() don't roll back the whole DB transaction
+		wfGetLBFactory()->commitMasterChanges();
+
+		// Output everything!
+		$this->context->getOutput()->output();
 
 		wfProfileOut( __METHOD__ );
+	}
+
+	/**
+	 * Ends this task peacefully
+	 */
+	public function restInPeace() {
+		// Do any deferred jobs
+		DeferredUpdates::doUpdates( 'commit' );
+
+		// Execute a job from the queue
+		$this->doJobs();
+
+		// Log message usage, if $wgAdaptiveMessageCache is set to true
+		MessageCache::logMessages();
+
+		// Log profiling data, e.g. in the database or UDP
+		wfLogProfilingData();
+
+		// Commit and close up!
+		$factory = wfGetLBFactory();
+		$factory->commitMasterChanges();
+		$factory->shutdown();
+
+		wfDebug( "Request ended normally\n" );
+	}
+
+	/**
+	 * Do a job from the job queue
+	 */
+	private function doJobs() {
+		global $wgJobRunRate;
+
+		if ( $wgJobRunRate <= 0 || wfReadOnly() ) {
+			return;
+		}
+
+		if ( $wgJobRunRate < 1 ) {
+			$max = mt_getrandmax();
+			if ( mt_rand( 0, $max ) > $max * $wgJobRunRate ) {
+				return; // the higher $wgJobRunRate, the less likely we return here
+			}
+			$n = 1;
+		} else {
+			$n = intval( $wgJobRunRate );
+		}
+
+		$group = JobQueueGroup::singleton();
+		$types = $group->getDefaultQueueTypes();
+		shuffle( $types ); // avoid starvation
+
+		// Scan the queues for a job N times...
+		do {
+			$jobFound = false; // found a job in any queue?
+			// Find a queue with a job on it and run it...
+			foreach ( $types as $i => $type ) {
+				$queue = $group->get( $type );
+				if ( $queue->isEmpty() ) {
+					unset( $types[$i] ); // don't keep checking this queue
+					continue;
+				}
+				$job = $queue->pop();
+				if ( $job ) {
+					$jobFound = true;
+					$output = $job->toString() . "\n";
+					$t = - microtime( true );
+					$success = $job->run();
+					$queue->ack( $job ); // done
+					$t += microtime( true );
+					$t = round( $t * 1000 );
+					if ( !$success ) {
+						$output .= "Error: " . $job->getLastError() . ", Time: $t ms\n";
+					} else {
+						$output .= "Success, Time: $t ms\n";
+					}
+					wfDebugLog( 'jobqueue', $output );
+					break;
+				} else {
+					unset( $types[$i] ); // don't keep checking this queue
+				}
+			}
+		} while ( --$n && $jobFound );
 	}
 }

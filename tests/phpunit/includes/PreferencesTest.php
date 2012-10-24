@@ -1,28 +1,33 @@
 <?php
 
 class PreferencesTest extends MediaWikiTestCase {
-
 	/** Array of User objects */
-	private $users ;
-	private $context ;
+	private $prefUsers;
+	private $context;
 
 	function __construct() {
 		parent::__construct();
 
-		$this->users['noemail'] = new User;
+		$this->prefUsers['noemail'] = new User;
 
-		$this->users['notauth'] = new User;
-		$this->users['notauth']
+		$this->prefUsers['notauth'] = new User;
+		$this->prefUsers['notauth']
 			->setEmail( 'noauth@example.org' );
 
-		$this->users['auth']    = new User;
-		$this->users['auth']
+		$this->prefUsers['auth']    = new User;
+		$this->prefUsers['auth']
 			->setEmail( 'noauth@example.org' );
-		$this->users['auth']
+		$this->prefUsers['auth']
 			->setEmailAuthenticationTimestamp( 1330946623 );
 
 		$this->context = new RequestContext;
 		$this->context->setTitle( Title::newFromText('PreferencesTest') );
+	}
+
+	protected function setUp() {
+		parent::setUp();
+
+		$this->setMwGlobals( 'wgEnableEmail', true );
 	}
 
 	/**
@@ -59,16 +64,14 @@ class PreferencesTest extends MediaWikiTestCase {
 		$this->assertEquals( 'mw-email-authenticated', $prefs['emailaddress']['cssclass'] );
 	}
 
-
 	/** Helper */
 	function prefsFor( $user_key ) {
 		$preferences = array();
 		Preferences::profilePreferences(
-			$this->users[$user_key]
+			$this->prefUsers[$user_key]
 			, $this->context
 			, $preferences
 		);
 		return $preferences;
 	}
-
 }

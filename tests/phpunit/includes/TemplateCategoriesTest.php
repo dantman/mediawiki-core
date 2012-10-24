@@ -3,7 +3,7 @@
 /**
  * @group Database
  */
-require dirname( __FILE__ ) . "/../../../maintenance/runJobs.php";
+require __DIR__ . "/../../../maintenance/runJobs.php";
 
 class TemplateCategoriesTest extends MediaWikiLangTestCase {
 
@@ -13,14 +13,14 @@ class TemplateCategoriesTest extends MediaWikiLangTestCase {
 		$user = new User();
 		$user->mRights = array( 'createpage', 'edit', 'purge' );
 
-		$status = $page->doEdit( '{{Categorising template}}', 'Create a page with a template', 0, false, $user );
+		$status = $page->doEditContent( new WikitextContent( '{{Categorising template}}' ), 'Create a page with a template', 0, false, $user );
 		$this->assertEquals(
 			array()
 			, $title->getParentCategories()
 		);
 
 		$template = WikiPage::factory( Title::newFromText( 'Template:Categorising template' ) );
-		$status = $template->doEdit( '[[Category:Solved bugs]]', 'Add a category through a template', 0, false, $user );
+		$status = $template->doEditContent( new WikitextContent( '[[Category:Solved bugs]]' ), 'Add a category through a template', 0, false, $user );
 
 		// Run the job queue
 		$jobs = new RunJobs;

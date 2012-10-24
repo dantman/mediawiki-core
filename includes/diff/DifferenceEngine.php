@@ -1,6 +1,21 @@
 <?php
 /**
- * User interface for the difference engine
+ * User interface for the difference engine.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
  * @ingroup DifferenceEngine
@@ -23,7 +38,7 @@ class DifferenceEngine extends ContextSource {
 	 * @private
 	 */
 	var $mOldid, $mNewid;
-	var $mOldtext, $mNewtext;
+	var $mOldContent, $mNewContent;
 	protected $mDiffLang;
 
 	/**
@@ -164,6 +179,22 @@ class DifferenceEngine extends ContextSource {
 		}
 	}
 
+	private function showMissingRevision() {
+		$out = $this->getOutput();
+
+		$missing = array();
+		if ( $this->mOldRev === null ) {
+			$missing[] = $this->deletedIdMarker( $this->mOldid );
+		}
+		if ( $this->mNewRev === null ) {
+			$missing[] = $this->deletedIdMarker( $this->mNewid );
+		}
+
+		$out->setPageTitle( $this->msg( 'errorpagetitle' ) );
+		$out->addWikiMsg( 'difference-missing-revision',
+			$this->getLanguage()->listToText( $missing ), count( $missing ) );
+	}
+
 	function showDiffPage( $diffOnly = false ) {
 		wfProfileIn( __METHOD__ );
 
@@ -173,13 +204,7 @@ class DifferenceEngine extends ContextSource {
 		$out->setRobotPolicy( 'noindex,nofollow' );
 
 		if ( !$this->loadRevisionData() ) {
-			// Sounds like a deleted revision... Let's see what we can do.
-			$t = $this->getTitle()->getPrefixedText();
-			$d = $this->msg( 'missingarticle-diff',
-				$this->deletedIdMarker( $this->mOldid ),
-				$this->deletedIdMarker( $this->mNewid ) )->escaped();
-			$out->setPageTitle( $this->msg( 'errorpagetitle' ) );
-			$out->addWikiMsg( 'missing-article', "<nowiki>$t</nowiki>", "<span class='plainlinks'>$d</span>" );
+			$this->showMissingRevision();
 			wfProfileOut( __METHOD__ );
 			return;
 		}
@@ -199,6 +224,10 @@ class DifferenceEngine extends ContextSource {
 		# we'll use the application/x-external-editor interface to call
 		# an external diff tool like kompare, kdiff3, etc.
 		if ( ExternalEdit::useExternalEngine( $this->getContext(), 'diff' ) ) {
+			//TODO: come up with a good solution for non-text content here.
+			//      at least, the content format needs to be passed to the client somehow.
+			//      Currently, action=raw will just fail for non-text content.
+
 			$urls = array(
 				'File' => array( 'Extension' => 'wiki', 'URL' =>
 					# This should be mOldPage, but it may not be set, see below.
@@ -239,8 +268,7 @@ class DifferenceEngine extends ContextSource {
 		# a diff between a version V and its previous version V' AND the version V
 		# is the first version of that article. In that case, V' does not exist.
 		if ( $this->mOldRev === false ) {
-			$out->setPageTitle( $this->mNewPage->getPrefixedText() );
-			$out->addSubtitle( $this->msg( 'difference' ) );
+			$out->setPageTitle( $this->msg( 'difference-title', $this->mNewPage->getPrefixedText() ) );
 			$samePage = true;
 			$oldHeader = '';
 		} else {
@@ -252,11 +280,11 @@ class DifferenceEngine extends ContextSource {
 			}
 
 			if ( $this->mNewPage->equals( $this->mOldPage ) ) {
-				$out->setPageTitle( $this->mNewPage->getPrefixedText() );
-				$out->addSubtitle( $this->msg( 'difference' ) );
+				$out->setPageTitle( $this->msg( 'difference-title', $this->mNewPage->getPrefixedText() ) );
 				$samePage = true;
 			} else {
-				$out->setPageTitle( $this->mOldPage->getPrefixedText() . ', ' . $this->mNewPage->getPrefixedText() );
+				$out->setPageTitle( $this->msg( 'difference-title-multipage', $this->mOldPage->getPrefixedText(),
+					$this->mNewPage->getPrefixedText() ) );
 				$out->addSubtitle( $this->msg( 'difference-multipage' ) );
 				$samePage = false;
 			}
@@ -264,7 +292,7 @@ class DifferenceEngine extends ContextSource {
 			if ( $samePage && $this->mNewPage->quickUserCan( 'edit', $user ) ) {
 				if ( $this->mNewRev->isCurrent() && $this->mNewPage->userCan( 'rollback', $user ) ) {
 					$out->preventClickjacking();
-					$rollback = '&#160;&#160;&#160;' . Linker::generateRollback( $this->mNewRev );
+					$rollback = '&#160;&#160;&#160;' . Linker::generateRollback( $this->mNewRev, $this->getContext() );
 				}
 				if ( !$this->mOldRev->isDeleted( Revision::DELETED_TEXT ) && !$this->mNewRev->isDeleted( Revision::DELETED_TEXT ) ) {
 					$undoLink = ' ' . $this->msg( 'parentheses' )->rawParams(
@@ -486,19 +514,21 @@ class DifferenceEngine extends ContextSource {
 			$out->setRevisionTimestamp( $this->mNewRev->getTimestamp() );
 			$out->setArticleFlag( true );
 
+			// NOTE: only needed for B/C: custom rendering of JS/CSS via hook
 			if ( $this->mNewPage->isCssJsSubpage() || $this->mNewPage->isCssOrJsPage() ) {
 				// Stolen from Article::view --AG 2007-10-11
 				// Give hooks a chance to customise the output
 				// @TODO: standardize this crap into one function
-				if ( wfRunHooks( 'ShowRawCssJs', array( $this->mNewtext, $this->mNewPage, $out ) ) ) {
-					// Wrap the whole lot in a <pre> and don't parse
-					$m = array();
-					preg_match( '!\.(css|js)$!u', $this->mNewPage->getText(), $m );
-					$out->addHTML( "<pre class=\"mw-code mw-{$m[1]}\" dir=\"ltr\">\n" );
-					$out->addHTML( htmlspecialchars( $this->mNewtext ) );
-					$out->addHTML( "\n</pre>\n" );
+				if ( ContentHandler::runLegacyHooks( 'ShowRawCssJs', array( $this->mNewContent, $this->mNewPage, $out ) ) ) {
+					// NOTE: deprecated hook, B/C only
+					// use the content object's own rendering
+					$po = $this->mNewRev->getContent()->getParserOutput( $this->mNewRev->getTitle(), $this->mNewRev->getId() );
+					$out->addHTML( $po->getText() );
 				}
-			} elseif ( !wfRunHooks( 'ArticleViewCustom', array( $this->mNewtext, $this->mNewPage, $out ) ) ) {
+			} elseif( !wfRunHooks( 'ArticleContentViewCustom', array( $this->mNewContent, $this->mNewPage, $out ) ) ) {
+				// Handled by extension
+			} elseif( !ContentHandler::runLegacyHooks( 'ArticleViewCustom', array( $this->mNewContent, $this->mNewPage, $out ) ) ) {
+				// NOTE: deprecated hook, B/C only
 				// Handled by extension
 			} else {
 				// Normal page
@@ -512,18 +542,21 @@ class DifferenceEngine extends ContextSource {
 					$wikiPage = WikiPage::factory( $this->mNewPage );
 				}
 
-				$parserOptions = ParserOptions::newFromContext( $this->getContext() );
-				$parserOptions->enableLimitReport();
-				$parserOptions->setTidy( true );
+				$parserOutput = $this->getParserOutput( $wikiPage, $this->mNewRev );
 
-				if ( !$this->mNewRev->isCurrent() ) {
-					$parserOptions->setEditSection( false );
-				}
+				# Also try to load it as a redirect
+				$rt = $this->mNewContent->getRedirectTarget();
 
-				$parserOutput = $wikiPage->getParserOutput( $parserOptions, $this->mNewid );
+				if ( $rt ) {
+					$article = Article::newFromTitle( $this->mNewPage, $this->getContext() );
+					$out->addHTML( $article->viewRedirect( $rt ) );
 
-				# WikiPage::getParserOutput() should not return false, but just in case
-				if( $parserOutput ) {
+					# WikiPage::getParserOutput() should not return false, but just in case
+					if ( $parserOutput ) {
+						# Show categories etc.
+						$out->addParserOutputNoText( $parserOutput );
+					}
+				} else if ( $parserOutput ) {
 					$out->addParserOutput( $parserOutput );
 				}
 			}
@@ -532,6 +565,17 @@ class DifferenceEngine extends ContextSource {
 		$out->addHTML( $this->markPatrolledLink() );
 
 		wfProfileOut( __METHOD__ );
+	}
+
+	protected function getParserOutput( WikiPage $page, Revision $rev ) {
+		$parserOptions = $page->makeParserOptions( $this->getContext() );
+
+		if ( !$rev->isCurrent() || !$rev->getTitle()->quickUserCan( "edit" ) ) {
+			$parserOptions->setEditSection( false );
+		}
+
+		$parserOutput = $page->getParserOutput( $parserOptions, $rev->getId() );
+		return $parserOutput;
 	}
 
 	/**
@@ -543,7 +587,7 @@ class DifferenceEngine extends ContextSource {
 	function showDiff( $otitle, $ntitle, $notice = '' ) {
 		$diff = $this->getDiff( $otitle, $ntitle, $notice );
 		if ( $diff === false ) {
-			$this->getOutput()->addWikiMsg( 'missing-article', "<nowiki>(fixme, bug)</nowiki>", '' );
+			$this->showMissingRevision();
 			return false;
 		} else {
 			$this->showDiffStyle();
@@ -598,7 +642,7 @@ class DifferenceEngine extends ContextSource {
 			return false;
 		}
 		// Short-circuit
-		// If mOldRev is false, it means that the 
+		// If mOldRev is false, it means that the
 		if ( $this->mOldRev === false || ( $this->mOldRev && $this->mNewRev
 			&& $this->mOldRev->getID() == $this->mNewRev->getID() ) )
 		{
@@ -630,7 +674,7 @@ class DifferenceEngine extends ContextSource {
 			return false;
 		}
 
-		$difftext = $this->generateDiffBody( $this->mOldtext, $this->mNewtext );
+		$difftext = $this->generateContentDiffBody( $this->mOldContent, $this->mNewContent );
 
 		// Save to cache for 7 days
 		if ( !wfRunHooks( 'AbortDiffCache', array( &$this ) ) ) {
@@ -668,13 +712,62 @@ class DifferenceEngine extends ContextSource {
 	}
 
 	/**
+	 * Generate a diff, no caching.
+	 *
+	 * This implementation uses generateTextDiffBody() to generate a diff based on the default
+	 * serialization of the given Content objects. This will fail if $old or $new are not
+	 * instances of TextContent.
+	 *
+	 * Subclasses may override this to provide a different rendering for the diff,
+	 * perhaps taking advantage of the content's native form. This is required for all content
+	 * models that are not text based.
+	 *
+	 * @param $old Content: old content
+	 * @param $new Content: new content
+	 *
+	 * @since 1.21
+	 * @throws MWException if $old or $new are not instances of TextContent.
+	 */
+	function generateContentDiffBody( Content $old, Content $new ) {
+		if ( !( $old instanceof TextContent ) ) {
+			throw new MWException( "Diff not implemented for " . get_class( $old ) . "; "
+					. "override generateContentDiffBody to fix this." );
+		}
+
+		if ( !( $new instanceof TextContent ) ) {
+			throw new MWException( "Diff not implemented for " . get_class( $new ) . "; "
+				. "override generateContentDiffBody to fix this." );
+		}
+
+		$otext = $old->serialize();
+		$ntext = $new->serialize();
+
+		return $this->generateTextDiffBody( $otext, $ntext );
+	}
+
+	/**
 	 * Generate a diff, no caching
+	 *
+	 * @param $otext String: old text, must be already segmented
+	 * @param $ntext String: new text, must be already segmented
+	 * @deprecated since 1.21, use generateContentDiffBody() instead!
+	 */
+	function generateDiffBody( $otext, $ntext ) {
+		ContentHandler::deprecated( __METHOD__, "1.21" );
+
+		return $this->generateTextDiffBody( $otext, $ntext );
+	}
+
+	/**
+	 * Generate a diff, no caching
+	 *
+	 * @todo move this to TextDifferenceEngine, make DifferenceEngine abstract. At some point.
 	 *
 	 * @param $otext String: old text, must be already segmented
 	 * @param $ntext String: new text, must be already segmented
 	 * @return bool|string
 	 */
-	function generateDiffBody( $otext, $ntext ) {
+	function generateTextDiffBody( $otext, $ntext ) {
 		global $wgExternalDiffEngine, $wgContLang;
 
 		wfProfileIn( __METHOD__ );
@@ -706,9 +799,9 @@ class DifferenceEngine extends ContextSource {
 		}
 		if ( $wgExternalDiffEngine != 'wikidiff3' && $wgExternalDiffEngine !== false ) {
 			# Diff via the shell
-			global $wgTmpDirectory;
-			$tempName1 = tempnam( $wgTmpDirectory, 'diff_' );
-			$tempName2 = tempnam( $wgTmpDirectory, 'diff_' );
+			$tmpDir = wfTempDir();
+			$tempName1 = tempnam( $tmpDir, 'diff_' );
+			$tempName2 = tempnam( $tmpDir, 'diff_' );
 
 			$tempFile1 = fopen( $tempName1, "w" );
 			if ( !$tempFile1 ) {
@@ -837,7 +930,7 @@ class DifferenceEngine extends ContextSource {
 	 *        the visibility of the revision and a link to edit the page.
 	 * @return String HTML fragment
 	 */
-	private function getRevisionHeader( Revision $rev, $complete = '' ) {
+	protected function getRevisionHeader( Revision $rev, $complete = '' ) {
 		$lang = $this->getLanguage();
 		$user = $this->getUser();
 		$revtimestamp = $rev->getTimestamp();
@@ -868,7 +961,8 @@ class DifferenceEngine extends ContextSource {
 			}
 
 			$msg = $this->msg( $title->quickUserCan( 'edit', $user ) ? 'editold' : 'viewsourceold' )->escaped();
-			$header .= ' (' . Linker::linkKnown( $title, $msg, array(), $editQuery ) . ')';
+			$header .= ' ' . $this->msg( 'parentheses' )->rawParams(
+				Linker::linkKnown( $title, $msg, array(), $editQuery ) )->plain();
 			if ( $rev->isDeleted( Revision::DELETED_TEXT ) ) {
 				$header = Html::rawElement( 'span', array( 'class' => 'history-deleted' ), $header );
 			}
@@ -892,7 +986,7 @@ class DifferenceEngine extends ContextSource {
 
 		if ( !$diff && !$otitle ) {
 			$header .= "
-			<tr valign='top'>
+			<tr style='vertical-align: top;'>
 			<td class='diff-ntitle'>{$ntitle}</td>
 			</tr>";
 			$multiColspan = 1;
@@ -910,17 +1004,17 @@ class DifferenceEngine extends ContextSource {
 				$multiColspan = 2;
 			}
 			$header .= "
-			<tr valign='top'>
+			<tr style='vertical-align: top;'>
 			<td colspan='$colspan' class='diff-otitle'>{$otitle}</td>
 			<td colspan='$colspan' class='diff-ntitle'>{$ntitle}</td>
 			</tr>";
 		}
 
 		if ( $multi != '' ) {
-			$header .= "<tr><td colspan='{$multiColspan}' align='center' class='diff-multi'>{$multi}</td></tr>";
+			$header .= "<tr><td colspan='{$multiColspan}' style='text-align: center;' class='diff-multi'>{$multi}</td></tr>";
 		}
 		if ( $notice != '' ) {
-			$header .= "<tr><td colspan='{$multiColspan}' align='center'>{$notice}</td></tr>";
+			$header .= "<tr><td colspan='{$multiColspan}' style='text-align: center;'>{$notice}</td></tr>";
 		}
 
 		return $header . $diff . "</table>";
@@ -928,10 +1022,25 @@ class DifferenceEngine extends ContextSource {
 
 	/**
 	 * Use specified text instead of loading from the database
+	 * @deprecated since 1.21, use setContent() instead.
 	 */
 	function setText( $oldText, $newText ) {
-		$this->mOldtext = $oldText;
-		$this->mNewtext = $newText;
+		ContentHandler::deprecated( __METHOD__, "1.21" );
+
+		$oldContent = ContentHandler::makeContent( $oldText, $this->getTitle() );
+		$newContent = ContentHandler::makeContent( $newText, $this->getTitle() );
+
+		$this->setContent( $oldContent, $newContent );
+	}
+
+	/**
+	 * Use specified text instead of loading from the database
+	 * @since 1.21
+	 */
+	function setContent( Content $oldContent, Content $newContent ) {
+		$this->mOldContent = $oldContent;
+		$this->mNewContent = $newContent;
+
 		$this->mTextLoaded = 2;
 		$this->mRevisionsLoaded = true;
 	}
@@ -1005,7 +1114,7 @@ class DifferenceEngine extends ContextSource {
 		// Load the new revision object
 		$this->mNewRev = $this->mNewid
 			? Revision::newFromId( $this->mNewid )
-			: Revision::newFromTitle( $this->getTitle() );
+			: Revision::newFromTitle( $this->getTitle(), false, Revision::READ_NORMAL );
 
 		if ( !$this->mNewRev instanceof Revision ) {
 			return false;
@@ -1059,14 +1168,14 @@ class DifferenceEngine extends ContextSource {
 			return false;
 		}
 		if ( $this->mOldRev ) {
-			$this->mOldtext = $this->mOldRev->getText( Revision::FOR_THIS_USER );
-			if ( $this->mOldtext === false ) {
+			$this->mOldContent = $this->mOldRev->getContent( Revision::FOR_THIS_USER, $this->getUser() );
+			if ( $this->mOldContent === false ) {
 				return false;
 			}
 		}
 		if ( $this->mNewRev ) {
-			$this->mNewtext = $this->mNewRev->getText( Revision::FOR_THIS_USER );
-			if ( $this->mNewtext === false ) {
+			$this->mNewContent = $this->mNewRev->getContent( Revision::FOR_THIS_USER, $this->getUser() );
+			if ( $this->mNewContent === false ) {
 				return false;
 			}
 		}
@@ -1087,7 +1196,7 @@ class DifferenceEngine extends ContextSource {
 		if ( !$this->loadRevisionData() ) {
 			return false;
 		}
-		$this->mNewtext = $this->mNewRev->getText( Revision::FOR_THIS_USER );
+		$this->mNewContent = $this->mNewRev->getContent( Revision::FOR_THIS_USER, $this->getUser() );
 		return true;
 	}
 }

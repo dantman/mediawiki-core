@@ -1,4 +1,24 @@
 <?php
+/**
+ * ZIP file directories reader, for the purposes of upload verification.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ */
 
 /**
  * A class for reading ZIP file directories, for the purposes of upload
@@ -576,6 +596,7 @@ class ZipDirectoryReader {
 	 *
 	 * @param $offset int The offset into the string at which to start unpacking.
 	 *
+	 * @throws MWException
 	 * @return array Unpacked associative array. Note that large integers in the input
 	 *    may be represented as floating point numbers in the return value, so
 	 *    the use of weak comparison is advised.
@@ -602,7 +623,6 @@ class ZipDirectoryReader {
 			} else {
 				// Unsigned little-endian integer
 				$length = intval( $type );
-				$bytes = substr( $string, $pos, $length );
 
 				// Calculate the value. Use an algorithm which automatically
 				// upgrades the value to floating point if necessary.
@@ -676,10 +696,10 @@ class ZipDirectoryReader {
  * Internal exception class. Will be caught by private code.
  */
 class ZipDirectoryReaderError extends Exception {
-	var $code;
+	var $errorCode;
 
 	function __construct( $code ) {
-		$this->code = $code;
+		$this->errorCode = $code;
 		parent::__construct( "ZipDirectoryReader error: $code" );
 	}
 
@@ -687,6 +707,6 @@ class ZipDirectoryReaderError extends Exception {
 	 * @return mixed
 	 */
 	function getErrorCode() {
-		return $this->code;
+		return $this->errorCode;
 	}
 }

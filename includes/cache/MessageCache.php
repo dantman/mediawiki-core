@@ -1,5 +1,22 @@
 <?php
 /**
+ * Localisation messages cache.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
  * @ingroup Cache
  */
@@ -115,6 +132,7 @@ class MessageCache {
 	function getParserOptions() {
 		if ( !$this->mParserOptions ) {
 			$this->mParserOptions = new ParserOptions;
+			$this->mParserOptions->setEditSection( false );
 		}
 		return $this->mParserOptions;
 	}
@@ -578,7 +596,7 @@ class MessageCache {
 	 * @param $key String: the message cache key
 	 * @param $useDB Boolean: get the message from the DB, false to use only
 	 *               the localisation
-	 * @param $langcode String: code of the language to get the message for, if
+	 * @param bool|string $langcode Code of the language to get the message for, if
 	 *                  it is a valid code create a language for that language,
 	 *                  if it is a string but not a valid code then make a basic
 	 *                  language object, if it is a false boolean then use the
@@ -589,6 +607,7 @@ class MessageCache {
 	 * @param $isFullKey Boolean: specifies whether $key is a two part key
 	 *                   "msg/lang".
 	 *
+	 * @throws MWException
 	 * @return string|bool
 	 */
 	function get( $key, $useDB = true, $langcode = true, $isFullKey = false ) {
@@ -748,18 +767,36 @@ class MessageCache {
 		}
 
 		# Try loading it from the database
-		$revision = Revision::newFromTitle( Title::makeTitle( NS_MEDIAWIKI, $title ) );
+		$revision = Revision::newFromTitle(
+			Title::makeTitle( NS_MEDIAWIKI, $title ), false, Revision::READ_LATEST
+		);
 		if ( $revision ) {
-			$message = $revision->getText();
-			if ($message === false) {
+			$content = $revision->getContent();
+			if ( !$content ) {
 				// A possibly temporary loading failure.
 				wfDebugLog( 'MessageCache', __METHOD__ . ": failed to load message page text for {$title} ($code)" );
+				$message = null; // no negative caching
 			} else {
-				$this->mCache[$code][$title] = ' ' . $message;
-				$this->mMemc->set( $titleKey, ' ' . $message, $this->mExpiry );
+				// XXX: Is this the right way to turn a Content object into a message?
+				// NOTE: $content is typically either WikitextContent, JavaScriptContent or CssContent.
+				//       MessageContent is *not* used for storing messages, it's only used for wrapping them when needed.
+				$message = $content->getWikitextForTransclusion();
+
+				if ( $message === false || $message === null ) {
+					wfDebugLog( 'MessageCache', __METHOD__ . ": message content doesn't provide wikitext "
+								. "(content model: " . $content->getContentHandler() . ")" );
+
+					$message = false; // negative caching
+				} else {
+					$this->mCache[$code][$title] = ' ' . $message;
+					$this->mMemc->set( $titleKey, ' ' . $message, $this->mExpiry );
+				}
 			}
 		} else {
-			$message = false;
+			$message = false; // negative caching
+		}
+
+		if ( $message === false ) { // negative caching
 			$this->mCache[$code][$title] = '!NONEXISTENT';
 			$this->mMemc->set( $titleKey, '!NONEXISTENT', $this->mExpiry );
 		}

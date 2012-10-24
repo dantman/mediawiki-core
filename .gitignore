@@ -1,23 +1,47 @@
+# Repository management
 .svn
+
+# Editors
+*.kate-swp
 *~
-.classpath
-.idea
-.metadata*
+.*.swp
 .project
-.settings
+cscope.files
+cscope.out
+## NetBeans
+nbproject*
+project.index
+
+# MediaWiki install & usage
+cache
+images/[0-9a-f]
+images/archive
+images/deleted
+images/lockdir
+images/temp
+images/thumb
+## Extension:EasyTimeline
+images/timeline
+images/tmp
+maintenance/.mweval_history
+maintenance/.mwsql_history
+maintenance/dev/data
 AdminSettings.php
 LocalSettings.php
 StartProfiler.php
-cscope.files
-cscope.out
+
+# Operating systems
+## Mac OS X
+.DS_Store
+## Windows
+Thumbs.db
+
+# Misc
+.buildpath
+.classpath
+.idea
+.metadata*
+.settings
 favicon.ico
-nbproject*
-project.index
 static*
 tags
-cache/*.cdb
-images/[0-9a-f]
-images/temp
-images/thumb
-maintenance/dev/data/
-maintenance/.mweval_history

@@ -34,6 +34,12 @@
  * someone logs in who can be authenticated externally.
  */
 class AuthPlugin {
+
+	/**
+	 * @var string
+	 */
+	protected $domain;
+
 	/**
 	 * Check whether there exists a user account with the given name.
 	 * The name will be normalized to MediaWiki's requirements, so
@@ -81,6 +87,19 @@ class AuthPlugin {
 	 */
 	public function setDomain( $domain ) {
 		$this->domain = $domain;
+	}
+
+	/**
+	 * Get the user's domain
+	 *
+	 * @return string
+	 */
+	public function getDomain() {
+		if ( isset( $this->domain ) ) {
+			return $this->domain;
+		} else {
+			return 'invaliddomain';
+		}
 	}
 
 	/**
@@ -154,6 +173,15 @@ class AuthPlugin {
 	 * @return bool
 	 */
 	public function allowPasswordChange() {
+		return true;
+	}
+
+	/**
+	 * Should MediaWiki store passwords in its local database?
+	 *
+	 * @return bool
+	 */
+	public function allowSetLocalPassword() {
 		return true;
 	}
 
@@ -248,6 +276,8 @@ class AuthPlugin {
 	/**
 	 * If you want to munge the case of an account name before the final
 	 * check, now is your chance.
+	 * @param $username string
+	 * @return string
 	 */
 	public function getCanonicalName( $username ) {
 		return $username;

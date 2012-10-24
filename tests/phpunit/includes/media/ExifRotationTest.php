@@ -5,16 +5,12 @@
  */
 class ExifRotationTest extends MediaWikiTestCase {
 
-	/** track directories creations. Content will be deleted. */
-	private $createdDirs = array();
-
-	function setUp() {
+	protected function setUp() {
 		parent::setUp();
 		$this->handler = new BitmapHandler();
-		$filePath = dirname( __FILE__ ) . '/../../data/media';
+		$filePath = __DIR__ . '/../../data/media';
 
-		$tmpDir = wfTempDir() . '/exif-test-' . time() . '-' . mt_rand();
-		$this->createdDirs[] = $tmpDir;
+		$tmpDir = $this->getNewTempDirectory();
 
 		$this->repo = new FSRepo( array(
 			'name'            => 'temp',
@@ -37,27 +33,17 @@ class ExifRotationTest extends MediaWikiTestCase {
 		$wgEnableAutoRotation = true;
 	}
 
-	public function tearDown() {
+	protected function tearDown() {
 		global $wgShowEXIF, $wgEnableAutoRotation;
 		$wgShowEXIF = $this->show;
 		$wgEnableAutoRotation = $this->oldAuto;
 
-		$this->tearDownFiles();
-	}
-
-	private function tearDownFiles() {
-		foreach( $this->createdDirs as $dir ) {
-			wfRecursiveRemoveDir( $dir );
-		}
-	}
-
-	function __destruct() {
-		$this->tearDownFiles();
+		parent::tearDown();
 	}
 
 	/**
 	 *
-	 * @dataProvider providerFiles
+	 * @dataProvider provideFiles
 	 */
 	function testMetadata( $name, $type, $info ) {
 		if ( !BitmapHandler::canRotate() ) {
@@ -70,7 +56,7 @@ class ExifRotationTest extends MediaWikiTestCase {
 
 	/**
 	 *
-	 * @dataProvider providerFiles
+	 * @dataProvider provideFiles
 	 */
 	function testRotationRendering( $name, $type, $info, $thumbs ) {
 		if ( !BitmapHandler::canRotate() ) {
@@ -108,12 +94,13 @@ class ExifRotationTest extends MediaWikiTestCase {
 		}
 	}
 
+	/* Utility function */
 	private function dataFile( $name, $type ) {
 		return new UnregisteredLocalFile( false, $this->repo,
 			"mwstore://localtesting/data/$name", $type );
 	}
 
-	function providerFiles() {
+	public static function provideFiles() {
 		return array(
 			array(
 				'landscape-plain.jpg',
@@ -148,7 +135,7 @@ class ExifRotationTest extends MediaWikiTestCase {
 
 	/**
 	 * Same as before, but with auto-rotation disabled.
-	 * @dataProvider providerFilesNoAutoRotate
+	 * @dataProvider provideFilesNoAutoRotate
 	 */
 	function testMetadataNoAutoRotate( $name, $type, $info ) {
 		global $wgEnableAutoRotation;
@@ -163,7 +150,7 @@ class ExifRotationTest extends MediaWikiTestCase {
 
 	/**
 	 *
-	 * @dataProvider providerFilesNoAutoRotate
+	 * @dataProvider provideFilesNoAutoRotate
 	 */
 	function testRotationRenderingNoAutoRotate( $name, $type, $info, $thumbs ) {
 		global $wgEnableAutoRotation;
@@ -202,7 +189,7 @@ class ExifRotationTest extends MediaWikiTestCase {
 		$wgEnableAutoRotation = true;
 	}
 
-	function providerFilesNoAutoRotate() {
+	public static function provideFilesNoAutoRotate() {
 		return array(
 			array(
 				'landscape-plain.jpg',

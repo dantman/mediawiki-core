@@ -1,14 +1,33 @@
 <?php
 /**
+ * Representation for a category.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ * @author Simetrical
+ */
+
+/**
  * Category objects are immutable, strictly speaking. If you call methods that change the database,
  * like to refresh link counts, the objects will be appropriately reinitialized.
  * Member variables are lazy-initialized.
  *
  * TODO: Move some stuff from CategoryPage.php to here, and use that.
- *
- * @author Simetrical
  */
-
 class Category {
 	/** Name of the category, normalized to DB-key form */
 	private $mName = null;
@@ -25,6 +44,7 @@ class Category {
 
 	/**
 	 * Set up all member variables using a database query.
+	 * @throws MWException
 	 * @return bool True on success, false on failure.
 	 */
 	protected function initialize() {
@@ -278,13 +298,13 @@ class Category {
 			'IGNORE'
 		);
 
-		$cond1 = $dbw->conditional( 'page_namespace=' . NS_CATEGORY, 1, 'NULL' );
-		$cond2 = $dbw->conditional( 'page_namespace=' . NS_FILE, 1, 'NULL' );
+		$cond1 = $dbw->conditional( array( 'page_namespace' => NS_CATEGORY ), 1, 'NULL' );
+		$cond2 = $dbw->conditional( array( 'page_namespace' => NS_FILE ), 1, 'NULL' );
 		$result = $dbw->selectRow(
 			array( 'categorylinks', 'page' ),
-			array( 'COUNT(*) AS pages',
-				   "COUNT($cond1) AS subcats",
-				   "COUNT($cond2) AS files"
+			array( 'pages' => 'COUNT(*)',
+				   'subcats' => "COUNT($cond1)",
+				   'files' => "COUNT($cond2)"
 			),
 			array( 'cl_to' => $this->mName, 'page_id = cl_from' ),
 			__METHOD__,

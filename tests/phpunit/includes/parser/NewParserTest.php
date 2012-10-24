@@ -9,7 +9,7 @@
  */
 class NewParserTest extends MediaWikiTestCase {
 	static protected $articles = array();	// Array of test articles defined by the tests
-	/* The dataProvider is run on a different instance than the test, so it must be static
+	/* The data provider is run on a different instance than the test, so it must be static
 	 * When running tests from several files, all tests will see all articles.
 	 */
 	static protected $backendToUse;
@@ -31,7 +31,7 @@ class NewParserTest extends MediaWikiTestCase {
 
 	protected $file = false;
 
-	function setUp() {
+	protected function setUp() {
 		global $wgContLang, $wgNamespaceProtection, $wgNamespaceAliases;
 		global $wgHooks, $IP;
 		$wgContLang = Language::factory( 'en' );
@@ -100,7 +100,7 @@ class NewParserTest extends MediaWikiTestCase {
 		$wgNamespaceAliases['Image_talk'] = NS_FILE_TALK;
 	}
 
-	public function tearDown() {
+	protected function tearDown() {
 		foreach ( $this->savedInitialGlobals as $var => $val ) {
 			$GLOBALS[$var] = $val;
 		}
@@ -186,7 +186,7 @@ class NewParserTest extends MediaWikiTestCase {
 		if ( !$this->db->selectField( 'image', '1', array( 'img_name' => $image->getName() ) ) ) {
 			$image->recordUpload2(
 				'', // archive name
-				'Upload of some lame file', 
+				'Upload of some lame file',
 				'Some lame file',
 				array(
 					'size'        => 12345,
@@ -197,7 +197,7 @@ class NewParserTest extends MediaWikiTestCase {
 					'mime'        => 'image/jpeg',
 					'metadata'    => serialize( array() ),
 					'sha1'        => wfBaseConvert( '', 16, 36, 31 ),
-					'fileExists'  => true ), 
+					'fileExists'  => true ),
 				$this->db->timestamp( '20010115123500' ), $user
 			);
 		}
@@ -207,8 +207,8 @@ class NewParserTest extends MediaWikiTestCase {
 		if ( !$this->db->selectField( 'image', '1', array( 'img_name' => $image->getName() ) ) ) {
 			$image->recordUpload2(
 				'', // archive name
-				'zomgnotcensored', 
-				'Borderline image', 
+				'zomgnotcensored',
+				'Borderline image',
 				array(
 					'size'        => 12345,
 					'width'       => 320,
@@ -218,7 +218,7 @@ class NewParserTest extends MediaWikiTestCase {
 					'mime'        => 'image/jpeg',
 					'metadata'    => serialize( array() ),
 					'sha1'        => wfBaseConvert( '', 16, 36, 31 ),
-					'fileExists'  => true ), 
+					'fileExists'  => true ),
 				$this->db->timestamp( '20010115123500' ), $user
 			);
 		}
@@ -303,7 +303,7 @@ class NewParserTest extends MediaWikiTestCase {
 			'wgNoFollowLinks' => true,
 			'wgNoFollowDomainExceptions' => array(),
 			'wgThumbnailScriptPath' => false,
-			'wgUseImageResize' => false,
+			'wgUseImageResize' => true,
 			'wgUseTeX' => isset( $opts['math'] ),
 			'wgMathDirectory' => $uploadDir . '/math',
 			'wgLocaltimezone' => 'UTC',
@@ -345,6 +345,9 @@ class NewParserTest extends MediaWikiTestCase {
 
 		$this->savedGlobals = array();
 
+		/** @since 1.20 */
+		wfRunHooks( 'ParserTestGlobals', array( &$settings ) );
+
 		foreach ( $settings as $var => $val ) {
 			if ( array_key_exists( $var, $GLOBALS ) ) {
 				$this->savedGlobals[$var] = $GLOBALS[$var];
@@ -380,7 +383,7 @@ class NewParserTest extends MediaWikiTestCase {
 		# The entries saved into RepoGroup cache with previous globals will be wrong.
 		RepoGroup::destroySingleton();
 		FileBackendGroup::destroySingleton();
-		MessageCache::singleton()->destroyInstance();
+		MessageCache::destroyInstance();
 
 		return $context;
 	}
@@ -510,12 +513,23 @@ class NewParserTest extends MediaWikiTestCase {
 		$this->file = $filename;
 	}
 
-	/** @dataProvider parserTestProvider */
+	/**
+	 * @group medium
+	 * @dataProvider parserTestProvider
+	 */
 	public function testParserTest( $desc, $input, $result, $opts, $config ) {
 		if ( $this->regex != '' && !preg_match( '/' . $this->regex . '/', $desc ) ) {
 			$this->assertTrue( true ); // XXX: don't flood output with "test made no assertions"
 			//$this->markTestSkipped( 'Filtered out by the user' );
 			return;
+		}
+
+		if ( !$this->isWikitextNS( NS_MAIN ) ) {
+			// parser tests frequently assume that the main namespace contains wikitext.
+			// @todo: When setting up pages, force the content model. Only skip if
+			//        $wgtContentModelUseDB is false.
+			$this->markTestSkipped( "Main namespace does not support wikitext,"
+					. "skipping parser test: $desc" );
 		}
 
 		wfDebug( "Running parser test: $desc\n" );
@@ -593,7 +607,7 @@ class NewParserTest extends MediaWikiTestCase {
 	 * Run a fuzz test series
 	 * Draw input from a set of test files
 	 *
-	 * @todo @fixme Needs some work to not eat memory until the world explodes
+	 * @todo fixme Needs some work to not eat memory until the world explodes
 	 *
 	 * @group ParserFuzz
 	 */

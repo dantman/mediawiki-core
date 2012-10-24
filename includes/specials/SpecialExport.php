@@ -93,6 +93,13 @@ class SpecialExport extends SpecialPage {
 		elseif( $request->getCheck( 'exportall' ) && $wgExportAllowAll ) {
 			$this->doExport = true;
 			$exportall = true;
+
+			/* Although $page and $history are not used later on, we
+			nevertheless set them to avoid that PHP notices about using
+			undefined variables foul up our XML output (see call to
+			doExport(...) further down) */
+			$page = '';
+			$history = '';
 		}
 		elseif( $request->wasPosted() && $par == '' ) {
 			$page = $request->getText( 'pages' );
@@ -279,7 +286,7 @@ class SpecialExport extends SpecialPage {
 		} else {
 
 			$pageSet = array(); // Inverted index of all pages to look up
-		
+
 			// Split up and normalize input
 			foreach( explode( "\n", $page ) as $pageName ) {
 				$pageName = trim( $pageName );
@@ -448,7 +455,7 @@ class SpecialExport extends SpecialPage {
 	private function getTemplates( $inputPages, $pageSet ) {
 		return $this->getLinks( $inputPages, $pageSet,
 			'templatelinks',
-			array( 'tl_namespace AS namespace', 'tl_title AS title' ),
+			array( 'namespace' => 'tl_namespace', 'title' => 'tl_title' ),
 			array( 'page_id=tl_from' )
 		);
 	}
@@ -490,7 +497,7 @@ class SpecialExport extends SpecialPage {
 		for( ; $depth > 0; --$depth ) {
 			$pageSet = $this->getLinks(
 				$inputPages, $pageSet, 'pagelinks',
-				array( 'pl_namespace AS namespace', 'pl_title AS title' ),
+				array( 'namespace' => 'pl_namespace', 'title' => 'pl_title' ),
 				array( 'page_id=pl_from' )
 			);
 			$inputPages = array_keys( $pageSet );
@@ -512,7 +519,7 @@ class SpecialExport extends SpecialPage {
 			$inputPages,
 			$pageSet,
 			'imagelinks',
-			array( NS_FILE . ' AS namespace', 'il_to AS title' ),
+			array( 'namespace' => NS_FILE, 'title' => 'il_to' ),
 			array( 'page_id=il_from' )
 		);
 	}

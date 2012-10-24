@@ -1,5 +1,26 @@
 <?php
 /**
+ * Data storage in external repositories.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ */
+
+/**
  * @defgroup ExternalStorage ExternalStorage
  */
 
@@ -14,11 +35,14 @@
  */
 class ExternalStore {
 	var $mParams;
-	
+
+	/**
+	 * @param $params array
+	 */
 	function __construct( $params = array() ) {
 		$this->mParams = $params;
 	}
-	
+
 	/**
 	 * Fetch data from given URL
 	 *
@@ -29,8 +53,9 @@ class ExternalStore {
 	static function fetchFromURL( $url, $params = array() ) {
 		global $wgExternalStores;
 
-		if( !$wgExternalStores )
+		if( !$wgExternalStores ) {
 			return false;
+		}
 
 		$parts = explode( '://', $url, 2 );
 
@@ -45,8 +70,10 @@ class ExternalStore {
 		}
 
 		$store = self::getStoreObject( $proto, $params );
-		if ( $store === false )
+		if ( $store === false ) {
 			return false;
+		}
+
 		return $store->fetchFromURL( $url );
 	}
 
@@ -55,15 +82,18 @@ class ExternalStore {
 	 *
 	 * @param $proto String: type of external storage, should be a value in $wgExternalStores
 	 * @param $params Array: associative array of parameters for the ExternalStore object.
-	 * @return ExternalStore subclass or false on error
+	 * @return ExternalStore|bool ExternalStore class or false on error
 	 */
 	static function getStoreObject( $proto, $params = array() ) {
 		global $wgExternalStores;
-		if( !$wgExternalStores )
+		if( !$wgExternalStores ) {
 			return false;
+		}
+
 		/* Protocol not enabled */
-		if( !in_array( $proto, $wgExternalStores ) )
+		if( !in_array( $proto, $wgExternalStores ) ) {
 			return false;
+		}
 
 		$class = 'ExternalStore' . ucfirst( $proto );
 		/* Any custom modules should be added to $wgAutoLoadClasses for on-demand loading */
@@ -92,7 +122,7 @@ class ExternalStore {
 			return $store->store( $params, $data );
 		}
 	}
-	
+
 	/**
 	 * Like insert() above, but does more of the work for us.
 	 * This function does not need a url param, it builds it by
@@ -100,7 +130,8 @@ class ExternalStore {
 	 *
 	 * @param $data String
 	 * @param $storageParams Array: associative array of parameters for the ExternalStore object.
-	 * @return string The URL of the stored data item, or false on error
+	 * @throws MWException|DBConnectionError|DBQueryError
+	 * @return string|bool The URL of the stored data item, or false on error
 	 */
 	public static function insertToDefault( $data, $storageParams = array() ) {
 		global $wgDefaultExternalStore;
@@ -138,7 +169,7 @@ class ExternalStore {
 			throw new MWException( "Unable to store text to external storage" );
 		}
 	}
-	
+
 	/**
 	 * @param $data
 	 * @param $wiki

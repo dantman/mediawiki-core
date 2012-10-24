@@ -18,6 +18,8 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
  */
 
 /**
@@ -286,7 +288,7 @@ abstract class ExternalUser {
 				   'eu_external_id' => $this->getId() ),
 			__METHOD__ );
 	}
-	
+
 	/**
 	 * Check whether this external user id is already linked with
 	 * a local user.
@@ -303,5 +305,5 @@ abstract class ExternalUser {
 			? User::newFromId( $row->eu_local_id )
 			: null;
 	}
-	
+
 }

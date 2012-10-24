@@ -4,7 +4,7 @@
  *
  * Created on July 7, 2007
  *
- * Copyright © 2006 Yuri Astrakhan <Firstname><Lastname>@gmail.com
+ * Copyright © 2006 Yuri Astrakhan "<Firstname><Lastname>@gmail.com"
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,8 +121,12 @@ class ApiQueryExtLinksUsage extends ApiQueryGeneratorBase {
 					ApiQueryBase::addTitleInfo( $vals, $title );
 				}
 				if ( $fld_url ) {
-					// We *could* run this through wfExpandUrl() but I think it's better to output the link verbatim, even if it's protocol-relative --Roan
-					$vals['url'] = $row->el_to;
+					$to = $row->el_to;
+					// expand protocol-relative urls
+					if( $params['expandurl'] ) {
+						$to = wfExpandUrl( $to, PROTO_CANONICAL );
+					}
+					$vals['url'] = $to;
 				}
 				$fit = $result->addValue( array( 'query', $this->getModuleName() ), null, $vals );
 				if ( !$fit ) {
@@ -169,7 +173,8 @@ class ApiQueryExtLinksUsage extends ApiQueryGeneratorBase {
 				ApiBase::PARAM_MIN => 1,
 				ApiBase::PARAM_MAX => ApiBase::LIMIT_BIG1,
 				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_BIG2
-			)
+			),
+			'expandurl' => false,
 		);
 	}
 
@@ -218,7 +223,8 @@ class ApiQueryExtLinksUsage extends ApiQueryGeneratorBase {
 			),
 			'query' => 'Search string without protocol. See [[Special:LinkSearch]]. Leave empty to list all external links',
 			'namespace' => 'The page namespace(s) to enumerate.',
-			'limit' => 'How many pages to return.'
+			'limit' => 'How many pages to return.',
+			'expandurl' => 'Expand protocol-relative urls with the canonical protocol',
 		);
 
 		if ( $wgMiserMode ) {
@@ -230,6 +236,21 @@ class ApiQueryExtLinksUsage extends ApiQueryGeneratorBase {
 		}
 
 		return $desc;
+	}
+
+	public function getResultProperties() {
+		return array(
+			'ids' => array(
+				'pageid' => 'integer'
+			),
+			'title' => array(
+				'ns' => 'namespace',
+				'title' => 'string'
+			),
+			'url' => array(
+				'url' => 'string'
+			)
+		);
 	}
 
 	public function getDescription() {

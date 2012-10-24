@@ -1,5 +1,7 @@
 <?php
 /**
+ * Resource loader module for user preference customizations.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,30 +46,7 @@ class ResourceLoaderUserOptionsModule extends ResourceLoaderModule {
 		}
 
 		global $wgUser;
-
-		if ( $context->getUser() === $wgUser->getName() ) {
-			return $this->modifiedTime[$hash] = wfTimestamp( TS_UNIX, $wgUser->getTouched() );
-		} else {
-			return 1;
-		}
-	}
-
-	/**
-	 * Fetch the context's user options, or if it doesn't match current user,
-	 * the default options.
-	 *
-	 * @param $context ResourceLoaderContext: Context object
-	 * @return Array: List of user options keyed by option name
-	 */
-	protected function contextUserOptions( ResourceLoaderContext $context ) {
-		global $wgUser;
-
-		// Verify identity -- this is a private module
-		if ( $context->getUser() === $wgUser->getName() ) {
-			return $wgUser->getOptions();
-		} else {
-			return User::getDefaultOptions();
-		}
+		return $this->modifiedTime[$hash] = wfTimestamp( TS_UNIX, $wgUser->getTouched() );
 	}
 
 	/**
@@ -75,8 +54,9 @@ class ResourceLoaderUserOptionsModule extends ResourceLoaderModule {
 	 * @return string
 	 */
 	public function getScript( ResourceLoaderContext $context ) {
+		global $wgUser;
 		return Xml::encodeJsCall( 'mw.user.options.set',
-			array( $this->contextUserOptions( $context ) ) );
+			array( $wgUser->getOptions() ) );
 	}
 
 	/**

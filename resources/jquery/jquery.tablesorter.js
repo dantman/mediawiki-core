@@ -19,6 +19,9 @@
  * @example $( 'table' ).tablesorter();
  * @desc Create a simple tablesorter interface.
  *
+ * @example $( 'table' ).tablesorter( { sortList: [ { 0: 'desc' }, { 1: 'asc' } ] } );
+ * @desc Create a tablesorter interface initially sorting on the first and second column.
+ *
  * @option String cssHeader ( optional ) A string of the class name to be appended
  *         to sortable tr elements in the thead of the table. Default value:
  *         "header"
@@ -44,8 +47,15 @@
  *         tablesorter should cancel selection of the table headers text.
  *         Default value: true
  *
+ * @option Array sortList ( optional ) An array containing objects specifying sorting.
+ *         By passing more than one object, multi-sorting will be applied. Object structure:
+ *         { <Integer column index>: <String 'asc' or 'desc'> }
+ *         Default value: []
+ *
  * @option Boolean debug ( optional ) Boolean flag indicating if tablesorter
  *         should display debuging information usefull for development.
+ *
+ * @event sortEnd.tablesorter: Triggered as soon as any sorting has been applied.
  *
  * @type jQuery
  *
@@ -56,11 +66,11 @@
  * @author Christian Bach/christian.bach@polyester.se
  */
 
-( function( $ ) {
+( function ( $, mw ) {
 
 	/* Local scope */
 
-	var	ts,
+	var ts,
 		parsers = [];
 
 	/* Parser utility functions */
@@ -77,9 +87,15 @@
 
 	function getElementText( node ) {
 		var $node = $( node ),
-			data = $node.attr( 'data-sort-value' );
-		if ( data !== undefined ) {
-			return data;
+			// Use data-sort-value attribute.
+			// Use data() instead of attr() so that live value changes
+			// are processed as well (bug 38152).
+			data = $node.data( 'sortValue' );
+
+		if ( data !== null && data !== undefined ) {
+			// Cast any numbers or other stuff to a string, methods
+			// like charAt, toLowerCase and split are expected.
+			return String( data );
 		} else {
 			return $node.text();
 		}
@@ -94,7 +110,7 @@
 	}
 
 	function detectParserForColumn( table, rows, cellIndex ) {
-		var	l = parsers.length,
+		var l = parsers.length,
 			nodeValue,
 			// Start with 1 because 0 is the fallback parser
 			i = 1,
@@ -133,19 +149,19 @@
 	}
 
 	function buildParserCache( table, $headers ) {
-		var	rows = table.tBodies[0].rows,
+		var rows = table.tBodies[0].rows,
 			sortType,
 			parsers = [];
 
 		if ( rows[0] ) {
 
-			var	cells = rows[0].cells,
+			var cells = rows[0].cells,
 				len = cells.length,
 				i, parser;
 
 			for ( i = 0; i < len; i++ ) {
 				parser = false;
-				sortType = $headers.eq( i ).data( 'sort-type' );
+				sortType = $headers.eq( i ).data( 'sortType' );
 				if ( sortType !== undefined ) {
 					parser = getParserById( sortType );
 				}
@@ -163,7 +179,7 @@
 	/* Other utility functions */
 
 	function buildCache( table ) {
-		var	totalRows = ( table.tBodies[0] && table.tBodies[0].rows.length ) || 0,
+		var totalRows = ( table.tBodies[0] && table.tBodies[0].rows.length ) || 0,
 			totalCells = ( table.tBodies[0].rows[0] && table.tBodies[0].rows[0].cells.length ) || 0,
 			parsers = table.config.parsers,
 			cache = {
@@ -174,7 +190,7 @@
 		for ( var i = 0; i < totalRows; ++i ) {
 
 			// Add the table data to main data array
-			var	$row = $( table.tBodies[0].rows[i] ),
+			var $row = $( table.tBodies[0].rows[i] ),
 				cols = [];
 
 			// if this is a child row, add it to the last row's children and
@@ -200,7 +216,7 @@
 	}
 
 	function appendToTable( table, cache ) {
-		var	row = cache.row,
+		var row = cache.row,
 			normalized = cache.normalized,
 			totalRows = normalized.length,
 			checkCell = ( normalized[0].length - 1 ),
@@ -217,23 +233,25 @@
 
 		}
 		table.tBodies[0].appendChild( fragment );
+
+		$( table ).trigger( 'sortEnd.tablesorter' );
 	}
-	
+
 	/**
 	 * Find all header rows in a thead-less table and put them in a <thead> tag.
 	 * This only treats a row as a header row if it contains only <th>s (no <td>s)
 	 * and if it is preceded entirely by header rows. The algorithm stops when
 	 * it encounters the first non-header row.
-	 * 
+	 *
 	 * After this, it will look at all rows at the bottom for footer rows
 	 * And place these in a tfoot using similar rules.
 	 * @param $table jQuery object for a <table>
-	 */ 
+	 */
 	function emulateTHeadAndFoot( $table ) {
 		var $rows = $table.find( '> tbody > tr' );
 		if( !$table.get(0).tHead ) {
 			var $thead = $( '<thead>' );
-			$rows.each( function() {
+			$rows.each( function () {
 				if ( $(this).children( 'td' ).length > 0 ) {
 					// This row contains a <td>, so it's not a header row
 					// Stop here
@@ -251,18 +269,18 @@
 					break;
 				}
 				$tfoot.prepend( $( $rows[i] ));
-			} 
+			}
 			$table.append( $tfoot );
 		}
 	}
 
 	function buildHeaders( table, msg ) {
-		var	maxSeen = 0,
+		var maxSeen = 0,
 			longest,
 			realCellIndex = 0,
 			$tableHeaders = $( 'thead:eq(0) > tr', table );
 		if ( $tableHeaders.length > 1 ) {
-			$tableHeaders.each( function() {
+			$tableHeaders.each( function () {
 				if ( this.cells.length > maxSeen ) {
 					maxSeen = this.cells.length;
 					longest = this;
@@ -270,7 +288,7 @@
 			});
 			$tableHeaders = $( longest );
 		}
-		$tableHeaders = $tableHeaders.children( 'th' ).each( function( index ) {
+		$tableHeaders = $tableHeaders.children( 'th' ).each( function ( index ) {
 			this.column = realCellIndex;
 
 			var colspan = this.colspan;
@@ -299,7 +317,7 @@
 	function isValueInArray( v, a ) {
 		var l = a.length;
 		for ( var i = 0; i < l; i++ ) {
-			if ( a[i][0] == v ) {
+			if ( a[i][0] === v ) {
 				return true;
 			}
 		}
@@ -307,11 +325,11 @@
 	}
 
 	function setHeadersCss( table, $headers, list, css, msg ) {
-		// Remove all header information
-		$headers.removeClass( css[0] ).removeClass( css[1] );
+		// Remove all header information and reset titles to default message
+		$headers.removeClass( css[0] ).removeClass( css[1] ).attr( 'title', msg[1] );
 
 		var h = [];
-		$headers.each( function( offset ) {
+		$headers.each( function ( offset ) {
 			if ( !this.sortDisabled ) {
 				h[this.column] = $( this );
 			}
@@ -324,62 +342,31 @@
 	}
 
 	function sortText( a, b ) {
-		return ( (a < b) ? false : ((a > b) ? true : 0) );
+		return ( (a < b) ? -1 : ((a > b) ? 1 : 0) );
 	}
 
 	function sortTextDesc( a, b ) {
-		return ( (b < a) ? false : ((b > a) ? true : 0) );
-	}
-
-	function checkSorting( array1, array2, sortList ) {
-		var col, fn, ret;
-		for ( var i = 0, len = sortList.length; i < len; i++ ) {
-			col = sortList[i][0];
-			fn = ( sortList[i][1] ) ? sortTextDesc : sortText;
-			ret = fn.call( this, array1[col], array2[col] );
-			if ( ret !== 0 ) {
-				return ret;
-			}
-		}
-		return ret;
-	}
-
-	// Merge sort algorithm
-	// Based on http://en.literateprograms.org/Merge_sort_(JavaScript)
-	function mergeSortHelper( array, begin, beginRight, end, sortList ) {
-		for ( ; begin < beginRight; ++begin ) {
-			if ( checkSorting( array[begin], array[beginRight], sortList ) ) {
-				var v = array[begin];
-				array[begin] = array[beginRight];
-				var begin2 = beginRight;
-				while ( begin2 + 1 < end && checkSorting( v, array[begin2 + 1], sortList ) ) {
-					var tmp = array[begin2];
-					array[begin2] = array[begin2 + 1];
-					array[begin2 + 1] = tmp;
-					++begin2;
-				}
-				array[begin2] = v;
-			}
-		}
-	}
-
-	function mergeSort(array, begin, end, sortList) {
-		var size = end - begin;
-		if ( size < 2 ) {
-			return;
-		}
-
-		var beginRight = begin + Math.floor(size / 2);
-
-		mergeSort( array, begin, beginRight, sortList );
-		mergeSort( array, beginRight, end, sortList );
-		mergeSortHelper( array, begin, beginRight, end, sortList );
+		return ( (b < a) ? -1 : ((b > a) ? 1 : 0) );
 	}
 
 	function multisort( table, sortList, cache ) {
-		var i = sortList.length;
-		mergeSort( cache.normalized, 0, cache.normalized.length, sortList );
-
+		var sortFn = [];
+		var len = sortList.length;
+		for ( var i = 0; i < len; i++ ) {
+			sortFn[i] = ( sortList[i][1] ) ? sortTextDesc : sortText;
+		}
+		cache.normalized.sort( function ( array1, array2 ) {
+			var col, ret;
+			for ( var i = 0; i < len; i++ ) {
+				col = sortList[i][0];
+				ret = sortFn[i].call( this, array1[col], array2[col] );
+				if ( ret !== 0 ) {
+					return ret;
+				}
+			}
+			// Fall back to index number column to ensure stable sort
+			return sortText.call( this, array1[array1.length - 1], array2[array2.length - 1] );
+		} );
 		return cache;
 	}
 
@@ -413,16 +400,15 @@
 
 	function buildDateTable() {
 		var regex = [];
-		ts.monthNames = [
-			[],
-			[]
-		];
+		ts.monthNames = {};
 
 		for ( var i = 1; i < 13; i++ ) {
-			ts.monthNames[0][i] = mw.config.get( 'wgMonthNames' )[i].toLowerCase();
-			ts.monthNames[1][i] = mw.config.get( 'wgMonthNamesShort' )[i].toLowerCase().replace( '.', '' );
-			regex.push( $.escapeRE( ts.monthNames[0][i] ) );
-			regex.push( $.escapeRE( ts.monthNames[1][i] ) );
+			var name = mw.config.get( 'wgMonthNames' )[i].toLowerCase();
+			ts.monthNames[name] = i;
+			regex.push( $.escapeRE( name ) );
+			name = mw.config.get( 'wgMonthNamesShort' )[i].toLowerCase().replace( '.', '' );
+			ts.monthNames[name] = i;
+			regex.push( $.escapeRE( name ) );
 		}
 
 		// Build piped string
@@ -430,19 +416,19 @@
 
 		// Build RegEx
 		// Any date formated with . , ' - or /
-		ts.dateRegex[0] = new RegExp( /^\s*\d{1,2}[\,\.\-\/'\s]{1,2}\d{1,2}[\,\.\-\/'\s]{1,2}\d{2,4}\s*?/i);
+		ts.dateRegex[0] = new RegExp( /^\s*(\d{1,2})[\,\.\-\/'\s]{1,2}(\d{1,2})[\,\.\-\/'\s]{1,2}(\d{2,4})\s*?/i);
 
 		// Written Month name, dmy
-		ts.dateRegex[1] = new RegExp( '^\\s*\\d{1,2}[\\,\\.\\-\\/\'\\s]*(' + regex + ')' + '[\\,\\.\\-\\/\'\\s]*\\d{2,4}\\s*$', 'i' );
+		ts.dateRegex[1] = new RegExp( '^\\s*(\\d{1,2})[\\,\\.\\-\\/\'\\s]*(' + regex + ')' + '[\\,\\.\\-\\/\'\\s]*(\\d{2,4})\\s*$', 'i' );
 
 		// Written Month name, mdy
-		ts.dateRegex[2] = new RegExp( '^\\s*(' + regex + ')' + '[\\,\\.\\-\\/\'\\s]*\\d{1,2}[\\,\\.\\-\\/\'\\s]*\\d{2,4}\\s*$', 'i' );
+		ts.dateRegex[2] = new RegExp( '^\\s*(' + regex + ')' + '[\\,\\.\\-\\/\'\\s]*(\\d{1,2})[\\,\\.\\-\\/\'\\s]*(\\d{2,4})\\s*$', 'i' );
 
 	}
 
 	function explodeRowspans( $table ) {
 		// Split multi row cells into multiple cells with the same content
-		$table.find( '> tbody > tr > [rowspan]' ).each(function() {
+		$table.find( '> tbody > tr > [rowspan]' ).each(function () {
 			var rowSpan = this.rowSpan;
 			this.rowSpan = 1;
 			var cell = $( this );
@@ -487,8 +473,8 @@
 				new RegExp( /^\d{1,3}[\.]\d{1,3}[\.]\d{1,3}[\.]\d{1,3}$/)
 			],
 			currency: [
-				new RegExp( /^[£$€?.]/),
-				new RegExp( /[£$€]/g)
+				new RegExp( /(^[£$€¥]|[£$€¥]$)/),
+				new RegExp( /[£$€¥]/g)
 			],
 			url: [
 				new RegExp( /^(https?|ftp|file):\/\/$/),
@@ -504,6 +490,25 @@
 				new RegExp( /^(([0-2]?[0-9]:[0-5][0-9])|([0-1]?[0-9]:[0-5][0-9]\s(am|pm)))$/)
 			]
 		};
+	}
+
+	/**
+	 * Converts sort objects [ { Integer: String }, ... ] to the internally used nested array
+	 * structure [ [ Integer , Integer ], ... ]
+	 *
+	 * @param sortObjects {Array} List of sort objects.
+	 * @return {Array} List of internal sort definitions.
+	 */
+
+	function convertSortList( sortObjects ) {
+		var sortList = [];
+		$.each( sortObjects, function( i, sortObject ) {
+			$.each ( sortObject, function( columnIndex, order ) {
+				var orderIndex = ( order === 'desc' ) ? 1 : 0;
+				sortList.push( [columnIndex, orderIndex] );
+			} );
+		} );
+		return sortList;
 	}
 
 	/* Public scope */
@@ -529,19 +534,18 @@
 			},
 
 			dateRegex: [],
-			monthNames: [],
+			monthNames: {},
 
 			/**
 			 * @param $tables {jQuery}
 			 * @param settings {Object} (optional)
 			 */
-			construct: function( $tables, settings ) {
-				return $tables.each( function( i, table ) {
+			construct: function ( $tables, settings ) {
+				return $tables.each( function ( i, table ) {
 					// Declare and cache.
-					var	$document, $headers, cache, config, sortOrder,
+					var $document, $headers, cache, config, sortOrder,
 						$table = $( table ),
-						shiftDown = 0,
-						firstTime = true;
+						shiftDown = 0;
 
 					// Quit if no tbody
 					if ( !table.tBodies ) {
@@ -551,7 +555,7 @@
 						// No thead found. Look for rows with <th>s and
 						// move them into a <thead> tag or a <tfoot> tag
 						emulateTHeadAndFoot( $table );
-						
+
 						// Still no thead? Then quit
 						if ( !table.tHead ) {
 							return;
@@ -559,6 +563,7 @@
 					}
 					$table.addClass( "jquery-tablesorter" );
 
+					// FIXME config should probably not be stored in the plain table node
 					// New config object.
 					table.config = {};
 
@@ -566,7 +571,7 @@
 					config = $.extend( table.config, $.tablesorter.defaultOptions, settings );
 
 					// Save the settings where they read
-					$.data( table, 'tablesorter', config );
+					$.data( table, 'tablesorter', { config: config } );
 
 					// Get the CSS class names, could be done else where.
 					var sortCSS = [ config.cssDesc, config.cssAsc ];
@@ -584,37 +589,44 @@
 					// performance improvements in some browsers.
 					cacheRegexs();
 
+					// Legacy fix of .sortbottoms
+					// Wrap them inside inside a tfoot (because that's what they actually want to be) &
+					// and put the <tfoot> at the end of the <table>
+					var $sortbottoms = $table.find( '> tbody > tr.sortbottom' );
+					if ( $sortbottoms.length ) {
+						var $tfoot = $table.children( 'tfoot' );
+						if ( $tfoot.length ) {
+							$tfoot.eq(0).prepend( $sortbottoms );
+						} else {
+							$table.append( $( '<tfoot>' ).append( $sortbottoms ) );
+						}
+					}
+
+					explodeRowspans( $table );
+
+					// try to auto detect column type, and store in tables config
+					table.config.parsers = buildParserCache( table, $headers );
+
+					// initially build the cache for the tbody cells (to be able to sort initially)
+					cache = buildCache( table );
+
 					// Apply event handling to headers
 					// this is too big, perhaps break it out?
-					$headers.click( function( e ) {
-						if ( e.target.nodeName.toLowerCase() == 'a' ) {
+					$headers.filter( ':not(.unsortable)' ).click( function ( e ) {
+						if ( e.target.nodeName.toLowerCase() === 'a' ) {
 							// The user clicked on a link inside a table header
 							// Do nothing and let the default link click action continue
 							return true;
 						}
 
-						if ( firstTime ) {
-							firstTime = false;
+						// Build the cache for the tbody cells
+						// to share between calculations for this sort action.
+						// Re-calculated each time a sort action is performed due to possiblity
+						// that sort values change. Shouldn't be too expensive, but if it becomes
+						// too slow an event based system should be implemented somehow where
+						// cells get event .change() and bubbles up to the <table> here
+						cache = buildCache( table );
 
-							// Legacy fix of .sortbottoms
-							// Wrap them inside inside a tfoot (because that's what they actually want to be) &
-							// and put the <tfoot> at the end of the <table>
-							var $sortbottoms = $table.find( '> tbody > tr.sortbottom' );
-							if ( $sortbottoms.length ) {
-								var $tfoot = $table.children( 'tfoot' );
-								if ( $tfoot.length ) {
-									$tfoot.eq(0).prepend( $sortbottoms );
-								} else {
-									$table.append( $( '<tfoot>' ).append( $sortbottoms ) );
-								}
-							}
-
-							explodeRowspans( $table );
-							// try to auto detect column type, and store in tables config
-							table.config.parsers = buildParserCache( table, $headers );
-							// build the cache for the tbody cells
-							cache = buildCache( table );
-						}
 						var totalRows = ( $table[0].tBodies[0] && $table[0].tBodies[0].rows.length ) || 0;
 						if ( !table.sortDisabled && totalRows > 0 ) {
 
@@ -643,7 +655,7 @@
 									for ( var j = 0; j < config.sortList.length; j++ ) {
 										var s = config.sortList[j],
 											o = config.headerList[s[0]];
-										if ( s[0] == i ) {
+										if ( s[0] === i ) {
 											o.count = s[1];
 											o.count++;
 											s[1] = o.count % 2;
@@ -666,22 +678,56 @@
 						}
 
 					// Cancel selection
-					} ).mousedown( function() {
+					} ).mousedown( function () {
 						if ( config.cancelSelection ) {
-							this.onselectstart = function() {
+							this.onselectstart = function () {
 								return false;
 							};
 							return false;
 						}
 					} );
+
+					/**
+					 * Sorts the table. If no sorting is specified by passing a list of sort
+					 * objects, the table is sorted according to the initial sorting order.
+					 * Passing an empty array will reset sorting (basically just reset the headers
+					 * making the table appear unsorted).
+					 *
+					 * @param sortList {Array} (optional) List of sort objects.
+					 */
+					$table.data( 'tablesorter' ).sort = function( sortList ) {
+
+						if ( sortList === undefined ) {
+							sortList = config.sortList;
+						} else if ( sortList.length > 0 ) {
+							sortList = convertSortList( sortList );
+						}
+
+						// re-build the cache for the tbody cells
+						cache = buildCache( table );
+
+						// set css for headers
+						setHeadersCss( table, $headers, sortList, sortCSS, sortMsg );
+
+						// sort the table and append it to the dom
+						appendToTable( table, multisort( table, sortList, cache ) );
+					};
+
+					// sort initially
+					if ( config.sortList.length > 0 ) {
+						explodeRowspans( $table );
+						config.sortList = convertSortList( config.sortList );
+						$table.data( 'tablesorter' ).sort();
+					}
+
 				} );
 			},
 
-			addParser: function( parser ) {
-				var	l = parsers.length,
+			addParser: function ( parser ) {
+				var l = parsers.length,
 					a = true;
 				for ( var i = 0; i < l; i++ ) {
-					if ( parsers[i].id.toLowerCase() == parser.id.toLowerCase() ) {
+					if ( parsers[i].id.toLowerCase() === parser.id.toLowerCase() ) {
 						a = false;
 					}
 				}
@@ -690,9 +736,9 @@
 				}
 			},
 
-			formatDigit: function( s ) {
+			formatDigit: function ( s ) {
 				if ( ts.transformTable !== false ) {
-					var	out = '',
+					var out = '',
 						c;
 					for ( var p = 0; p < s.length; p++ ) {
 						c = s.charAt(p);
@@ -708,19 +754,19 @@
 				return ( isNaN(i)) ? 0 : i;
 			},
 
-			formatFloat: function( s ) {
+			formatFloat: function ( s ) {
 				var i = parseFloat(s);
 				return ( isNaN(i)) ? 0 : i;
 			},
 
-			formatInt: function( s ) {
+			formatInt: function ( s ) {
 				var i = parseInt( s, 10 );
 				return ( isNaN(i)) ? 0 : i;
 			},
 
-			clearTableBody: function( table ) {
+			clearTableBody: function ( table ) {
 				if ( $.browser.msie ) {
-					var empty = function( el ) {
+					var empty = function ( el ) {
 						while ( el.firstChild ) {
 							el.removeChild( el.firstChild );
 						}
@@ -736,21 +782,21 @@
 	ts = $.tablesorter;
 
 	// Register as jQuery prototype method
-	$.fn.tablesorter = function( settings ) {
+	$.fn.tablesorter = function ( settings ) {
 		return ts.construct( this, settings );
 	};
 
 	// Add default parsers
 	ts.addParser( {
 		id: 'text',
-		is: function( s ) {
+		is: function ( s ) {
 			return true;
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			s = $.trim( s.toLowerCase() );
 			if ( ts.collationRegex ) {
 				var tsc = ts.collationTable;
-				s = s.replace( ts.collationRegex, function( match ) {
+				s = s.replace( ts.collationRegex, function ( match ) {
 					var r = tsc[match] ? tsc[match] : tsc[match.toUpperCase()];
 					return r.toLowerCase();
 				} );
@@ -762,18 +808,18 @@
 
 	ts.addParser( {
 		id: 'IPAddress',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.IPAddress[0].test(s);
 		},
-		format: function( s ) {
-			var	a = s.split( '.' ),
+		format: function ( s ) {
+			var a = s.split( '.' ),
 				r = '',
 				l = a.length;
 			for ( var i = 0; i < l; i++ ) {
 				var item = a[i];
-				if ( item.length == 1 ) {
+				if ( item.length === 1 ) {
 					r += '00' + item;
-				} else if ( item.length == 2 ) {
+				} else if ( item.length === 2 ) {
 					r += '0' + item;
 				} else {
 					r += item;
@@ -786,10 +832,10 @@
 
 	ts.addParser( {
 		id: 'currency',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.currency[0].test(s);
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.tablesorter.formatDigit( s.replace( ts.rgx.currency[1], '' ) );
 		},
 		type: 'numeric'
@@ -797,10 +843,10 @@
 
 	ts.addParser( {
 		id: 'url',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.url[0].test(s);
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.trim( s.replace( ts.rgx.url[1], '' ) );
 		},
 		type: 'text'
@@ -808,10 +854,10 @@
 
 	ts.addParser( {
 		id: 'isoDate',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.isoDate[0].test(s);
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.tablesorter.formatFloat((s !== '') ? new Date(s.replace(
 			new RegExp( /-/g), '/')).getTime() : '0' );
 		},
@@ -820,10 +866,10 @@
 
 	ts.addParser( {
 		id: 'usLongDate',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.usLongDate[0].test(s);
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.tablesorter.formatFloat( new Date(s).getTime() );
 		},
 		type: 'numeric'
@@ -831,55 +877,47 @@
 
 	ts.addParser( {
 		id: 'date',
-		is: function( s ) {
+		is: function ( s ) {
 			return ( ts.dateRegex[0].test(s) || ts.dateRegex[1].test(s) || ts.dateRegex[2].test(s ));
 		},
-		format: function( s, table ) {
+		format: function ( s, table ) {
+			var match;
 			s = $.trim( s.toLowerCase() );
 
-			for ( var i = 1, j = 0; i < 13 && j < 2; i++ ) {
-				s = s.replace( ts.monthNames[j][i], i );
-				if ( i == 12 ) {
-					j++;
-					i = 0;
+			if ( ( match = s.match( ts.dateRegex[0] ) ) !== null ) {
+				if ( mw.config.get( 'wgDefaultDateFormat' ) === 'mdy' || mw.config.get( 'wgContentLanguage' ) === 'en' ) {
+					s = [ match[3], match[1], match[2] ];
+				} else if ( mw.config.get( 'wgDefaultDateFormat' ) === 'dmy' ) {
+					s = [ match[3], match[2], match[1] ];
 				}
+			} else if ( ( match = s.match( ts.dateRegex[1] ) ) !== null ) {
+				s = [ match[3], '' + ts.monthNames[match[2]], match[1] ];
+			} else if ( ( match = s.match( ts.dateRegex[2] ) ) !== null ) {
+				s = [ match[3], '' + ts.monthNames[match[1]], match[2] ];
+			} else {
+				// Should never get here
+				return '99999999';
 			}
-
-			s = s.replace( /[\-\.\,' ]/g, '/' );
-
-			// Replace double slashes
-			s = s.replace( /\/\//g, '/' );
-			s = s.replace( /\/\//g, '/' );
-			s = s.split( '/' );
 
 			// Pad Month and Day
-			if ( s[0] && s[0].length == 1 ) {
-				s[0] = '0' + s[0];
-			}
-			if ( s[1] && s[1].length == 1 ) {
+			if ( s[1].length === 1 ) {
 				s[1] = '0' + s[1];
 			}
-			var y;
+			if ( s[2].length === 1 ) {
+				s[2] = '0' + s[2];
+			}
 
-			if ( !s[2] ) {
-				// Fix yearless dates
-				s[2] = 2000;
-			} else if ( ( y = parseInt( s[2], 10) ) < 100 ) {
+			var y;
+			if ( ( y = parseInt( s[0], 10) ) < 100 ) {
 				// Guestimate years without centuries
 				if ( y < 30 ) {
-					s[2] = 2000 + y;
+					s[0] = 2000 + y;
 				} else {
-					s[2] = 1900 + y;
+					s[0] = 1900 + y;
 				}
 			}
-			// Resort array depending on preferences
-			if ( mw.config.get( 'wgDefaultDateFormat' ) == 'mdy' || mw.config.get( 'wgContentLanguage' ) == 'en' ) {
-				s.push( s.shift() );
-				s.push( s.shift() );
-			} else if ( mw.config.get( 'wgDefaultDateFormat' ) == 'dmy' ) {
-				var d = s.shift();
-				s.push( s.shift() );
-				s.push(d);
+			while ( s[0].length < 4 ) {
+				s[0] = '0' + s[0];
 			}
 			return parseInt( s.join( '' ), 10 );
 		},
@@ -888,10 +926,10 @@
 
 	ts.addParser( {
 		id: 'time',
-		is: function( s ) {
+		is: function ( s ) {
 			return ts.rgx.time[0].test(s);
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.tablesorter.formatFloat( new Date( '2000/01/01 ' + s ).getTime() );
 		},
 		type: 'numeric'
@@ -899,13 +937,13 @@
 
 	ts.addParser( {
 		id: 'number',
-		is: function( s, table ) {
+		is: function ( s, table ) {
 			return $.tablesorter.numberRegex.test( $.trim( s ));
 		},
-		format: function( s ) {
+		format: function ( s ) {
 			return $.tablesorter.formatDigit(s);
 		},
 		type: 'numeric'
 	} );
 
-} )( jQuery );
+}( jQuery, mediaWiki ) );

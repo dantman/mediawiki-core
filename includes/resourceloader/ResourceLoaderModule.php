@@ -1,5 +1,7 @@
 <?php
 /**
+ * Abstraction for resource loader modules.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -170,7 +172,9 @@ abstract class ResourceLoaderModule {
 	 * Get all CSS for this module for a given skin.
 	 *
 	 * @param $context ResourceLoaderContext: Context object
-	 * @return Array: List of CSS strings keyed by media type
+	 * @return Array: List of CSS strings or array of CSS strings keyed by media type.
+	 *  like array( 'screen' => '.foo { width: 0 }' );
+	 *  or array( 'screen' => array( '.foo { width: 0 }' ) );
 	 */
 	public function getStyles( ResourceLoaderContext $context ) {
 		// Stub, override expected
@@ -235,13 +239,24 @@ abstract class ResourceLoaderModule {
 
 	/**
 	 * Where on the HTML page should this module's JS be loaded?
-	 * 'top': in the <head>
-	 * 'bottom': at the bottom of the <body>
+	 *  - 'top': in the "<head>"
+	 *  - 'bottom': at the bottom of the "<body>"
 	 *
 	 * @return string
 	 */
 	public function getPosition() {
 		return 'bottom';
+	}
+
+	/**
+	 * Whether this module's JS expects to work without the client-side ResourceLoader module.
+	 * Returning true from this function will prevent mw.loader.state() call from being
+	 * appended to the bottom of the script.
+	 *
+	 * @return bool
+	 */
+	public function isRaw() {
+		return false;
 	}
 
 	/**
@@ -319,8 +334,9 @@ abstract class ResourceLoaderModule {
 	 */
 	public function getMsgBlobMtime( $lang ) {
 		if ( !isset( $this->msgBlobMtime[$lang] ) ) {
-			if ( !count( $this->getMessages() ) )
+			if ( !count( $this->getMessages() ) ) {
 				return 0;
+			}
 
 			$dbr = wfGetDB( DB_SLAVE );
 			$msgBlobMtime = $dbr->selectField( 'msg_resource', 'mr_timestamp', array(
@@ -360,7 +376,7 @@ abstract class ResourceLoaderModule {
 	 * NOTE: The mtime of the module's messages is NOT automatically included.
 	 * If you want this to happen, you'll need to call getMsgBlobMtime()
 	 * yourself and take its result into consideration.
-	 * 
+	 *
 	 * @param $context ResourceLoaderContext: Context object
 	 * @return Integer: UNIX timestamp
 	 */
@@ -411,10 +427,10 @@ abstract class ResourceLoaderModule {
 			try {
 				$parser->parse( $contents, $fileName, 1 );
 				$result = $contents;
-			} catch (Exception $e) {
+			} catch ( Exception $e ) {
 				// We'll save this to cache to avoid having to validate broken JS over and over...
 				$err = $e->getMessage();
-				$result = "throw new Error(" . Xml::encodeJsVar("JavaScript parse error: $err") . ");";
+				$result = "throw new Error(" . Xml::encodeJsVar( "JavaScript parse error: $err" ) . ");";
 			}
 
 			$cache->set( $key, $result );
@@ -434,4 +450,13 @@ abstract class ResourceLoaderModule {
 		return self::$jsParser;
 	}
 
+	/**
+	 * Get target(s) for the module, eg ['desktop'] or ['desktop', 'mobile']
+	 * Default implementation hardcodes 'desktop'.
+	 *
+	 * @return array of strings
+	 */
+	public function getTargets() {
+		return array( 'desktop' );
+	}
 }

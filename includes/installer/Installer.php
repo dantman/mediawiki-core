@@ -2,6 +2,21 @@
 /**
  * Base code for MediaWiki installer.
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
  * @ingroup Deployment
  */
@@ -24,7 +39,7 @@
 abstract class Installer {
 
 	// This is the absolute minimum PHP version we can support
-	const MINIMUM_PHP_VERSION = '5.2.3';
+	const MINIMUM_PHP_VERSION = '5.3.2';
 
 	/**
 	 * @var array
@@ -293,7 +308,7 @@ abstract class Installer {
 
 	/**
 	 * UI interface for displaying a short message
-	 * The parameters are like parameters to wfMsg().
+	 * The parameters are like parameters to wfMessage().
 	 * The messages will be in wikitext format, which will be converted to an
 	 * output format such as HTML or text before being sent to the user.
 	 * @param $msg
@@ -324,7 +339,7 @@ abstract class Installer {
 
 		// Load the installer's i18n file.
 		$wgExtensionMessagesFiles['MediawikiInstaller'] =
-			dirname( __FILE__ ) . '/Installer.i18n.php';
+			__DIR__ . '/Installer.i18n.php';
 
 		// Having a user with id = 0 safeguards us from DB access via User::loadOptions().
 		$wgUser = User::newFromId( 0 );
@@ -543,7 +558,7 @@ abstract class Installer {
 	 * write your messages. This appears to work well enough. Basic formatting and
 	 * external links work just fine.
 	 *
-	 * But in case a translator decides to throw in a #ifexist or internal link or
+	 * But in case a translator decides to throw in a "#ifexist" or internal link or
 	 * whatever, this function is guarded to catch the attempted DB access and to present
 	 * some fallback text.
 	 *
@@ -630,7 +645,7 @@ abstract class Installer {
 		$allNames = array();
 
 		foreach ( self::getDBTypes() as $name ) {
-			$allNames[] = wfMsg( "config-type-$name" );
+			$allNames[] = wfMessage( "config-type-$name" )->text();
 		}
 
 		// cache initially available databases to make sure that everything will be displayed correctly
@@ -773,6 +788,10 @@ abstract class Installer {
 
 	/**
 	 * Environment check for the PCRE module.
+	 *
+	 * @note If this check were to fail, the parser would
+	 *   probably throw an exception before the result
+	 *   of this check is shown to the user.
 	 * @return bool
 	 */
 	protected function envCheckPCRE() {
@@ -782,8 +801,13 @@ abstract class Installer {
 		}
 		wfSuppressWarnings();
 		$regexd = preg_replace( '/[\x{0430}-\x{04FF}]/iu', '', '-АБВГД-' );
+		// Need to check for \p support too, as PCRE can be compiled
+		// with utf8 support, but not unicode property support.
+		// check that \p{Zs} (space separators) matches
+		// U+3000 (Ideographic space)
+		$regexprop = preg_replace( '/\p{Zs}/u', '', "-\xE3\x80\x80-" );
 		wfRestoreWarnings();
-		if ( $regexd != '--' ) {
+		if ( $regexd != '--' || $regexprop != '--' ) {
 			$this->showError( 'config-pcre-no-utf8' );
 			return false;
 		}
@@ -911,7 +935,7 @@ abstract class Installer {
 	 */
 	protected function envCheckPath() {
 		global $IP;
-		$IP = dirname( dirname( dirname( __FILE__ ) ) );
+		$IP = dirname( dirname( __DIR__ ) );
 		$this->setVar( 'IP', $IP );
 
 		$this->showMessage( 'config-using-uri', $this->getVar( 'wgServer' ), $this->getVar( 'wgScriptPath' ) );
@@ -1570,12 +1594,16 @@ abstract class Installer {
 		$status = Status::newGood();
 		try {
 			$page = WikiPage::factory( Title::newMainPage() );
-			$page->doEdit( wfMsgForContent( 'mainpagetext' ) . "\n\n" .
-							wfMsgForContent( 'mainpagedocfooter' ),
-							'',
-							EDIT_NEW,
-							false,
-							User::newFromName( 'MediaWiki default' ) );
+			$content = new WikitextContent (
+				wfMessage( 'mainpagetext' )->inContentLanguage()->text() . "\n\n" .
+				wfMessage( 'mainpagedocfooter' )->inContentLanguage()->text()
+			);
+
+			$page->doEditContent( $content,
+					'',
+					EDIT_NEW,
+					false,
+					User::newFromName( 'MediaWiki default' ) );
 		} catch (MWException $e) {
 			//using raw, because $wgShowExceptionDetails can not be set yet
 			$status->fatal( 'config-install-mainpage-failed', $e->getMessage() );
@@ -1592,6 +1620,8 @@ abstract class Installer {
 
 		// Don't access the database
 		$GLOBALS['wgUseDatabaseMessages'] = false;
+		// Don't cache langconv tables
+		$GLOBALS['wgLanguageConverterCacheType'] = CACHE_NONE;
 		// Debug-friendly
 		$GLOBALS['wgShowExceptionDetails'] = true;
 		// Don't break forms

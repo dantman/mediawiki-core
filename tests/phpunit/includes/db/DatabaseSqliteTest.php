@@ -24,7 +24,9 @@ class MockDatabaseSqlite extends DatabaseSqliteStandalone {
 class DatabaseSqliteTest extends MediaWikiTestCase {
 	var $db;
 
-	public function setUp() {
+	protected function setUp() {
+		parent::setUp();
+
 		if ( !Sqlite::isPresent() ) {
 			$this->markTestSkipped( 'No SQLite support detected' );
 		}
@@ -248,6 +250,16 @@ class DatabaseSqliteTest extends MediaWikiTestCase {
 			}
 			$db->close();
 		}
+	}
+
+	public function testInsertIdType() {
+		$db = new DatabaseSqliteStandalone( ':memory:' );
+		$this->assertInstanceOf( 'ResultWrapper',
+			$db->query( 'CREATE TABLE a ( a_1 )', __METHOD__ ), "Database creationg" );
+		$this->assertTrue( $db->insert( 'a', array( 'a_1' => 10 ), __METHOD__ ),
+			"Insertion worked" );
+		$this->assertEquals( "integer", gettype( $db->insertId() ), "Actual typecheck" );
+		$this->assertTrue( $db->close(), "closing database" );
 	}
 
 	private function prepareDB( $version ) {

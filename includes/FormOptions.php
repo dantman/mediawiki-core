@@ -1,16 +1,35 @@
 <?php
 /**
  * Helper class to keep track of options when mixing links and form elements.
- * @todo This badly need some examples and tests :-)
  *
  * Copyright © 2008, Niklas Laxstiröm
- *
  * Copyright © 2011, Antoine Musso
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
  * @author Niklas Laxström
- * @author Antoine Musso 
+ * @author Antoine Musso
  */
 
+/**
+ * Helper class to keep track of options when mixing links and form elements.
+ *
+ * @todo This badly need some examples and tests :-)
+ */
 class FormOptions implements ArrayAccess {
 	/** @name Type constants
 	 * Used internally to map an option value to a WebRequest accessor
@@ -64,6 +83,7 @@ class FormOptions implements ArrayAccess {
 	 * which will be assumed as INT if the data is an integer.
 	 *
 	 * @param $data Mixed: value to guess type for
+	 * @throws MWException
 	 * @exception MWException Unsupported datatype
 	 * @return int Type constant
 	 */
@@ -86,6 +106,7 @@ class FormOptions implements ArrayAccess {
 	 *
 	 * @param $name String: option name
 	 * @param $strict Boolean: throw an exception when the option does not exist (default false)
+	 * @throws MWException
 	 * @return Boolean: true if option exist, false otherwise
 	 */
 	public function validateName( $name, $strict = false ) {
@@ -186,11 +207,12 @@ class FormOptions implements ArrayAccess {
 
 	/**
 	 * Validate and set an option integer value
-	 * The value will be altered to fit in the range. 
+	 * The value will be altered to fit in the range.
 	 *
 	 * @param $name String: option name
 	 * @param $min Int: minimum value
 	 * @param $max Int: maximum value
+	 * @throws MWException
 	 * @exception MWException Option is not of type int
 	 * @return null
 	 */

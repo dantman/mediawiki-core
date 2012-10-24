@@ -1,9 +1,28 @@
 <?php
 /**
  * Dynamically change configuration variables based on the test suite name and a cookie value.
+ *
  * For details on how to configure a wiki for a Selenium test, see:
  * http://www.mediawiki.org/wiki/SeleniumFramework#Test_Wiki_configuration
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
  */
+
 if ( !defined( 'MEDIAWIKI' ) ) {
 	die( 1 );
 }
@@ -19,7 +38,7 @@ $cookieName = $cookiePrefix . 'Selenium';
 // this is a fallback SQL file
 $testSqlFile = false;
 $testImageZip = false;
-	
+
 // if we find a request parameter containing the test name, set a cookie with the test name
 if ( isset( $_GET['setupTestSuite'] ) ) {
 	$setupTestSuiteName = $_GET['setupTestSuite'];
@@ -43,7 +62,7 @@ if ( isset( $_GET['setupTestSuite'] ) ) {
 			true
 		);
 	}
-	
+
 	$testIncludes = array(); // array containing all the includes needed for this test
 	$testGlobalConfigs = array(); // an array containg all the global configs needed for this test
 	$testResourceFiles = array(); // an array containing all the resource files needed for this test
@@ -53,11 +72,11 @@ if ( isset( $_GET['setupTestSuite'] ) ) {
 	if ( isset( $testResourceFiles['images'] ) ) {
 		$testImageZip = $testResourceFiles['images'];
 	}
-	
+
 	if ( isset( $testResourceFiles['db'] ) ) {
 		$testSqlFile = $testResourceFiles['db'];
 		$testResourceName = getTestResourceNameFromTestSuiteName( $setupTestSuiteName );
-	
+
 		switchToTestResources( $testResourceName, false ); // false means do not switch database yet
 		setupTestResources( $testResourceName, $testSqlFile, $testImageZip );
 	}
@@ -67,7 +86,7 @@ if ( isset( $_GET['setupTestSuite'] ) ) {
 if ( isset( $_GET['clearTestSuite'] ) ) {
 	$testSuiteName = getTestSuiteNameFromCookie( $cookieName );
 
-	$expire = time() - 600; 
+	$expire = time() - 600;
 	setcookie(
 		$cookieName,
 		'',
@@ -77,22 +96,22 @@ if ( isset( $_GET['clearTestSuite'] ) ) {
 		$wgCookieSecure,
 		true
 	);
-	
+
 	$testResourceName = getTestResourceNameFromTestSuiteName( $testSuiteName );
 	teardownTestResources( $testResourceName );
 }
 
 // if a cookie is found, run the appropriate callback to get the config params.
-if ( isset( $_COOKIE[$cookieName] ) ) {		
+if ( isset( $_COOKIE[$cookieName] ) ) {
 	$testSuiteName = getTestSuiteNameFromCookie( $cookieName );
 	if ( !isset( $wgSeleniumTestConfigs[$testSuiteName] ) ) {
 		return;
 	}
-	
+
 	$testIncludes = array(); // array containing all the includes needed for this test
 	$testGlobalConfigs = array(); // an array containg all the global configs needed for this test
 	$testResourceFiles = array(); // an array containing all the resource files needed for this test
-	$callback = $wgSeleniumTestConfigs[$testSuiteName]; 
+	$callback = $wgSeleniumTestConfigs[$testSuiteName];
 	call_user_func_array( $callback, array( &$testIncludes, &$testGlobalConfigs, &$testResourceFiles));
 
 	if ( isset( $testResourceFiles['db'] ) ) {
@@ -104,9 +123,8 @@ if ( isset( $_COOKIE[$cookieName] ) ) {
 		require_once( $file );
 	}
 	foreach ( $testGlobalConfigs as $key => $value ) {
-		if ( is_array( $value ) ) {		
+		if ( is_array( $value ) ) {
 			$GLOBALS[$key] = array_merge( $GLOBALS[$key], $value );
-			
 		} else {
 			$GLOBALS[$key] = $value;
 		}
@@ -147,7 +165,7 @@ function setupTestResources( $testResourceName, $testSqlFile, $testImageZip ) {
 	if ( $testResourceName == '' ) {
 		die( 'Cannot identify a test the resources should be installed for.' );
 	}
-	
+
 	// create tables
 	$dbw = wfGetDB( DB_MASTER );
 	$dbw->query( 'DROP DATABASE IF EXISTS ' . $testResourceName );

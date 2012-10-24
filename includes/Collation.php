@@ -1,4 +1,24 @@
 <?php
+/**
+ * Database row sorting.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ */
 
 abstract class Collation {
 	static $instance;
@@ -132,10 +152,10 @@ class IcuCollation extends Collation {
 	/**
 	 * Unified CJK blocks.
 	 *
-	 * The same definition of a CJK block must be used for both Collation and 
-	 * generateCollationData.php. These blocks are omitted from the first 
-	 * letter data, as an optimisation measure and because the default UCA table 
-	 * is pretty useless for sorting Chinese text anyway. Japanese and Korean 
+	 * The same definition of a CJK block must be used for both Collation and
+	 * generateCollationData.php. These blocks are omitted from the first
+	 * letter data, as an optimisation measure and because the default UCA table
+	 * is pretty useless for sorting Chinese text anyway. Japanese and Korean
 	 * blocks are not included here, because they are smaller and more useful.
 	 */
 	static $cjkBlocks = array(
@@ -160,7 +180,7 @@ class IcuCollation extends Collation {
 
 	function __construct( $locale ) {
 		if ( !extension_loaded( 'intl' ) ) {
-			throw new MWException( 'An ICU collation was requested, ' . 
+			throw new MWException( 'An ICU collation was requested, ' .
 				'but the intl extension is not available.' );
 		}
 		$this->locale = $locale;
@@ -198,8 +218,8 @@ class IcuCollation extends Collation {
 
 		// Check for CJK
 		$firstChar = mb_substr( $string, 0, 1, 'UTF-8' );
-		if ( ord( $firstChar ) > 0x7f 
-			&& self::isCjk( utf8ToCodepoint( $firstChar ) ) ) 
+		if ( ord( $firstChar ) > 0x7f
+			&& self::isCjk( utf8ToCodepoint( $firstChar ) ) )
 		{
 			return $firstChar;
 		}
@@ -245,9 +265,9 @@ class IcuCollation extends Collation {
 		// Sort the letters.
 		//
 		// It's impossible to have the precompiled data file properly sorted,
-		// because the sort order changes depending on ICU version. If the 
-		// array is not properly sorted, the binary search will return random 
-		// results. 
+		// because the sort order changes depending on ICU version. If the
+		// array is not properly sorted, the binary search will return random
+		// results.
 		//
 		// We also take this opportunity to remove primary collisions.
 		$letterMap = array();
@@ -300,7 +320,7 @@ class IcuCollation extends Collation {
 	}
 
 	/**
-	 * Do a binary search, and return the index of the largest item that sorts 
+	 * Do a binary search, and return the index of the largest item that sorts
 	 * less than or equal to the target value.
 	 *
 	 * @param $valueCallback array A function to call to get the value with
@@ -315,8 +335,12 @@ class IcuCollation extends Collation {
 	 *     sorts before all items.
 	 */
 	function findLowerBound( $valueCallback, $valueCount, $comparisonCallback, $target ) {
+		if ( $valueCount === 0 ) {
+			return false;
+		}
+
 		$min = 0;
-		$max = $valueCount - 1;
+		$max = $valueCount;
 		do {
 			$mid = $min + ( ( $max - $min ) >> 1 );
 			$item = call_user_func( $valueCallback, $mid );
@@ -331,12 +355,15 @@ class IcuCollation extends Collation {
 			}
 		} while ( $min < $max - 1 );
 
-		if ( $min == 0 && $max == 0 && $comparison > 0 ) {
-			// Before the first item
-			return false;
-		} else {
-			return $min;
+		if ( $min == 0 ) {
+			$item = call_user_func( $valueCallback, $min );
+			$comparison = call_user_func( $comparisonCallback, $target, $item );
+			if ( $comparison < 0 ) {
+				// Before the first item
+				return false;
+			}
 		}
+		return $min;
 	}
 
 	static function isCjk( $codepoint ) {

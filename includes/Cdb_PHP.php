@@ -6,6 +6,21 @@
  *    * Exception thrown if sizes or offsets are between 2GB and 4GB
  *    * Some variables renamed
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
  */
 
@@ -111,6 +126,7 @@ class CdbReader_PHP extends CdbReader {
 
 	/**
 	 * @param $fileName string
+	 * @throws MWException
 	 */
 	function __construct( $fileName ) {
 		$this->fileName = $fileName;
@@ -164,7 +180,7 @@ class CdbReader_PHP extends CdbReader {
 	protected function read( $length, $pos ) {
 		if ( fseek( $this->handle, $pos ) == -1 ) {
 			// This can easily happen if the internal pointers are incorrect
-			throw new MWException( 
+			throw new MWException(
 				'Seek failed, file "' . $this->fileName . '" may be corrupted.' );
 		}
 
@@ -183,12 +199,13 @@ class CdbReader_PHP extends CdbReader {
 	/**
 	 * Unpack an unsigned integer and throw an exception if it needs more than 31 bits
 	 * @param $s
-	 * @return
+	 * @throws MWException
+	 * @return mixed
 	 */
 	protected function unpack31( $s ) {
 		$data = unpack( 'V', $s );
 		if ( $data[1] > 0x7fffffff ) {
-			throw new MWException( 
+			throw new MWException(
 				'Error in CDB file "' . $this->fileName . '", integer too big.' );
 		}
 		return $data[1];
@@ -460,7 +477,7 @@ class CdbWriter_PHP extends CdbWriter {
 
 	/**
 	 * Clean up the temp file and throw an exception
-	 * 
+	 *
 	 * @param $msg string
 	 * @throws MWException
 	 */

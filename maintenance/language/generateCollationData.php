@@ -1,29 +1,48 @@
 <?php
 /**
- * @ingroup Maintenance
+ * Maintenance script to generate first letter data files for Collation.php.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
+ * @ingroup MaintenanceLanguage
  */
 
-require_once( dirname( __FILE__ ) .'/../Maintenance.php' );
+require_once( __DIR__ .'/../Maintenance.php' );
 
 /**
  * Generate first letter data files for Collation.php
+ *
+ * @ingroup MaintenanceLanguage
  */
 class GenerateCollationData extends Maintenance {
 	/** The directory with source data files in it */
-	var $dataDir;
+	public $dataDir;
 
 	/** The primary weights, indexed by codepoint */
-	var $weights;
+	public $weights;
 
 	/**
 	 * A hashtable keyed by codepoint, where presence indicates that a character
 	 * has a decomposition mapping. This makes it non-preferred for group header
 	 * selection.
 	 */
-	var $mappedChars;
+	public $mappedChars;
 
-	var $debugOutFile;
+	public $debugOutFile;
 
 	/**
 	 * Important tertiary weights from UTS #10 section 7.2
@@ -266,12 +285,12 @@ class GenerateCollationData extends Maintenance {
 }
 
 class UcdXmlReader {
-	var $fileName;
-	var $callback;
-	var $groupAttrs;
-	var $xml;
-	var $blocks = array();
-	var $currentBlock;
+	public $fileName;
+	public $callback;
+	public $groupAttrs;
+	public $xml;
+	public $blocks = array();
+	public $currentBlock;
 
 	function __construct( $fileName ) {
 		$this->fileName = $fileName;

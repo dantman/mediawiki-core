@@ -1,22 +1,32 @@
 <?php
 
 class GlobalTest extends MediaWikiTestCase {
-	function setUp() {
-		global $wgReadOnlyFile, $wgUrlProtocols;
-		$this->originals['wgReadOnlyFile'] = $wgReadOnlyFile;
-		$this->originals['wgUrlProtocols'] = $wgUrlProtocols;
-		$wgReadOnlyFile = tempnam( wfTempDir(), "mwtest_readonly" );
-		$wgUrlProtocols[] = 'file://';
-		unlink( $wgReadOnlyFile );
+	protected function setUp() {
+		parent::setUp();
+
+		$readOnlyFile = tempnam( wfTempDir(), "mwtest_readonly" );
+		unlink( $readOnlyFile );
+
+		$this->setMwGlobals( array(
+			'wgReadOnlyFile' => $readOnlyFile,
+			'wgUrlProtocols' => array(
+				'http://',
+				'https://',
+				'mailto:',
+				'//',
+				'file://', # Non-default
+			),
+		) );
 	}
 
-	function tearDown() {
-		global $wgReadOnlyFile, $wgUrlProtocols;
+	protected function tearDown() {
+		global $wgReadOnlyFile;
+
 		if ( file_exists( $wgReadOnlyFile ) ) {
 			unlink( $wgReadOnlyFile );
 		}
-		$wgReadOnlyFile = $this->originals['wgReadOnlyFile'];
-		$wgUrlProtocols = $this->originals['wgUrlProtocols'];
+
+		parent::tearDown();
 	}
 
 	/** @dataProvider provideForWfArrayDiff2 */
@@ -27,7 +37,7 @@ class GlobalTest extends MediaWikiTestCase {
 	}
 
 	// @todo Provide more tests
-	public function provideForWfArrayDiff2() {
+	public static function provideForWfArrayDiff2() {
 		// $a $b $expected
 		return array(
 			array(
@@ -53,6 +63,12 @@ class GlobalTest extends MediaWikiTestCase {
 		$this->assertEquals(
 			"%E7%89%B9%E5%88%A5:Contributions/Foobar",
 			wfUrlencode( "\xE7\x89\xB9\xE5\x88\xA5:Contributions/Foobar" ) );
+	}
+
+	function testExpandIRI() {
+		$this->assertEquals(
+			"https://te.wikibooks.org/wiki/ఉబుంటు_వాడుకరి_మార్గదర్శని",
+			wfExpandIRI( "https://te.wikibooks.org/wiki/%E0%B0%89%E0%B0%AC%E0%B1%81%E0%B0%82%E0%B0%9F%E0%B1%81_%E0%B0%B5%E0%B0%BE%E0%B0%A1%E0%B1%81%E0%B0%95%E0%B0%B0%E0%B0%BF_%E0%B0%AE%E0%B0%BE%E0%B0%B0%E0%B1%8D%E0%B0%97%E0%B0%A6%E0%B0%B0%E0%B1%8D%E0%B0%B6%E0%B0%A8%E0%B0%BF" ) );
 	}
 
 	function testReadOnlyEmpty() {
@@ -94,7 +110,7 @@ class GlobalTest extends MediaWikiTestCase {
 		$this->assertTrue( $end > $start, "Time is running backwards!" );
 	}
 
-	function dataArrayToCGI() {
+	public static function provideArrayToCGI() {
 		return array(
 			array( array(), '' ), // empty
 			array( array( 'foo' => 'bar' ), 'foo=bar' ), // string test
@@ -113,7 +129,7 @@ class GlobalTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @dataProvider dataArrayToCGI
+	 * @dataProvider provideArrayToCGI
 	 */
 	function testArrayToCGI( $array, $result ) {
 		$this->assertEquals( $result, wfArrayToCGI( $array ) );
@@ -128,7 +144,7 @@ class GlobalTest extends MediaWikiTestCase {
 				array( 'foo' => 'bar', 'baz' => 'overridden value' ) ) );
 	}
 
-	function dataCgiToArray() {
+	public static function provideCgiToArray() {
 		return array(
 			array( '', array() ), // empty
 			array( 'foo=bar', array( 'foo' => 'bar' ) ), // string
@@ -144,13 +160,13 @@ class GlobalTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @dataProvider dataCgiToArray
+	 * @dataProvider provideCgiToArray
 	 */
 	function testCgiToArray( $cgi, $result ) {
 		$this->assertEquals( $result, wfCgiToArray( $cgi ) );
 	}
 
-	function dataCgiRoundTrip() {
+	public static function provideCgiRoundTrip() {
 		return array(
 			array( '' ),
 			array( 'foo=bar' ),
@@ -164,7 +180,7 @@ class GlobalTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @dataProvider dataCgiRoundTrip
+	 * @dataProvider provideCgiRoundTrip
 	 */
 	function testCgiRoundTrip( $cgi ) {
 		$this->assertEquals( $cgi, wfArrayToCGI( wfCgiToArray( $cgi ) ) );
@@ -301,73 +317,45 @@ class GlobalTest extends MediaWikiTestCase {
 		}
 		
 	}
-	
-	
+
+
 	function testDebugFunctionTest() {
-	
-		global $wgDebugLogFile, $wgOut, $wgShowDebug, $wgDebugTimestamps;
-		
+
+		global $wgDebugLogFile, $wgDebugTimestamps;
+
 		$old_log_file = $wgDebugLogFile;
 		$wgDebugLogFile = tempnam( wfTempDir(), 'mw-' );
-		# @todo FIXME: This setting should be tested
+		# @todo FIXME: $wgDebugTimestamps should be tested
+		$old_wgDebugTimestamps = $wgDebugTimestamps;
 		$wgDebugTimestamps = false;
-		
-		
-		
+
+
 		wfDebug( "This is a normal string" );
 		$this->assertEquals( "This is a normal string", file_get_contents( $wgDebugLogFile ) );
 		unlink( $wgDebugLogFile );
-		
-		
+
 		wfDebug( "This is nöt an ASCII string" );
 		$this->assertEquals( "This is nöt an ASCII string", file_get_contents( $wgDebugLogFile ) );
 		unlink( $wgDebugLogFile );
-		
-		
+
+
 		wfDebug( "\00305This has böth UTF and control chars\003" );
 		$this->assertEquals( " 05This has böth UTF and control chars ", file_get_contents( $wgDebugLogFile ) );
 		unlink( $wgDebugLogFile );
-		
-		
-		
-		$old_wgOut = $wgOut;
-		$old_wgShowDebug = $wgShowDebug;
-		
-		$wgOut = new MockOutputPage;
-		
-		$wgShowDebug = true;
-		
-		$message = "\00305This has böth UTF and control chars\003";
-		
-		wfDebug( $message );
-		
-		if( $wgOut->message == "JAJA is a stupid error message. Anyway, here's your message: $message" ) {
-			$this->assertTrue( true, 'MockOutputPage called, set the proper message.' );
-		}
-		else {
-			$this->assertTrue( false, 'MockOutputPage was not called.' );
-		}
-		
-		$wgOut = $old_wgOut;
-		$wgShowDebug = $old_wgShowDebug;		
-		unlink( $wgDebugLogFile );
-		
-		
-		
+
 		wfDebugMem();
 		$this->assertGreaterThan( 5000, preg_replace( '/\D/', '', file_get_contents( $wgDebugLogFile ) ) );
 		unlink( $wgDebugLogFile );
-		
+
 		wfDebugMem(true);
 		$this->assertGreaterThan( 5000000, preg_replace( '/\D/', '', file_get_contents( $wgDebugLogFile ) ) );
 		unlink( $wgDebugLogFile );
-		
-		
-		
+
+
 		$wgDebugLogFile = $old_log_file;
-		
+		$wgDebugTimestamps = $old_wgDebugTimestamps;
 	}
-	
+
 	function testClientAcceptsGzipTest() {
 		
 		$settings = array(
@@ -457,7 +445,7 @@ class GlobalTest extends MediaWikiTestCase {
 	}
 
 	/** array( shorthand, expected integer ) */
-	public function provideShorthand() {
+	public static function provideShorthand() {
 		return array(
 			# Null, empty ... 
 			array(     '', -1),
@@ -614,15 +602,5 @@ class GlobalTest extends MediaWikiTestCase {
 		);
 	}
 	/* TODO: many more! */
-}
-
-
-class MockOutputPage {
-	
-	public $message;
-	
-	function debug( $message ) {
-		$this->message = "JAJA is a stupid error message. Anyway, here's your message: $message";
-	}
 }
 

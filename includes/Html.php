@@ -199,12 +199,8 @@ class Html {
 			return '';
 		}
 
-		# Remove HTML5-only attributes if we aren't doing HTML5, and disable
-		# form validation regardless (see bug 23769 and the more detailed
-		# comment in expandAttributes())
+		# Remove invalid input types
 		if ( $element == 'input' ) {
-			# Whitelist of types that don't cause validation.  All except
-			# 'search' are valid in XHTML1.
 			$validTypes = array(
 				'hidden',
 				'text',
@@ -216,16 +212,28 @@ class Html {
 				'image',
 				'reset',
 				'button',
-				'search',
 			);
 
+			# Allow more input types in HTML5 mode
+			if( $wgHtml5 ) {
+				$validTypes = array_merge( $validTypes, array(
+					'datetime',
+					'datetime-local',
+					'date',
+					'month',
+					'time',
+					'week',
+					'number',
+					'range',
+					'email',
+					'url',
+					'search',
+					'tel',
+					'color',
+				) );
+			}
 			if ( isset( $attribs['type'] )
 			&& !in_array( $attribs['type'], $validTypes ) ) {
-				unset( $attribs['type'] );
-			}
-
-			if ( isset( $attribs['type'] ) && $attribs['type'] == 'search'
-			&& !$wgHtml5 ) {
 				unset( $attribs['type'] );
 			}
 		}
@@ -294,6 +302,8 @@ class Html {
 			return $attribs;
 		}
 
+		# Whenever altering this array, please provide a covering test case
+		# in HtmlTest::provideElementsWithAttributesHavingDefaultValues
 		static $attribDefaults = array(
 			'area' => array( 'shape' => 'rect' ),
 			'button' => array(
@@ -314,7 +324,6 @@ class Html {
 			'input' => array(
 				'formaction' => 'GET',
 				'type' => 'text',
-				'value' => '',
 			),
 			'keygen' => array( 'keytype' => 'rsa' ),
 			'link' => array( 'media' => 'all' ),
@@ -333,7 +342,11 @@ class Html {
 
 		foreach ( $attribs as $attrib => $value ) {
 			$lcattrib = strtolower( $attrib );
-			$value = strval( $value );
+			if( is_array( $value ) ) {
+				$value = implode( ' ', $value );
+			} else {
+				$value = strval( $value );
+			}
 
 			# Simple checks using $attribDefaults
 			if ( isset( $attribDefaults[$element][$lcattrib] ) &&
@@ -350,6 +363,29 @@ class Html {
 		if ( $element === 'link' && isset( $attribs['type'] )
 		&& strval( $attribs['type'] ) == 'text/css' ) {
 			unset( $attribs['type'] );
+		}
+		if ( $element === 'input' ) {
+			$type = isset( $attribs['type'] ) ? $attribs['type'] : null;
+			$value = isset( $attribs['value'] ) ? $attribs['value'] : null;
+			if ( $type === 'checkbox' || $type === 'radio' ) {
+				// The default value for checkboxes and radio buttons is 'on'
+				// not ''. By stripping value="" we break radio boxes that
+				// actually wants empty values.
+				if ( $value === 'on' ) {
+					unset( $attribs['value'] );
+				}
+			} elseif ( $type === 'submit' ) {
+				// The default value for submit appears to be "Submit" but
+				// let's not bother stripping out localized text that matches
+				// that.
+			} else {
+				// The default value for nearly every other field type is ''
+				// The 'range' and 'color' types use different defaults but
+				// stripping a value="" does not hurt them.
+				if ( $value === '' ) {
+					unset( $attribs['value'] );
+				}
+			}
 		}
 		if ( $element === 'select' && isset( $attribs['size'] ) ) {
 			if ( in_array( 'multiple', $attribs )
@@ -452,7 +488,7 @@ class Html {
 				'class', // html4, html5
 				'accesskey', // as of html5, multiple space-separated values allowed
 				// html4-spec doesn't document rel= as space-separated
-				// but has been used like that and is now documented as such 
+				// but has been used like that and is now documented as such
 				// in the html5-spec.
 				'rel',
 			);
@@ -465,7 +501,6 @@ class Html {
 				// values. Implode/explode to get those into the main array as well.
 				if ( is_array( $value ) ) {
 					// If input wasn't an array, we can skip this step
-					
 					$newValue = array();
 					foreach ( $value as $k => $v ) {
 						if ( is_string( $v ) ) {
@@ -548,7 +583,6 @@ class Html {
 					# @todo FIXME: Is this really true?
 					$map['<'] = '&lt;';
 				}
-				
 				$ret .= " $key=$quote" . strtr( $value, $map ) . $quote;
 			}
 		}
@@ -556,9 +590,10 @@ class Html {
 	}
 
 	/**
-	 * Output a <script> tag with the given contents.  TODO: do some useful
-	 * escaping as well, like if $contents contains literal '</script>' or (for
-	 * XML) literal "]]>".
+	 * Output a "<script>" tag with the given contents.
+	 *
+	 * @todo do some useful escaping as well, like if $contents contains
+	 * literal "</script>" or (for XML) literal "]]>".
 	 *
 	 * @param $contents string JavaScript
 	 * @return string Raw HTML
@@ -580,8 +615,8 @@ class Html {
 	}
 
 	/**
-	 * Output a <script> tag linking to the given URL, e.g.,
-	 * <script src=foo.js></script>.
+	 * Output a "<script>" tag linking to the given URL, e.g.,
+	 * "<script src=foo.js></script>".
 	 *
 	 * @param $url string
 	 * @return string Raw HTML
@@ -599,9 +634,9 @@ class Html {
 	}
 
 	/**
-	 * Output a <style> tag with the given contents for the given media type
+	 * Output a "<style>" tag with the given contents for the given media type
 	 * (if any).  TODO: do some useful escaping as well, like if $contents
-	 * contains literal '</style>' (admittedly unlikely).
+	 * contains literal "</style>" (admittedly unlikely).
 	 *
 	 * @param $contents string CSS
 	 * @param $media mixed A media type string, like 'screen'
@@ -621,7 +656,7 @@ class Html {
 	}
 
 	/**
-	 * Output a <link rel=stylesheet> linking to the given URL for the given
+	 * Output a "<link rel=stylesheet>" linking to the given URL for the given
 	 * media type (if any).
 	 *
 	 * @param $url string
@@ -638,7 +673,7 @@ class Html {
 	}
 
 	/**
-	 * Convenience function to produce an <input> element.  This supports the
+	 * Convenience function to produce an "<input>" element.  This supports the
 	 * new HTML5 input types and attributes, and will silently strip them if
 	 * $wgHtml5 is false.
 	 *
@@ -671,11 +706,12 @@ class Html {
 	}
 
 	/**
-	 * Convenience function to produce an <input> element.  This supports leaving
-	 * out the cols= and rows= which Xml requires and are required by HTML4/XHTML
-	 * but not required by HTML5 and will silently set cols="" and rows="" if
-	 * $wgHtml5 is false and cols and rows are omitted (HTML4 validates present
-	 * but empty cols="" and rows="" as valid).
+	 * Convenience function to produce an "<input>" element.
+	 *
+	 * This supports leaving out the cols= and rows= which Xml requires and are
+	 * required by HTML4/XHTML but not required by HTML5 and will silently set
+	 * cols="" and rows="" if $wgHtml5 is false and cols and rows are omitted
+	 * (HTML4 validates present but empty cols="" and rows="" as valid).
 	 *
 	 * @param $name    string name attribute
 	 * @param $value   string value attribute
@@ -714,7 +750,7 @@ class Html {
 	 *
 	 * @param $params array:
 	 * - selected: [optional] Id of namespace which should be pre-selected
-	 * - all: [optional] Value of item for "all namespaces". If null or unset, no <option> is generated to select all namespaces
+	 * - all: [optional] Value of item for "all namespaces". If null or unset, no "<option>" is generated to select all namespaces
 	 * - label: text for label to add before the field
 	 * - exclude: [optional] Array of namespace ids to exclude
 	 * - disable: [optional] Array of namespace ids for which the option should be disabled in the selector
@@ -723,7 +759,7 @@ class Html {
 	 * - name: [optional], default: 'namespace'
 	 * @return string HTML code to select a namespace.
 	 */
-	public static function namespaceSelector( Array $params = array(), Array $selectAttribs = array() ) {
+	public static function namespaceSelector( array $params = array(), array $selectAttribs = array() ) {
 		global $wgContLang;
 
 		ksort( $selectAttribs );
@@ -755,7 +791,7 @@ class Html {
 		if ( isset( $params['all'] ) ) {
 			// add an option that would let the user select all namespaces.
 			// Value is provided by user, the name shown is localized for the user.
-			$options[$params['all']] = wfMsg( 'namespacesall' );
+			$options[$params['all']] = wfMessage( 'namespacesall' )->text();
 		}
 		// Add all namespaces as options (in the content langauge)
 		$options += $wgContLang->getFormattedNamespaces();
@@ -766,10 +802,12 @@ class Html {
 			if ( $nsId < NS_MAIN || in_array( $nsId, $params['exclude'] ) ) {
 				continue;
 			}
-			if ( $nsId === 0 ) {
+			if ( $nsId === NS_MAIN ) {
 				// For other namespaces use use the namespace prefix as label, but for
 				// main we don't use "" but the user message descripting it (e.g. "(Main)" or "(Article)")
-				$nsName = wfMsg( 'blanknamespace' );
+				$nsName = wfMessage( 'blanknamespace' )->text();
+			} elseif ( is_int( $nsId ) ) {
+				$nsName = $wgContLang->convertNamespace( $nsId );
 			}
 			$optionsHtml[] = Html::element(
 				'option', array(
@@ -778,6 +816,14 @@ class Html {
 					'selected' => $nsId === $params['selected'],
 				), $nsName
 			);
+		}
+
+		if ( !array_key_exists( 'id', $selectAttribs ) ) {
+			$selectAttribs['id'] = 'namespace';
+		}
+
+		if ( !array_key_exists( 'name', $selectAttribs ) ) {
+			$selectAttribs['name'] = 'namespace';
 		}
 
 		$ret = '';
@@ -865,7 +911,7 @@ class Html {
 	/**
 	 * Get HTML for an info box with an icon.
 	 *
-	 * @param $text String: wikitext, get this with wfMsgNoTrans()
+	 * @param $text String: wikitext, get this with wfMessage()->plain()
 	 * @param $icon String: icon name, file in skins/common/images
 	 * @param $alt String: alternate text for the icon
 	 * @param $class String: additional class name to add to the wrapper div
@@ -901,5 +947,23 @@ class Html {
 		$s .= Html::element( 'div', array( 'style' => 'clear: left;' ), ' ' );
 
 		return $s;
+	}
+
+	/**
+	 * Generate a srcset attribute value from an array mapping pixel densities
+	 * to URLs. Note that srcset supports width and height values as well, which
+	 * are not used here.
+	 *
+	 * @param array $urls
+	 * @return string
+	 */
+	static function srcSet( $urls ) {
+		$candidates = array();
+		foreach( $urls as $density => $url ) {
+			// Image candidate syntax per current whatwg live spec, 2012-09-23:
+			// http://www.whatwg.org/specs/web-apps/current-work/multipage/embedded-content-1.html#attr-img-srcset
+			$candidates[] = "{$url} {$density}x";
+		}
+		return implode( ", ", $candidates );
 	}
 }

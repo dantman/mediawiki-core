@@ -1,4 +1,24 @@
 <?php
+/**
+ * Configuration file editor.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ */
 
 /**
  * This is a state machine style parser with two internal stacks:
@@ -139,6 +159,7 @@ class ConfEditor {
 	 * insert
 	 *    Insert a new element at the start of the array.
 	 *
+	 * @throws MWException
 	 * @return string
 	 */
 	public function edit( $ops ) {
@@ -372,6 +393,8 @@ class ConfEditor {
 	 * Finds the source byte region which you would want to delete, if $pathName
 	 * was to be deleted. Includes the leading spaces and tabs, the trailing line
 	 * break, and any comments in between.
+	 * @param $pathName
+	 * @throws MWException
 	 * @return array
 	 */
 	function findDeletionRegion( $pathName ) {
@@ -430,6 +453,8 @@ class ConfEditor {
 	 * or semicolon.
 	 *
 	 * The end position is the past-the-end (end + 1) value as per convention.
+	 * @param $pathName
+	 * @throws MWException
 	 * @return array
 	 */
 	function findValueRegion( $pathName ) {

@@ -2,6 +2,21 @@
 /**
  * Preprocessor using PHP arrays
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
  * @ingroup Parser
  */
@@ -9,7 +24,7 @@
 /**
  * Differences from DOM schema:
  *   * attribute nodes are children
- *   * <h> nodes that aren't at the top are replaced with <possible-h>
+ *   * "<h>" nodes that aren't at the top are replaced with <possible-h>
  * @ingroup Parser
  */
 class Preprocessor_Hash implements Preprocessor {
@@ -32,7 +47,7 @@ class Preprocessor_Hash implements Preprocessor {
 	}
 
 	/**
-	 * @param $args
+	 * @param $args array
 	 * @return PPCustomFrame_Hash
 	 */
 	function newCustomFrame( $args ) {
@@ -76,7 +91,7 @@ class Preprocessor_Hash implements Preprocessor {
 	 *
 	 * @param $text String: the text to parse
 	 * @param $flags Integer: bitwise combination of:
-	 *          Parser::PTD_FOR_INCLUSION    Handle <noinclude>/<includeonly> as if the text is being
+	 *          Parser::PTD_FOR_INCLUSION    Handle "<noinclude>" and "<includeonly>" as if the text is being
 	 *                                     included. Default is to assume a direct page view.
 	 *
 	 * The generated DOM tree must depend only on the input text and the flags.
@@ -90,6 +105,7 @@ class Preprocessor_Hash implements Preprocessor {
 	 * cache may be implemented at a later date which takes further advantage of these strict
 	 * dependency requirements.
 	 *
+	 * @throws MWException
 	 * @return PPNode_Hash_Tree
 	 */
 	function preprocessToObj( $text, $flags = 0 ) {
@@ -162,6 +178,7 @@ class Preprocessor_Hash implements Preprocessor {
 
 		$searchBase = "[{<\n";
 		$revText = strrev( $text ); // For fast reverse searches
+		$lengthText = strlen( $text );
 
 		$i = 0;                     # Input pointer, starts out pointing to a pseudo-newline before the start
 		$accum =& $stack->getAccum();   # Current accumulator
@@ -216,7 +233,7 @@ class Preprocessor_Hash implements Preprocessor {
 					$accum->addLiteral( substr( $text, $i, $literalLength ) );
 					$i += $literalLength;
 				}
-				if ( $i >= strlen( $text ) ) {
+				if ( $i >= $lengthText ) {
 					if ( $currentClosing == "\n" ) {
 						// Do a past-the-end run to finish off the heading
 						$curChar = '';
@@ -280,10 +297,10 @@ class Preprocessor_Hash implements Preprocessor {
 						// Unclosed comment in input, runs to end
 						$inner = substr( $text, $i );
 						$accum->addNodeWithText( 'comment', $inner );
-						$i = strlen( $text );
+						$i = $lengthText;
 					} else {
 						// Search backwards for leading whitespace
-						$wsStart = $i ? ( $i - strspn( $revText, ' ', strlen( $text ) - $i ) ) : 0;
+						$wsStart = $i ? ( $i - strspn( $revText, ' ', $lengthText - $i ) ) : 0;
 						// Search forwards for trailing whitespace
 						// $wsEnd will be the position of the last space (or the '>' if there's none)
 						$wsEnd = $endPos + 2 + strspn( $text, ' ', $endPos + 3 );
@@ -368,7 +385,7 @@ class Preprocessor_Hash implements Preprocessor {
 					} else {
 						// No end tag -- let it run out to the end of the text.
 						$inner = substr( $text, $tagEndPos + 1 );
-						$i = strlen( $text );
+						$i = $lengthText;
 						$close = null;
 					}
 				}
@@ -432,16 +449,16 @@ class Preprocessor_Hash implements Preprocessor {
 				$part = $piece->getCurrentPart();
 				// Search back through the input to see if it has a proper close
 				// Do this using the reversed string since the other solutions (end anchor, etc.) are inefficient
-				$wsLength = strspn( $revText, " \t", strlen( $text ) - $i );
+				$wsLength = strspn( $revText, " \t", $lengthText - $i );
 				$searchStart = $i - $wsLength;
 				if ( isset( $part->commentEnd ) && $searchStart - 1 == $part->commentEnd ) {
 					// Comment found at line end
 					// Search for equals signs before the comment
 					$searchStart = $part->visualEnd;
-					$searchStart -= strspn( $revText, " \t", strlen( $text ) - $searchStart );
+					$searchStart -= strspn( $revText, " \t", $lengthText - $searchStart );
 				}
 				$count = $piece->count;
-				$equalsLength = strspn( $revText, '=', strlen( $text ) - $searchStart );
+				$equalsLength = strspn( $revText, '=', $lengthText - $searchStart );
 				if ( $equalsLength > 0 ) {
 					if ( $searchStart - $equalsLength == $piece->startPos ) {
 						// This is just a single string of equals signs on its own line
@@ -868,12 +885,14 @@ class PPFrame_Hash implements PPFrame {
 	 * Create a new child frame
 	 * $args is optionally a multi-root PPNode or array containing the template arguments
 	 *
-	 * @param $args PPNode_Hash_Array|array
+	 * @param array|bool|\PPNode_Hash_Array $args PPNode_Hash_Array|array
 	 * @param $title Title|bool
 	 *
+	 * @param int $indexOffset
+	 * @throws MWException
 	 * @return PPTemplateFrame_Hash
 	 */
-	function newChild( $args = false, $title = false ) {
+	function newChild( $args = false, $title = false, $indexOffset = 0 ) {
 		$namedArgs = array();
 		$numberedArgs = array();
 		if ( $title === false ) {
@@ -889,8 +908,9 @@ class PPFrame_Hash implements PPFrame {
 				$bits = $arg->splitArg();
 				if ( $bits['index'] !== '' ) {
 					// Numbered parameter
-					$numberedArgs[$bits['index']] = $bits['value'];
-					unset( $namedArgs[$bits['index']] );
+					$index = $bits['index'] - $indexOffset;
+					$numberedArgs[$index] = $bits['value'];
+					unset( $namedArgs[$index] );
 				} else {
 					// Named parameter
 					$name = trim( $this->expand( $bits['name'], PPFrame::STRIP_COMMENTS ) );
@@ -915,12 +935,23 @@ class PPFrame_Hash implements PPFrame {
 		}
 
 		if ( ++$this->parser->mPPNodeCount > $this->parser->mOptions->getMaxPPNodeCount() ) {
+			$this->parser->limitationWarn( 'node-count-exceeded',
+					$this->parser->mPPNodeCount,
+					$this->parser->mOptions->getMaxPPNodeCount()
+			);
 			return '<span class="error">Node-count limit exceeded</span>';
 		}
 		if ( $expansionDepth > $this->parser->mOptions->getMaxPPExpandDepth() ) {
+			$this->parser->limitationWarn( 'expansion-depth-exceeded',
+					$expansionDepth,
+					$this->parser->mOptions->getMaxPPExpandDepth()
+			);
 			return '<span class="error">Expansion depth limit exceeded</span>';
 		}
 		++$expansionDepth;
+		if ( $expansionDepth > $this->parser->mHighestExpansionDepth ) {
+			$this->parser->mHighestExpansionDepth = $expansionDepth;
+		}
 
 		$outStack = array( '', '' );
 		$iteratorStack = array( false, $root );
@@ -1470,6 +1501,10 @@ class PPCustomFrame_Hash extends PPFrame_Hash {
 		}
 		return $this->args[$index];
 	}
+
+	function getArguments() {
+		return $this->args;
+	}
 }
 
 /**
@@ -1543,7 +1578,7 @@ class PPNode_Hash_Tree implements PPNode {
 		$children = array();
 		for ( $child = $this->firstChild; $child; $child = $child->nextSibling ) {
 			if ( isset( $child->name ) && $child->name === $name ) {
-				$children[] = $name;
+				$children[] = $child;
 			}
 		}
 		return $children;
@@ -1572,11 +1607,12 @@ class PPNode_Hash_Tree implements PPNode {
 	}
 
 	/**
-	 * Split a <part> node into an associative array containing:
-	 *    name          PPNode name
-	 *    index         String index
-	 *    value         PPNode value
+	 * Split a "<part>" node into an associative array containing:
+	 *  - name          PPNode name
+	 *  - index         String index
+	 *  - value         PPNode value
 	 *
+	 * @throws MWException
 	 * @return array
 	 */
 	function splitArg() {
@@ -1607,9 +1643,10 @@ class PPNode_Hash_Tree implements PPNode {
 	}
 
 	/**
-	 * Split an <ext> node into an associative array containing name, attr, inner and close
+	 * Split an "<ext>" node into an associative array containing name, attr, inner and close
 	 * All values in the resulting array are PPNodes. Inner and close are optional.
 	 *
+	 * @throws MWException
 	 * @return array
 	 */
 	function splitExt() {
@@ -1635,8 +1672,9 @@ class PPNode_Hash_Tree implements PPNode {
 	}
 
 	/**
-	 * Split an <h> node
+	 * Split an "<h>" node
 	 *
+	 * @throws MWException
 	 * @return array
 	 */
 	function splitHeading() {
@@ -1661,8 +1699,9 @@ class PPNode_Hash_Tree implements PPNode {
 	}
 
 	/**
-	 * Split a <template> or <tplarg> node
+	 * Split a "<template>" or "<tplarg>" node
 	 *
+	 * @throws MWException
 	 * @return array
 	 */
 	function splitTemplate() {

@@ -6,11 +6,26 @@
  * since this file will not be executed during request startup for a compiled
  * MediaWiki.
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
  */
 
 /**
- * @defgroup Constants
+ * @defgroup Constants MediaWiki constants
  */
 
 /**
@@ -24,11 +39,13 @@ define( 'MW_SPECIALPAGE_VERSION', 2 );
 define( 'DBO_DEBUG', 1 );
 define( 'DBO_NOBUFFER', 2 );
 define( 'DBO_IGNORE', 4 );
-define( 'DBO_TRX', 8 );
+define( 'DBO_TRX', 8 ); // automatically start transaction on first query
 define( 'DBO_DEFAULT', 16 );
 define( 'DBO_PERSISTENT', 32 );
 define( 'DBO_SYSDBA', 64 ); //for oracle maintenance
 define( 'DBO_DDLMODE', 128 ); // when using schema files: mostly for Oracle
+define( 'DBO_SSL', 256 );
+define( 'DBO_COMPRESS', 512 );
 /**@}*/
 
 /**@{
@@ -129,8 +146,8 @@ define( 'AV_SCAN_FAILED', false );  #scan failed (scanner not found or error in 
  * Anti-lock flags
  * See DefaultSettings.php for a description
  */
-define( 'ALF_PRELOAD_LINKS', 1 );
-define( 'ALF_PRELOAD_EXISTENCE', 2 );
+define( 'ALF_PRELOAD_LINKS', 1 ); // unused
+define( 'ALF_PRELOAD_EXISTENCE', 2 ); // unused
 define( 'ALF_NO_LINK_LOCK', 4 );
 define( 'ALF_NO_BLOCK_LOCK', 8 );
 /**@}*/
@@ -154,11 +171,12 @@ define( 'MW_DATE_ISO', 'ISO 8601' );
 /**@{
  * RecentChange type identifiers
  */
-define( 'RC_EDIT', 0);
-define( 'RC_NEW', 1);
-define( 'RC_MOVE', 2); // obsolete
-define( 'RC_LOG', 3);
-define( 'RC_MOVE_OVER_REDIRECT', 4); // obsolete
+define( 'RC_EDIT', 0 );
+define( 'RC_NEW', 1 );
+define( 'RC_MOVE', 2 ); // obsolete
+define( 'RC_LOG', 3 );
+define( 'RC_MOVE_OVER_REDIRECT', 4 ); // obsolete
+define( 'RC_EXTERNAL', 5 );
 /**@}*/
 
 /**@{
@@ -188,7 +206,7 @@ define( 'LIST_SET_PREPARED', 8);  // List of (?, ?, ?) for DatabaseIbm_db2
 /**
  * Unicode and normalisation related
  */
-require_once dirname(__FILE__).'/normal/UtfNormalDefines.php';
+require_once __DIR__.'/normal/UtfNormalDefines.php';
 
 /**@{
  * Hook support constants
@@ -196,6 +214,7 @@ require_once dirname(__FILE__).'/normal/UtfNormalDefines.php';
 define( 'MW_SUPPORTS_EDITFILTERMERGED', 1 );
 define( 'MW_SUPPORTS_PARSERFIRSTCALLINIT', 1 );
 define( 'MW_SUPPORTS_LOCALISATIONCACHE', 1 );
+define( 'MW_SUPPORTS_CONTENTHANDLER', 1 );
 /**@}*/
 
 /** Support for $wgResourceModules */
@@ -244,7 +263,7 @@ define( 'APCOND_BLOCKED', 8 );
 define( 'APCOND_ISBOT', 9 );
 /**@}*/
 
-/**
+/** @{
  * Protocol constants for wfExpandUrl()
  */
 define( 'PROTO_HTTP', 'http://' );
@@ -253,3 +272,35 @@ define( 'PROTO_RELATIVE', '//' );
 define( 'PROTO_CURRENT', null );
 define( 'PROTO_CANONICAL', 1 );
 define( 'PROTO_INTERNAL', 2 );
+/**@}*/
+
+/**@{
+ * Content model ids, used by Content and ContentHandler.
+ * These IDs will be exposed in the API and XML dumps.
+ *
+ * Extensions that define their own content model IDs should take
+ * care to avoid conflicts. Using the extension name as a prefix is recommended,
+ * for example 'myextension-somecontent'.
+ */
+define( 'CONTENT_MODEL_WIKITEXT', 'wikitext' );
+define( 'CONTENT_MODEL_JAVASCRIPT', 'javascript' );
+define( 'CONTENT_MODEL_CSS', 'css' );
+define( 'CONTENT_MODEL_TEXT', 'text' );
+/**@}*/
+
+/**@{
+ * Content formats, used by Content and ContentHandler.
+ * These should be MIME types, and will be exposed in the API and XML dumps.
+ *
+ * Extensions are free to use the below formats, or define their own.
+ * It is recommended to stick with the conventions for MIME types.
+ */
+define( 'CONTENT_FORMAT_WIKITEXT', 'text/x-wiki' ); // wikitext
+define( 'CONTENT_FORMAT_JAVASCRIPT', 'text/javascript' ); // for js pages
+define( 'CONTENT_FORMAT_CSS', 'text/css' );  // for css pages
+define( 'CONTENT_FORMAT_TEXT', 'text/plain' ); // for future use, e.g. with some plain-html messages.
+define( 'CONTENT_FORMAT_HTML', 'text/html' ); // for future use, e.g. with some plain-html messages.
+define( 'CONTENT_FORMAT_SERIALIZED', 'application/vnd.php.serialized' ); // for future use with the api and for extensions
+define( 'CONTENT_FORMAT_JSON', 'application/json' ); // for future use with the api, and for use by extensions
+define( 'CONTENT_FORMAT_XML', 'application/xml' ); // for future use with the api, and for use by extensions
+/**@}*/

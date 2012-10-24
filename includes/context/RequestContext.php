@@ -148,6 +148,7 @@ class RequestContext implements IContextSource {
 	 * canUseWikiPage() to check whether this method can be called safely.
 	 *
 	 * @since 1.19
+	 * @throws MWException
 	 * @return WikiPage
 	 */
 	public function getWikiPage() {
@@ -237,6 +238,7 @@ class RequestContext implements IContextSource {
 	 * Set the Language object
 	 *
 	 * @param $l Mixed Language instance or language code
+	 * @throws MWException
 	 * @since 1.19
 	 */
 	public function setLanguage( $l ) {
@@ -305,7 +307,7 @@ class RequestContext implements IContextSource {
 	public function getSkin() {
 		if ( $this->skin === null ) {
 			wfProfileIn( __METHOD__ . '-createskin' );
-			
+
 			$skin = null;
 			wfRunHooks( 'RequestContextCreateSkin', array( $this, &$skin ) );
 
@@ -395,4 +397,3 @@ class RequestContext implements IContextSource {
 	}
 
 }
-

@@ -86,10 +86,13 @@ class ApiUpload extends ApiBase {
 			if( $this->mParams['filesize'] > $maxSize ) {
 				$this->dieUsage( 'The file you submitted was too large', 'file-too-large' );
 			}
+			if ( !$this->mUpload->getTitle() ) {
+				$this->dieUsage( 'Invalid file title supplied', 'internal-error' );
+			}
 		} else {
 			$this->verifyUpload();
 		}
- 
+
 		// Check if the user has the rights to modify or overwrite the requested title
 		// (This check is irrelevant if stashing is already requested, since the errors
 		//  can always be fixed by changing the title)
@@ -99,7 +102,7 @@ class ApiUpload extends ApiBase {
 				$this->dieRecoverableError( $permErrors[0], 'filename' );
 			}
 		}
-		// Get the result based on the current upload context: 
+		// Get the result based on the current upload context:
 		$result = $this->getContextResult();
 
 		if ( $result['result'] === 'Success' ) {
@@ -117,25 +120,26 @@ class ApiUpload extends ApiBase {
 	 */
 	private function getContextResult(){
 		$warnings = $this->getApiWarnings();
-		if ( $warnings ) {
+		if ( $warnings && !$this->mParams['ignorewarnings'] ) {
 			// Get warnings formated in result array format
 			return $this->getWarningsResult( $warnings );
 		} elseif ( $this->mParams['chunk'] ) {
 			// Add chunk, and get result
-			return $this->getChunkResult();
+			return $this->getChunkResult( $warnings );
 		} elseif ( $this->mParams['stash'] ) {
 			// Stash the file and get stash result
-			return $this->getStashResult();
+			return $this->getStashResult( $warnings );
 		}
 		// This is the most common case -- a normal upload with no warnings
 		// performUpload will return a formatted properly for the API with status
-		return $this->performUpload();
+		return $this->performUpload( $warnings );
 	}
 	/**
 	 * Get Stash Result, throws an expetion if the file could not be stashed.
+	 * @param $warnings array Array of Api upload warnings
 	 * @return array
 	 */
-	private function getStashResult(){
+	private function getStashResult( $warnings ){
 		$result = array ();
 		// Some uploads can request they be stashed, so as not to publish them immediately.
 		// In this case, a failure to stash ought to be fatal
@@ -143,6 +147,9 @@ class ApiUpload extends ApiBase {
 			$result['result'] = 'Success';
 			$result['filekey'] = $this->performStash();
 			$result['sessionkey'] = $result['filekey']; // backwards compatibility
+			if ( $warnings && count( $warnings ) > 0 ) {
+				$result['warnings'] = $warnings;
+			}
 		} catch ( MWException $e ) {
 			$this->dieUsage( $e->getMessage(), 'stashfailed' );
 		}
@@ -150,7 +157,7 @@ class ApiUpload extends ApiBase {
 	}
 	/**
 	 * Get Warnings Result
-	 * @param $warnings Array of Api upload warnings
+	 * @param $warnings array Array of Api upload warnings
 	 * @return array
 	 */
 	private function getWarningsResult( $warnings ){
@@ -169,12 +176,16 @@ class ApiUpload extends ApiBase {
 	}
 	/**
 	 * Get the result of a chunk upload.
+	 * @param $warnings array Array of Api upload warnings
 	 * @return array
 	 */
-	private function getChunkResult(){
+	private function getChunkResult( $warnings ){
 		$result = array();
-		
+
 		$result['result'] = 'Continue';
+		if ( $warnings && count( $warnings ) > 0 ) {
+			$result['warnings'] = $warnings;
+		}
 		$request = $this->getMain()->getRequest();
 		$chunkPath = $request->getFileTempname( 'chunk' );
 		$chunkSize = $request->getUpload( 'chunk' )->getSize();
@@ -185,23 +196,36 @@ class ApiUpload extends ApiBase {
 										$this->mParams['offset']);
 			if ( !$status->isGood() ) {
 				$this->dieUsage( $status->getWikiText(), 'stashfailed' );
-				return ;
+				return array();
 			}
-			$result['filekey'] = $this->mParams['filekey'];
-			// Check we added the last chunk: 
+
+			// Check we added the last chunk:
 			if( $this->mParams['offset'] + $chunkSize == $this->mParams['filesize'] ) {
 				$status = $this->mUpload->concatenateChunks();
+
 				if ( !$status->isGood() ) {
 					$this->dieUsage( $status->getWikiText(), 'stashfailed' );
-					return ;
+					return array();
 				}
+
+				// We have a new filekey for the fully concatenated file.
+				$result['filekey'] =  $this->mUpload->getLocalFile()->getFileKey();
+
+				// Remove chunk from stash. (Checks against user ownership of chunks.)
+				$this->mUpload->stash->removeFile( $this->mParams['filekey'] );
+
 				$result['result'] = 'Success';
+
+			} else {
+
+				// Continue passing through the filekey for adding further chunks.
+				$result['filekey'] = $this->mParams['filekey'];
 			}
 		}
 		$result['offset'] = $this->mParams['offset'] + $chunkSize;
 		return $result;
 	}
-	
+
 	/**
 	 * Stash the file and return the file key
 	 * Also re-raises exceptions with slightly more informative message strings (useful for API)
@@ -407,11 +431,21 @@ class ApiUpload extends ApiBase {
 				break;
 
 			case UploadBase::FILETYPE_BADTYPE:
-				$this->dieUsage( 'This type of file is banned', 'filetype-banned',
-						0, array(
-							'filetype' => $verification['finalExt'],
-							'allowed' => $wgFileExtensions
-						) );
+				$extradata = array(
+					'filetype' => $verification['finalExt'],
+					'allowed' => $wgFileExtensions
+				);
+				$this->getResult()->setIndexedTagName( $extradata['allowed'], 'ext' );
+
+				$msg = "Filetype not permitted: ";
+				if ( isset( $verification['blacklistedExt'] ) ) {
+					$msg .= join( ', ', $verification['blacklistedExt'] );
+					$extradata['blacklisted'] = array_values( $verification['blacklistedExt'] );
+					$this->getResult()->setIndexedTagName( $extradata['blacklisted'], 'ext' );
+				} else {
+					$msg .= $verification['finalExt'];
+				}
+				$this->dieUsage( $msg, 'filetype-banned', 0, $extradata );
 				break;
 			case UploadBase::VERIFICATION_ERROR:
 				$this->getResult()->setIndexedTagName( $verification['details'], 'detail' );
@@ -431,18 +465,15 @@ class ApiUpload extends ApiBase {
 
 
 	/**
-	 * Check warnings if ignorewarnings is not set.
+	 * Check warnings.
 	 * Returns a suitable array for inclusion into API results if there were warnings
 	 * Returns the empty array if there were no warnings
 	 *
 	 * @return array
 	 */
 	protected function getApiWarnings() {
-		$warnings = array();
+		$warnings = $this->mUpload->checkWarnings();
 
-		if ( !$this->mParams['ignorewarnings'] ) {
-			$warnings = $this->mUpload->checkWarnings();
-		}
 		return $this->transformWarnings( $warnings );
 	}
 
@@ -475,9 +506,10 @@ class ApiUpload extends ApiBase {
 	 * Perform the actual upload. Returns a suitable result array on success;
 	 * dies on failure.
 	 *
+	 * @param $warnings array Array of Api upload warnings
 	 * @return array
 	 */
-	protected function performUpload() {
+	protected function performUpload( $warnings ) {
 		// Use comment as initial page text by default
 		if ( is_null( $this->mParams['text'] ) ) {
 			$this->mParams['text'] = $this->mParams['comment'];
@@ -516,6 +548,9 @@ class ApiUpload extends ApiBase {
 
 		$result['result'] = 'Success';
 		$result['filename'] = $file->getName();
+		if ( $warnings && count( $warnings ) > 0 ) {
+			$result['warnings'] = $warnings;
+		}
 
 		return $result;
 	}
@@ -547,7 +582,10 @@ class ApiUpload extends ApiBase {
 				ApiBase::PARAM_DFLT => ''
 			),
 			'text' => null,
-			'token' => null,
+			'token' => array(
+				ApiBase::PARAM_TYPE => 'string',
+				ApiBase::PARAM_REQUIRED => true
+			),
 			'watch' => array(
 				ApiBase::PARAM_DFLT => false,
 				ApiBase::PARAM_DEPRECATED => true,
@@ -610,6 +648,41 @@ class ApiUpload extends ApiBase {
 
 	}
 
+	public function getResultProperties() {
+		return array(
+			'' => array(
+				'result' => array(
+					ApiBase::PROP_TYPE => array(
+						'Success',
+						'Warning',
+						'Continue',
+						'Queued'
+					),
+				),
+				'filekey' => array(
+					ApiBase::PROP_TYPE => 'string',
+					ApiBase::PROP_NULLABLE => true
+				),
+				'sessionkey' => array(
+					ApiBase::PROP_TYPE => 'string',
+					ApiBase::PROP_NULLABLE => true
+				),
+				'offset' => array(
+					ApiBase::PROP_TYPE => 'integer',
+					ApiBase::PROP_NULLABLE => true
+				),
+				'statuskey' => array(
+					ApiBase::PROP_TYPE => 'string',
+					ApiBase::PROP_NULLABLE => true
+				),
+				'filename' => array(
+					ApiBase::PROP_TYPE => 'string',
+					ApiBase::PROP_NULLABLE => true
+				)
+			)
+		);
+	}
+
 	public function getDescription() {
 		return array(
 			'Upload a file, or get the status of pending uploads. Several methods are available:',
@@ -639,6 +712,8 @@ class ApiUpload extends ApiBase {
 				array( 'code' => 'stashfailed', 'info' => 'Stashing temporary file failed' ),
 				array( 'code' => 'internal-error', 'info' => 'An internal error occurred' ),
 				array( 'code' => 'asynccopyuploaddisabled', 'info' => 'Asynchronous copy uploads disabled' ),
+				array( 'fileexists-forbidden' ),
+				array( 'fileexists-shared-forbidden' ),
 			)
 		);
 	}

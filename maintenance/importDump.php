@@ -1,6 +1,8 @@
 <?php
 /**
- * Copyright (C) 2005 Brion Vibber <brion@pobox.com>
+ * Import XML dump files into the current wiki.
+ *
+ * Copyright © 2005 Brion Vibber <brion@pobox.com>
  * http://www.mediawiki.org/
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,19 +24,21 @@
  * @ingroup Maintenance
  */
 
-require_once( dirname( __FILE__ ) . '/Maintenance.php' );
+require_once( __DIR__ . '/Maintenance.php' );
 
 /**
+ * Maintenance script that imports XML dump files into the current wiki.
+ *
  * @ingroup Maintenance
  */
 class BackupReader extends Maintenance {
-	var $reportingInterval = 100;
-	var $pageCount = 0;
-	var $revCount  = 0;
-	var $dryRun    = false;
-	var $uploads   = false;
-	var $imageBasePath = false;
-	var $nsFilter  = false;
+	public $reportingInterval = 100;
+	public $pageCount = 0;
+	public $revCount  = 0;
+	public $dryRun    = false;
+	public $uploads   = false;
+	public $imageBasePath = false;
+	public $nsFilter  = false;
 
 	function __construct() {
 		parent::__construct();
@@ -204,7 +208,7 @@ TEXT;
 
 	function showReport() {
 		if ( !$this->mQuiet ) {
-			$delta = wfTime() - $this->startTime;
+			$delta = microtime( true ) - $this->startTime;
 			if ( $delta ) {
 				$rate = sprintf( "%.2f", $this->pageCount / $delta );
 				$revrate = sprintf( "%.2f", $this->revCount / $delta );
@@ -250,7 +254,7 @@ TEXT;
 	}
 
 	function importFromHandle( $handle ) {
-		$this->startTime = wfTime();
+		$this->startTime = microtime( true );
 
 		$source = new ImportStreamSource( $handle );
 		$importer = new WikiImporter( $source );

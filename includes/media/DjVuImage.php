@@ -1,6 +1,6 @@
 <?php
 /**
- * DjVu image handler
+ * DjVu image handler.
  *
  * Copyright © 2006 Brion Vibber <brion@pobox.com>
  * http://www.mediawiki.org/
@@ -21,6 +21,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
+ * @ingroup Media
  */
 
 /**
@@ -227,7 +228,7 @@ class DjVuImage {
 	function retrieveMetaData() {
 		global $wgDjvuToXML, $wgDjvuDump, $wgDjvuTxt;
 		wfProfileIn( __METHOD__ );
-		
+
 		if ( isset( $wgDjvuDump ) ) {
 			# djvudump is faster as of version 3.5
 			# http://sourceforge.net/tracker/index.php?func=detail&aid=1704049&group_id=32953&atid=406583
@@ -246,7 +247,7 @@ class DjVuImage {
 			$xml = null;
 		}
 		# Text layer
-		if ( isset( $wgDjvuTxt ) ) { 
+		if ( isset( $wgDjvuTxt ) ) {
 			wfProfileIn( 'djvutxt' );
 			$cmd = wfEscapeShellArg( $wgDjvuTxt ) . ' --detail=page ' . wfEscapeShellArg( $this->mFilename ) ;
 			wfDebug( __METHOD__.": $cmd\n" );
@@ -259,7 +260,7 @@ class DjVuImage {
 				$reg = <<<EOR
 					/\(page\s[\d-]*\s[\d-]*\s[\d-]*\s[\d-]*\s*"
 					((?>    # Text to match is composed of atoms of either:
-					  \\\\. # - any escaped character 
+					  \\\\. # - any escaped character
 					  |     # - any character different from " and \
 					  [^"\\\\]+
 					)*?)

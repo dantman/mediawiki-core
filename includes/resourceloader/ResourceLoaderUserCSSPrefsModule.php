@@ -1,5 +1,7 @@
 <?php
 /**
+ * Resource loader module for user preference customizations.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -44,41 +46,18 @@ class ResourceLoaderUserCSSPrefsModule extends ResourceLoaderModule {
 		}
 
 		global $wgUser;
-
-		if ( $context->getUser() === $wgUser->getName() ) {
-			return $this->modifiedTime[$hash] = wfTimestamp( TS_UNIX, $wgUser->getTouched() );
-		} else {
-			return 1;
-		}
+		return $this->modifiedTime[$hash] = wfTimestamp( TS_UNIX, $wgUser->getTouched() );
 	}
 
-	/**
-	 * Fetch the context's user options, or if it doesn't match current user,
-	 * the default options.
-	 *
-	 * @param $context ResourceLoaderContext: Context object
-	 * @return Array: List of user options keyed by option name
-	 */
-	protected function contextUserOptions( ResourceLoaderContext $context ) {
-		global $wgUser;
-
-		// Verify identity -- this is a private module
-		if ( $context->getUser() === $wgUser->getName() ) {
-			return $wgUser->getOptions();
-		} else {
-			return User::getDefaultOptions();
-		}
-	}
-	
 	/**
 	 * @param $context ResourceLoaderContext
 	 * @return array
 	 */
 	public function getStyles( ResourceLoaderContext $context ) {
-		global $wgAllowUserCssPrefs;
+		global $wgAllowUserCssPrefs, $wgUser;
 
 		if ( $wgAllowUserCssPrefs ) {
-			$options = $this->contextUserOptions( $context );
+			$options = $wgUser->getOptions();
 
 			// Build CSS rules
 			$rules = array();

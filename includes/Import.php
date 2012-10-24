@@ -1,6 +1,6 @@
 <?php
 /**
- * MediaWiki page data importer
+ * MediaWiki page data importer.
  *
  * Copyright © 2003,2005 Brion Vibber <brion@pobox.com>
  * http://www.mediawiki.org/
@@ -33,7 +33,7 @@
 class WikiImporter {
 	private $reader = null;
 	private $mLogItemCallback, $mUploadCallback, $mRevisionCallback, $mPageCallback;
-	private $mSiteInfoCallback, $mTargetNamespace, $mPageOutCallback;
+	private $mSiteInfoCallback, $mTargetNamespace, $mTargetRootPage, $mPageOutCallback;
 	private $mNoticeCallback, $mDebug;
 	private $mImportUploads, $mImageBasePath;
 	private $mNoUpdates = false;
@@ -200,6 +200,39 @@ class WikiImporter {
 	}
 
 	/**
+	 * Set a target root page under which all pages are imported
+	 * @param $rootpage
+	 * @return status object
+	 */
+	public function setTargetRootPage( $rootpage ) {
+		$status = Status::newGood();
+		if( is_null( $rootpage ) ) {
+			// No rootpage
+			$this->mTargetRootPage = null;
+		} elseif( $rootpage !== '' ) {
+			$rootpage = rtrim( $rootpage, '/' ); //avoid double slashes
+			$title = Title::newFromText( $rootpage, !is_null( $this->mTargetNamespace ) ? $this->mTargetNamespace : NS_MAIN );
+			if( !$title || $title->isExternal() ) {
+				$status->fatal( 'import-rootpage-invalid' );
+			} else {
+				if( !MWNamespace::hasSubpages( $title->getNamespace() ) ) {
+					global $wgContLang;
+
+					$displayNSText = $title->getNamespace() == NS_MAIN
+						? wfMessage( 'blanknamespace' )->text()
+						: $wgContLang->getNsText( $title->getNamespace() );
+					$status->fatal( 'import-rootpage-nosubpage', $displayNSText );
+				} else {
+					// set namespace to 'all', so the namespace check in processTitle() can passed
+					$this->setTargetNamespace( null );
+					$this->mTargetRootPage = $title->getPrefixedDBKey();
+				}
+			}
+		}
+		return $status;
+	}
+
+	/**
 	 * @param $dir
 	 */
 	public function setImageBasePath( $dir ) {
@@ -275,7 +308,7 @@ class WikiImporter {
 	}
 
 	/**
-	 * Notify the callback function when a new <page> is reached.
+	 * Notify the callback function when a new "<page>" is reached.
 	 * @param $title Title
 	 */
 	function pageCallback( $title ) {
@@ -285,7 +318,7 @@ class WikiImporter {
 	}
 
 	/**
-	 * Notify the callback function when a </page> is closed.
+	 * Notify the callback function when a "</page>" is closed.
 	 * @param $title Title
 	 * @param $origTitle Title
 	 * @param $revCount Integer
@@ -396,6 +429,7 @@ class WikiImporter {
 
 	/**
 	 * Primary entry point
+	 * @throws MWException
 	 * @return bool
 	 */
 	public function doImport() {
@@ -578,7 +612,7 @@ class WikiImporter {
 		$this->debug( "Enter revision handler" );
 		$revisionInfo = array();
 
-		$normalFields = array( 'id', 'timestamp', 'comment', 'minor', 'text' );
+		$normalFields = array( 'id', 'timestamp', 'comment', 'minor', 'model', 'format', 'text' );
 
 		$skip = false;
 
@@ -622,6 +656,12 @@ class WikiImporter {
 		}
 		if ( isset( $revisionInfo['text'] ) ) {
 			$revision->setText( $revisionInfo['text'] );
+		}
+		if ( isset( $revisionInfo['model'] ) ) {
+			$revision->setModel( $revisionInfo['model'] );
+		}
+		if ( isset( $revisionInfo['format'] ) ) {
+			$revision->setFormat( $revisionInfo['format'] );
 		}
 		$revision->setTitle( $pageInfo['_title'] );
 
@@ -786,9 +826,14 @@ class WikiImporter {
 		$origTitle = Title::newFromText( $workTitle );
 
 		if( !is_null( $this->mTargetNamespace ) && !is_null( $origTitle ) ) {
-			$title = Title::makeTitle( $this->mTargetNamespace,
+			# makeTitleSafe, because $origTitle can have a interwiki (different setting of interwiki map)
+			# and than dbKey can begin with a lowercase char
+			$title = Title::makeTitleSafe( $this->mTargetNamespace,
 				$origTitle->getDBkey() );
 		} else {
+			if( !is_null( $this->mTargetRootPage ) ) {
+				$workTitle = $this->mTargetRootPage . '/' . $workTitle;
+			}
 			$title = Title::newFromText( $workTitle );
 		}
 
@@ -970,7 +1015,10 @@ class WikiRevision {
 	var $timestamp = "20010115000000";
 	var $user = 0;
 	var $user_text = "";
+	var $model = null;
+	var $format = null;
 	var $text = "";
+	var $content = null;
 	var $comment = "";
 	var $minor = false;
 	var $type = "";
@@ -1024,6 +1072,20 @@ class WikiRevision {
 	 */
 	function setUserIP( $ip ) {
 		$this->user_text = $ip;
+	}
+
+	/**
+	 * @param $model
+	 */
+	function setModel( $model ) {
+		$this->model = $model;
+	}
+
+	/**
+	 * @param $format
+	 */
+	function setFormat( $format ) {
+		$this->format = $format;
 	}
 
 	/**
@@ -1149,9 +1211,52 @@ class WikiRevision {
 
 	/**
 	 * @return string
+	 *
+	 * @deprecated Since 1.21, use getContent() instead.
 	 */
 	function getText() {
+		ContentHandler::deprecated( __METHOD__, '1.21' );
+
 		return $this->text;
+	}
+
+	/**
+	 * @return Content
+	 */
+	function getContent() {
+		if ( is_null( $this->content ) ) {
+			$this->content =
+				ContentHandler::makeContent(
+					$this->text,
+					$this->getTitle(),
+					$this->getModel(),
+					$this->getFormat()
+				);
+		}
+
+		return $this->content;
+	}
+
+	/**
+	 * @return String
+	 */
+	function getModel() {
+		if ( is_null( $this->model ) ) {
+			$this->model = $this->getTitle()->getContentModel();
+		}
+
+		return $this->model;
+	}
+
+	/**
+	 * @return String
+	 */
+	function getFormat() {
+		if ( is_null( $this->model ) ) {
+			$this->format = ContentHandler::getForTitle( $this->getTitle() )->getDefaultFormat();
+		}
+
+		return $this->format;
 	}
 
 	/**
@@ -1293,7 +1398,9 @@ class WikiRevision {
 		# Insert the row
 		$revision = new Revision( array(
 			'page'       => $pageId,
-			'text'       => $this->getText(),
+			'content_model'  => $this->getModel(),
+			'content_format' => $this->getFormat(),
+			'text'       => $this->getContent()->serialize( $this->getFormat() ), //XXX: just set 'content' => $this->getContent()?
 			'comment'    => $this->getComment(),
 			'user'       => $userId,
 			'user_text'  => $userText,

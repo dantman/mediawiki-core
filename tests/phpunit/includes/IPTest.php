@@ -1,6 +1,7 @@
 <?php
 /**
  * Tests for IP validity functions. Ported from /t/inc/IP.t by avar.
+ * @group IP
  */
 
 class IPTest extends MediaWikiTestCase {
@@ -404,7 +405,7 @@ class IPTest extends MediaWikiTestCase {
 	}
 
 	/** Provider for testIPIsInRange() */
-	function provideIPsAndRanges() {
+	public static function provideIPsAndRanges() {
 			# Format: (expected boolean, address, range, optional message)
 		return array(
 			# IPv4
@@ -442,7 +443,7 @@ class IPTest extends MediaWikiTestCase {
 	/**
 	 * Provider for IP::splitHostAndPort()
 	 */
-	function provideSplitHostAndPort() {
+	public static function provideSplitHostAndPort() {
 		return array(
 			array( false, '[', 'Unclosed square bracket' ),
 			array( false, '[::', 'Unclosed square bracket 2' ),
@@ -473,7 +474,7 @@ class IPTest extends MediaWikiTestCase {
 	/**
 	 * Provider for IP::combineHostAndPort()
 	 */
-	function provideCombineHostAndPort() {
+	public static function provideCombineHostAndPort() {
 		return array(
 			array( '[::1]', array( '::1', 2, 2 ), 'IPv6 default port' ),
 			array( '[::1]:2', array( '::1', 2, 3 ), 'IPv6 non-default port' ),
@@ -493,7 +494,7 @@ class IPTest extends MediaWikiTestCase {
 	/**
 	 * Provider for IP::testSanitizeRange()
 	 */
-	function provideIPCIDRs() {
+	public static function provideIPCIDRs() {
 		return array(
 			array( '35.56.31.252/16', '35.56.0.0/16', 'IPv4 range' ),
 			array( '135.16.21.252/24', '135.16.21.0/24', 'IPv4 range' ),
@@ -503,6 +504,39 @@ class IPTest extends MediaWikiTestCase {
 			array( '0:1:2:3:4:5:6:7/120', '0:1:2:3:4:5:6:0/120', 'IPv6 range' ),
 			array( '0:e1:2:3:4:5:e6:7/128', '0:E1:2:3:4:5:E6:7/128', 'IPv6 silly range' ),
 			array( '0:c1:A2:3:4:5:c6:7', '0:C1:A2:3:4:5:C6:7', 'IPv6 non range' ),
+		);
+	}
+
+	/**
+	 * Test for IP::prettifyIP()
+	 * @dataProvider provideIPsToPrettify
+	 */
+	function testPrettifyIP( $ip, $prettified ) {
+		$this->assertEquals( $prettified, IP::prettifyIP( $ip ), "Prettify of $ip" );
+	}
+
+	/**
+	 * Provider for IP::testPrettifyIP()
+	 */
+	public static function provideIPsToPrettify() {
+		return array(
+			array( '0:0:0:0:0:0:0:0', '::' ),
+			array( '0:0:0::0:0:0', '::' ),
+			array( '0:0:0:1:0:0:0:0', '0:0:0:1::' ),
+			array( '0:0::f', '::f' ),
+			array( '0::0:0:0:33:fef:b', '::33:fef:b' ),
+			array( '3f:535:0:0:0:0:e:fbb', '3f:535::e:fbb' ),
+			array( '0:0:fef:0:0:0:e:fbb', '0:0:fef::e:fbb' ),
+			array( 'abbc:2004::0:0:0:0', 'abbc:2004::' ),
+			array( 'cebc:2004:f:0:0:0:0:0', 'cebc:2004:f::' ),
+			array( '0:0:0:0:0:0:0:0/16', '::/16' ),
+			array( '0:0:0::0:0:0/64', '::/64' ),
+			array( '0:0::f/52', '::f/52' ),
+			array( '::0:0:33:fef:b/52', '::33:fef:b/52' ),
+			array( '3f:535:0:0:0:0:e:fbb/48', '3f:535::e:fbb/48' ),
+			array( '0:0:fef:0:0:0:e:fbb/96', '0:0:fef::e:fbb/96' ),
+			array( 'abbc:2004:0:0::0:0/40', 'abbc:2004::/40' ),
+			array( 'aebc:2004:f:0:0:0:0:0/80', 'aebc:2004:f::/80' ),
 		);
 	}
 }

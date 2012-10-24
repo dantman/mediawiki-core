@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group API
  * @group Database
  */
 class ApiTest extends ApiTestCase {
@@ -192,26 +193,6 @@ class ApiTest extends ApiTestCase {
 		$this->assertRegexp( '/_session=[^;]*; .*UserID=[0-9]*; .*UserName=' . $user->userName . '; .*Token=/', $serializedCookie );
 
 		return $cj;
-	}
-
-	/**
-	 * @todo Finish filling me out...what are we trying to test here?
-	 */
-	function testApiListPages() {
-		global $wgServer;
-		if ( !isset( $wgServer ) ) {
-			$this->markTestIncomplete( 'This test needs $wgServer to be set in LocalSettings.php' );
-		}
-
-		$ret = $this->doApiRequest( array(
-			'action' => 'query',
-			'prop'   => 'revisions',
-			'titles' => 'Main Page',
-			'rvprop' => 'timestamp|user|comment|content',
-		) );
-
-		$result = $ret[0]['query']['pages'];
-		$this->markTestIncomplete( "Somebody needs to finish loving me" );
 	}
 	
 	function testRunLogin() {

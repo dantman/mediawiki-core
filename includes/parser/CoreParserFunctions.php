@@ -2,7 +2,23 @@
 /**
  * Parser functions provided by MediaWiki core
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
  * @file
+ * @ingroup Parser
  */
 
 /**
@@ -55,6 +71,7 @@ class CoreParserFunctions {
 		$parser->setFunctionHook( 'padright',         array( __CLASS__, 'padright'         ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'anchorencode',     array( __CLASS__, 'anchorencode'     ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'special',          array( __CLASS__, 'special'          ) );
+		$parser->setFunctionHook( 'speciale',         array( __CLASS__, 'speciale'         ) );
 		$parser->setFunctionHook( 'defaultsort',      array( __CLASS__, 'defaultsort'      ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'filepath',         array( __CLASS__, 'filepath'         ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'pagesincategory',  array( __CLASS__, 'pagesincategory'  ), SFH_NO_HASH );
@@ -62,6 +79,7 @@ class CoreParserFunctions {
 		$parser->setFunctionHook( 'protectionlevel',  array( __CLASS__, 'protectionlevel'  ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'namespace',        array( __CLASS__, 'mwnamespace'      ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'namespacee',       array( __CLASS__, 'namespacee'       ), SFH_NO_HASH );
+		$parser->setFunctionHook( 'namespacenumber',  array( __CLASS__, 'namespacenumber'  ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'talkspace',        array( __CLASS__, 'talkspace'        ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'talkspacee',       array( __CLASS__, 'talkspacee'       ), SFH_NO_HASH );
 		$parser->setFunctionHook( 'subjectspace',     array( __CLASS__, 'subjectspace'     ), SFH_NO_HASH );
@@ -111,7 +129,8 @@ class CoreParserFunctions {
 	 * @return mixed|string
 	 */
 	static function formatDate( $parser, $date, $defaultPref = null ) {
-		$df = DateFormatter::getInstance();
+		$lang = $parser->getFunctionLang();
+		$df = DateFormatter::getInstance( $lang );
 
 		$date = trim( $date );
 
@@ -141,7 +160,11 @@ class CoreParserFunctions {
 	}
 
 	static function nse( $parser, $part1 = '' ) {
-		return wfUrlencode( str_replace( ' ', '_', self::ns( $parser, $part1 ) ) );
+		$ret = self::ns( $parser, $part1 );
+		if ( is_string( $ret ) ) {
+			$ret = wfUrlencode( str_replace( ' ', '_', $ret ) );
+		}
+		return $ret;
 	}
 
 	/**
@@ -302,9 +325,9 @@ class CoreParserFunctions {
 		// check parameter, or use the ParserOptions if in interface message
 		$user = User::newFromName( $username );
 		if ( $user ) {
-			$gender = $user->getOption( 'gender' );
+			$gender = GenderCache::singleton()->getGenderOf( $user, __METHOD__ );
 		} elseif ( $username === '' && $parser->getOptions()->getInterfaceMessage() ) {
-			$gender = $parser->getOptions()->getUser()->getOption( 'gender' );
+			$gender = GenderCache::singleton()->getGenderOf( $parser->getOptions()->getUser(), __METHOD__ );
 		}
 		$ret = $parser->getFunctionLang()->gender( $gender, $forms );
 		wfProfileOut( __METHOD__ );
@@ -319,6 +342,7 @@ class CoreParserFunctions {
 	static function plural( $parser, $text = '' ) {
 		$forms = array_slice( func_get_args(), 2 );
 		$text = $parser->getFunctionLang()->parseFormattedNumber( $text );
+		settype( $text, ctype_digit( $text ) ? 'int' : 'float' );
 		return $parser->getFunctionLang()->convertPlural( $text, $forms );
 	}
 
@@ -433,6 +457,12 @@ class CoreParserFunctions {
 			return '';
 		return wfUrlencode( $t->getNsText() );
 	}
+	static function namespacenumber( $parser, $title = null ) {
+		$t = Title::newFromText( $title );
+		if ( is_null( $t ) )
+			return '';
+		return $t->getNamespace();
+	}
 	static function talkspace( $parser, $title = null ) {
 		$t = Title::newFromText( $title );
 		if ( is_null( $t ) || !$t->canTalk() )
@@ -537,29 +567,64 @@ class CoreParserFunctions {
 	}
 
 	/**
-	 * Return the number of pages in the given category, or 0 if it's nonexis-
-	 * tent.  This is an expensive parser function and can't be called too many
-	 * times per page.
+	 * Return the number of pages, files or subcats in the given category,
+	 * or 0 if it's nonexistent. This is an expensive parser function and
+	 * can't be called too many times per page.
 	 * @return string
 	 */
-	static function pagesincategory( $parser, $name = '', $raw = null ) {
+	static function pagesincategory( $parser, $name = '', $arg1 = null, $arg2 = null ) {
+		static $magicWords = null;
+		if ( is_null( $magicWords ) ) {
+			$magicWords = new MagicWordArray( array(
+				'pagesincategory_all',
+				'pagesincategory_pages',
+				'pagesincategory_subcats',
+				'pagesincategory_files'
+			) );
+		}
 		static $cache = array();
-		$category = Category::newFromName( $name );
 
-		if( !is_object( $category ) ) {
-			$cache[$name] = 0;
+		// split the given option to its variable
+		if( self::isRaw( $arg1 ) ) {
+			//{{pagesincategory:|raw[|type]}}
+			$raw = $arg1;
+			$type = $magicWords->matchStartToEnd( $arg2 );
+		} else {
+			//{{pagesincategory:[|type[|raw]]}}
+			$type = $magicWords->matchStartToEnd( $arg1 );
+			$raw = $arg2;
+		}
+		if( !$type ) { //backward compatibility
+			$type = 'pagesincategory_all';
+		}
+
+		$title = Title::makeTitleSafe( NS_CATEGORY, $name );
+		if( !$title ) { # invalid title
 			return self::formatRaw( 0, $raw );
 		}
 
-		# Normalize name for cache
-		$name = $category->getName();
+		// Normalize name for cache
+		$name = $title->getDBkey();
 
-		$count = 0;
-		if( isset( $cache[$name] ) ) {
-			$count = $cache[$name];
-		} elseif( $parser->incrementExpensiveFunctionCount() ) {
-			$count = $cache[$name] = (int)$category->getPageCount();
+		if( !isset( $cache[$name] ) ) {
+			$category = Category::newFromTitle( $title );
+
+			$allCount = $subcatCount = $fileCount = $pagesCount = 0;
+			if( $parser->incrementExpensiveFunctionCount() ) {
+				// $allCount is the total number of cat members,
+				// not the count of how many members are normal pages.
+				$allCount = (int)$category->getPageCount();
+				$subcatCount = (int)$category->getSubcatCount();
+				$fileCount = (int)$category->getFileCount();
+				$pagesCount = $allCount - $subcatCount - $fileCount;
+			}
+			$cache[$name]['pagesincategory_all'] = $allCount;
+			$cache[$name]['pagesincategory_pages'] = $pagesCount;
+			$cache[$name]['pagesincategory_subcats'] = $subcatCount;
+			$cache[$name]['pagesincategory_files'] = $fileCount;
 		}
+
+		$count = $cache[$name][$type];
 		return self::formatRaw( $count, $raw );
 	}
 
@@ -596,7 +661,7 @@ class CoreParserFunctions {
 		if( isset( $cache[$page] ) ) {
 			$length = $cache[$page];
 		} elseif( $parser->incrementExpensiveFunctionCount() ) {
-			$rev = Revision::newFromTitle( $title );
+			$rev = Revision::newFromTitle( $title, false, Revision::READ_NORMAL );
 			$id = $rev ? $rev->getPage() : 0;
 			$length = $cache[$page] = $rev ? $rev->getSize() : 0;
 
@@ -681,10 +746,14 @@ class CoreParserFunctions {
 		list( $page, $subpage ) = SpecialPageFactory::resolveAlias( $text );
 		if ( $page ) {
 			$title = SpecialPage::getTitleFor( $page, $subpage );
-			return $title;
+			return $title->getPrefixedText();
 		} else {
-			return wfMsgForContent( 'nosuchspecialpage' );
+			return wfMessage( 'nosuchspecialpage' )->inContentLanguage()->text();
 		}
+	}
+
+	static function speciale( $parser, $text ) {
+		return wfUrlencode( str_replace( ' ', '_', self::special( $parser, $text ) ) );
 	}
 
 	/**
@@ -714,48 +783,39 @@ class CoreParserFunctions {
 			return '';
 		} else {
 			return( '<span class="error">' .
-				wfMsgForContent( 'duplicate-defaultsort',
-						 htmlspecialchars( $old ),
-						 htmlspecialchars( $text ) ) .
+				wfMessage( 'duplicate-defaultsort', $old, $text )->inContentLanguage()->escaped() .
 				'</span>' );
 		}
 	}
 
 	// Usage {{filepath|300}}, {{filepath|nowiki}}, {{filepath|nowiki|300}} or {{filepath|300|nowiki}}
+	// or {{filepath|300px}}, {{filepath|200x300px}}, {{filepath|nowiki|200x300px}}, {{filepath|200x300px|nowiki}}
 	public static function filepath( $parser, $name='', $argA='', $argB='' ) {
 		$file = wfFindFile( $name );
-		$size = '';
-		$argA_int = intval( $argA );
-		$argB_int = intval( $argB );
 
-		if ( $argB_int > 0 ) {
-			// {{filepath: | option | size }}
-			$size = $argB_int;
-			$option = $argA;
-
-		} elseif ( $argA_int > 0 ) {
-			// {{filepath: | size [|option] }}
-			$size = $argA_int;
-			$option = $argB;
-
+		if( $argA == 'nowiki' ) {
+			// {{filepath: | option [| size] }}
+			$isNowiki = true;
+			$parsedWidthParam = $parser->parseWidthParam( $argB );
 		} else {
-			// {{filepath: [|option] }}
-			$option = $argA;
+			// {{filepath: [| size [|option]] }}
+			$parsedWidthParam = $parser->parseWidthParam( $argA );
+			$isNowiki = ($argB == 'nowiki');
 		}
 
 		if ( $file ) {
 			$url = $file->getFullUrl();
 
 			// If a size is requested...
-			if ( is_integer( $size ) ) {
-				$mto = $file->transform( array( 'width' => $size ) );
+			if ( count( $parsedWidthParam ) ) {
+				$mto = $file->transform( $parsedWidthParam );
 				// ... and we can
 				if ( $mto && !$mto->isError() ) {
 					// ... change the URL to point to a thumbnail.
 					$url = wfExpandUrl( $mto->getUrl(), PROTO_RELATIVE );
 				}
 			}
-			if ( $option == 'nowiki' ) {
+			if ( $isNowiki ) {
 				return array( $url, 'nowiki' => true );
 			}
 			return $url;
@@ -783,7 +843,7 @@ class CoreParserFunctions {
 		$stripList = $parser->getStripList();
 		if ( !in_array( $tagName, $stripList ) ) {
 			return '<span class="error">' .
-				wfMsgForContent( 'unknown_extension_tag', $tagName ) .
+				wfMessage( 'unknown_extension_tag', $tagName )->inContentLanguage()->text() .
 				'</span>';
 		}
 

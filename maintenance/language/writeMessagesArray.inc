@@ -41,16 +41,28 @@ class MessageWriter {
 	 * @param $write Boolean: write to the messages file?
 	 * @param $listUnknown Boolean: list the unknown messages?
 	 * @param $removeUnknown Boolean: whether to remove unkown messages
+	 * @param $messagesFolder String: path to a folder to store the MediaWiki messages. Defaults to the current install.
 	 */
-	public static function writeMessagesToFile( $messages, $code, $write, $listUnknown, $removeUnknown ) {
+	public static function writeMessagesToFile( $messages, $code, $write, $listUnknown, $removeUnknown, $messagesFolder = false ) {
 		# Rewrite the messages array
 		$messages = self::writeMessagesArray( $messages, $code == 'en', false, $removeUnknown );
 		$messagesText = $messages[0];
 		$sortedMessages = $messages[1];
 
 		# Write to the file
-		$filename = Language::getMessagesFileName( $code );
-		$contents = file_get_contents( $filename );
+		if ( $messagesFolder )
+			$filename = Language::getFileName( "$messagesFolder/Messages", $code );
+		else
+			$filename = Language::getMessagesFileName( $code );
+
+		if ( file_exists( $filename ) )
+			$contents = file_get_contents( $filename );
+		else
+			$contents = '<?php
+$messages = array(
+);
+';
+
 		if( strpos( $contents, '$messages' ) !== false ) {
 			$contents = explode( '$messages', $contents );
 			if( $messagesText == '$messages' . $contents[1] ) {
@@ -93,7 +105,7 @@ class MessageWriter {
 	 */
 	public static function writeMessagesArray( $messages, $ignoredComments = false, $prefix = false, $removeUnknown = false ) {
 		# Load messages
-		$dir = $prefix ? $prefix : dirname( __FILE__ );
+		$dir = $prefix ? $prefix : __DIR__;
 
 		require( $dir . '/messages.inc' );
 		self::$messageStructure = $wgMessageStructure;

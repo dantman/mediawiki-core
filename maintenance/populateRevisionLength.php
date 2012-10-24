@@ -17,11 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  * http://www.gnu.org/copyleft/gpl.html
  *
+ * @file
  * @ingroup Maintenance
  */
 
-require_once( dirname( __FILE__ ) . '/Maintenance.php' );
+require_once( __DIR__ . '/Maintenance.php' );
 
+/**
+ * Maintenance script that populates the rev_len field for old revisions
+ * created before MW 1.10.
+ *
+ * @ingroup Maintenance
+ */
 class PopulateRevisionLength extends LoggedUpdateMaintenance {
 	public function __construct() {
 		parent::__construct();
@@ -67,16 +74,16 @@ class PopulateRevisionLength extends LoggedUpdateMaintenance {
 			# Go through and update rev_len from these rows.
 			foreach ( $res as $row ) {
 				$rev = new Revision( $row );
-				$text = $rev->getRawText();
-				if ( !is_string( $text ) ) {
+				$content = $rev->getContent();
+				if ( !$content ) {
 					# This should not happen, but sometimes does (bug 20757)
-					$this->output( "Text of revision {$row->rev_id} unavailable!\n" );
+					$this->output( "Content of revision {$row->rev_id} unavailable!\n" );
 					$missing++;
 				}
 				else {
 					# Update the row...
 					$db->update( 'revision',
-							 array( 'rev_len' => strlen( $text ) ),
+							 array( 'rev_len' => $content->getSize() ),
 							 array( 'rev_id' => $row->rev_id ),
 							 __METHOD__ );
 					$count++;

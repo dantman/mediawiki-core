@@ -1,6 +1,21 @@
 <?php
 /**
- * Html form for account creation
+ * Html form for account creation.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
  * @ingroup Templates
@@ -25,7 +40,7 @@ class UsercreateTemplate extends QuickTemplate {
 			'helptext' => $helptext,
 		);
 	}
-	
+
 	function execute() {
 		if( $this->data['message'] ) {
 ?>
@@ -154,9 +169,10 @@ class UsercreateTemplate extends QuickTemplate {
 			<td></td>
 			<td class="mw-input">
 				<?php
-				global $wgCookieExpiration, $wgLang;
+				global $wgCookieExpiration;
+				$expirationDays = ceil( $wgCookieExpiration / ( 3600 * 24 ) );
 				echo Xml::checkLabel(
-					wfMsgExt( 'remembermypassword', 'parsemag', $wgLang->formatNum( ceil( $wgCookieExpiration / ( 3600 * 24 ) ) ) ),
+					wfMessage( 'remembermypassword' )->numParams( $expirationDays )->text(),
 					'wpRemember',
 					'wpRemember',
 					$this->data['remember'],
@@ -171,9 +187,9 @@ class UsercreateTemplate extends QuickTemplate {
 		if ( isset( $this->data['extraInput'] ) && is_array( $this->data['extraInput'] ) ) {
 			foreach ( $this->data['extraInput'] as $inputItem ) { ?>
 		<tr>
-			<?php 
+			<?php
 				if ( !empty( $inputItem['msg'] ) && $inputItem['type'] != 'checkbox' ) {
-					?><td class="mw-label"><label for="<?php 
+					?><td class="mw-label"><label for="<?php
 					echo htmlspecialchars( $inputItem['name'] ); ?>"><?php
 					$this->msgWiki( $inputItem['msg'] ) ?></label><?php
 				} else {
@@ -184,17 +200,17 @@ class UsercreateTemplate extends QuickTemplate {
 				<input type="<?php echo htmlspecialchars( $inputItem['type'] ) ?>" name="<?php
 				echo htmlspecialchars( $inputItem['name'] ); ?>"
 					tabindex="<?php echo $tabIndex++; ?>"
-					value="<?php 
+					value="<?php
 				if ( $inputItem['type'] != 'checkbox' ) {
 					echo htmlspecialchars( $inputItem['value'] );
 				} else {
 					echo '1';
-				}					
+				}
 					?>" id="<?php echo htmlspecialchars( $inputItem['name'] ); ?>"
-					<?php 
+					<?php
 				if ( $inputItem['type'] == 'checkbox' && !empty( $inputItem['value'] ) )
-					echo 'checked="checked"'; 
-					?> /> <?php 
+					echo 'checked="checked"';
+					?> /> <?php
 					if ( $inputItem['type'] == 'checkbox' && !empty( $inputItem['msg'] ) ) {
 						?>
 				<label for="<?php echo htmlspecialchars( $inputItem['name'] ); ?>"><?php
@@ -208,8 +224,7 @@ class UsercreateTemplate extends QuickTemplate {
 				<?php } ?>
 			</td>
 		</tr>
-<?php				
-				
+<?php
 			}
 		}
 ?>

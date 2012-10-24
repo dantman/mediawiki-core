@@ -1,9 +1,6 @@
 <?php
 /**
- * Backend functions for suppressing and unsuppressing all references to a given user,
- * used when blocking with HideUser enabled.  This was spun out of SpecialBlockip.php
- * in 1.18; at some point it needs to be rewritten to either use RevisionDelete abstraction,
- * or at least schema abstraction.
+ * Backend functions for suppressing and unsuppressing all references to a given user.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +20,15 @@
  * @file
  * @ingroup RevisionDelete
  */
+
+/**
+ * Backend functions for suppressing and unsuppressing all references to a given user,
+ * used when blocking with HideUser enabled.  This was spun out of SpecialBlockip.php
+ * in 1.18; at some point it needs to be rewritten to either use RevisionDelete abstraction,
+ * or at least schema abstraction.
+ *
+ * @ingroup RevisionDelete
+ */
 class RevisionDeleteUser {
 
 	/**
@@ -34,10 +40,10 @@ class RevisionDeleteUser {
 	 * @return bool
 	 */
 	private static function setUsernameBitfields( $name, $userId, $op, $dbw ) {
-		if( $op !== '|' && $op !== '&' ){
+		if ( !$userId || ( $op !== '|' && $op !== '&' ) ) {
 			return false; // sanity check
 		}
-		if( !$dbw instanceof DatabaseBase ){
+		if ( !$dbw instanceof DatabaseBase ) {
 			$dbw = wfGetDB( DB_MASTER );
 		}
 

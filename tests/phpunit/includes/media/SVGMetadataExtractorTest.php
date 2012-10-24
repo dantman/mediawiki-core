@@ -2,19 +2,20 @@
 
 class SVGMetadataExtractorTest extends MediaWikiTestCase {
 
-	function setUp() {
+	protected function setUp() {
+		parent::setUp();
 		AutoLoader::loadClass( 'SVGMetadataExtractorTest' );
 	}
 
 	/**
-	 * @dataProvider providerSvgFiles
+	 * @dataProvider provideSvgFiles
 	 */
 	function testGetMetadata( $infile, $expected ) {
 		$this->assertMetadata( $infile, $expected );
 	}
 	
 	/**
-	 * @dataProvider providerSvgFilesWithXMLMetadata
+	 * @dataProvider provideSvgFilesWithXMLMetadata
 	 */
 	function testGetXMLMetadata( $infile, $expected ) {
 		$r = new XMLReader();
@@ -38,28 +39,34 @@ class SVGMetadataExtractorTest extends MediaWikiTestCase {
 		}
 	}
 
-	function providerSvgFiles() {
-		$base = dirname( __FILE__ ) . '/../../data/media';
+	public static function provideSvgFiles() {
+		$base = __DIR__ . '/../../data/media';
 		return array(
 			array(
 				"$base/Wikimedia-logo.svg",
 				array(
 					'width' => 1024,
-					'height' => 1024
+					'height' => 1024,
+					'originalWidth' => '1024',
+					'originalHeight' => '1024',
 				)
 			),
 			array(
 				"$base/QA_icon.svg",
 				array(
 					'width' => 60,
-					'height' => 60
+					'height' => 60,
+					'originalWidth' => '60',
+					'originalHeight' => '60',
 				)
 			),
 			array(
 				"$base/Gtk-media-play-ltr.svg",
 				array(
 					'width' => 60,
-					'height' => 60
+					'height' => 60,
+					'originalWidth' => '60.0000000',
+					'originalHeight' => '60.0000000',
 				)
 			),
 			array(
@@ -67,14 +74,16 @@ class SVGMetadataExtractorTest extends MediaWikiTestCase {
 				// This file triggered bug 31719, needs entity expansion in the xmlns checks
 				array(
 					'width' => 385,
-					'height' => 385
+					'height' => 385,
+					'originalWidth' => '385',
+					'originalHeight' => '385.0004883',
 				)
 			)
 		);
 	}
 
-	function providerSvgFilesWithXMLMetadata() {
-		$base = dirname( __FILE__ ) . '/../../data/media';
+	public static function provideSvgFilesWithXMLMetadata() {
+		$base = __DIR__ . '/../../data/media';
 		$metadata = 
     '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
       <ns4:Work xmlns:ns4="http://creativecommons.org/ns#" rdf:about="">
@@ -89,7 +98,9 @@ class SVGMetadataExtractorTest extends MediaWikiTestCase {
 				array(
 					'height' => 593,
 					'metadata' => $metadata,
-					'width' => 959
+					'width' => 959,
+					'originalWidth' => '958.69',
+					'originalHeight' => '592.78998',
 				)
 			),
 		);

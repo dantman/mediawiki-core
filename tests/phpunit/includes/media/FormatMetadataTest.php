@@ -1,10 +1,13 @@
 <?php
 class FormatMetadataTest extends MediaWikiTestCase {
-	public function setUp() {
+
+	protected function setUp() {
+		parent::setUp();
+
 		if ( !wfDl( 'exif' ) ) {
 			$this->markTestSkipped( "This test needs the exif extension." );
 		}
-		$filePath = dirname( __FILE__ ) .  '/../../data/media';
+		$filePath = __DIR__ .  '/../../data/media';
 		$this->backend = new FSFileBackend( array(
 			'name'           => 'localtesting',
 			'lockManager'    => 'nullLockManager',
@@ -15,13 +18,8 @@ class FormatMetadataTest extends MediaWikiTestCase {
 			'url'     => 'http://localhost/thumbtest',
 			'backend' => $this->backend
 		) );
-		global $wgShowEXIF;
-		$this->show = $wgShowEXIF;
-		$wgShowEXIF = true;
-	}
-	public function tearDown() {
-		global $wgShowEXIF;
-		$wgShowEXIF = $this->show;
+
+		$this->setMwGlobals( 'wgShowEXIF', true );
 	}
 
 	public function testInvalidDate() {

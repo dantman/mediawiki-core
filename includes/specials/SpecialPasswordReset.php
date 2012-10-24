@@ -98,7 +98,7 @@ class SpecialPasswordReset extends FormSpecialPage {
 	}
 
 	public function alterForm( HTMLForm $form ) {
-		$form->setSubmitText( wfMessage( "mailmypassword" ) );
+		$form->setSubmitTextMsg( 'mailmypassword' );
 	}
 
 	protected function preText() {
@@ -113,7 +113,7 @@ class SpecialPasswordReset extends FormSpecialPage {
 		if ( isset( $wgPasswordResetRoutes['domain'] ) && $wgPasswordResetRoutes['domain'] ) {
 			$i++;
 		}
-		return wfMessage( 'passwordreset-pretext', $i )->parseAsBlock();
+		return $this->msg( 'passwordreset-pretext', $i )->parseAsBlock();
 	}
 
 	/**
@@ -121,6 +121,8 @@ class SpecialPasswordReset extends FormSpecialPage {
 	 * userCanExecute(), and if the data array contains 'Username', etc, then Username
 	 * resets are allowed.
 	 * @param $data array
+	 * @throws MWException
+	 * @throws ThrottledError|PermissionsError
 	 * @return Bool|Array
 	 */
 	public function onSubmit( array $data ) {
@@ -154,7 +156,7 @@ class SpecialPasswordReset extends FormSpecialPage {
 			$method = 'email';
 			$res = wfGetDB( DB_SLAVE )->select(
 				'user',
-				'*',
+				User::selectFields(),
 				array( 'user_email' => $data['Email'] ),
 				__METHOD__
 			);
@@ -229,28 +231,29 @@ class SpecialPasswordReset extends FormSpecialPage {
 			? 'passwordreset-emailtext-ip'
 			: 'passwordreset-emailtext-user';
 
+		// Send in the user's language; which should hopefully be the same
+		$userLanguage = $firstUser->getOption( 'language' );
+
 		$passwords = array();
 		foreach ( $users as $user ) {
 			$password = $user->randomPassword();
 			$user->setNewpassword( $password );
 			$user->saveSettings();
-			$passwords[] = wfMessage( 'passwordreset-emailelement', $user->getName(), $password )->plain(); // We'll escape the whole thing later
+			$passwords[] = $this->msg( 'passwordreset-emailelement', $user->getName(), $password
+				)->inLanguage( $userLanguage )->text(); // We'll escape the whole thing later
 		}
 		$passwordBlock = implode( "\n\n", $passwords );
 
-		// Send in the user's language; which should hopefully be the same
-		$userLanguage = $firstUser->getOption( 'language' );
-
-		$this->email = wfMessage( $msg )->inLanguage( $userLanguage );
+		$this->email = $this->msg( $msg )->inLanguage( $userLanguage );
 		$this->email->params(
 			$username,
 			$passwordBlock,
 			count( $passwords ),
-			Title::newMainPage()->getCanonicalUrl(),
+			'<' . Title::newMainPage()->getCanonicalUrl() . '>',
 			round( $wgNewPasswordExpiry / 86400 )
 		);
 
-		$title = wfMessage( 'passwordreset-emailtitle' );
+		$title = $this->msg( 'passwordreset-emailtitle' );
 
 		$this->result = $firstUser->sendMail( $title->escaped(), $this->email->escaped() );
 

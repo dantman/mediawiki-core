@@ -20,22 +20,23 @@
  * @defgroup Maintenance Maintenance
  */
 
+// Make sure we're on PHP5.3.2 or better
+if ( !function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.2' ) < 0 ) {
+	// We need to use dirname( __FILE__ ) here cause __DIR__ is PHP5.3+
+	require_once( dirname( __FILE__ ) . '/../includes/PHPVersionError.php' );
+	wfPHPVersionError( 'cli' );
+}
+
 /**
  * @defgroup MaintenanceArchive Maintenance archives
  * @ingroup Maintenance
  */
 
 // Define this so scripts can easily find doMaintenance.php
-define( 'RUN_MAINTENANCE_IF_MAIN', dirname( __FILE__ ) . '/doMaintenance.php' );
+define( 'RUN_MAINTENANCE_IF_MAIN', __DIR__ . '/doMaintenance.php' );
 define( 'DO_MAINTENANCE', RUN_MAINTENANCE_IF_MAIN ); // original name, harmless
 
 $maintClass = false;
-
-// Make sure we're on PHP5 or better
-if ( !function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.2.3' ) < 0 ) {
-	require_once( dirname( __FILE__ ) . '/../includes/PHPVersionError.php' );
-	wfPHPVersionError( 'cli' );
-}
 
 /**
  * Abstract maintenance class for quickly writing and churning out
@@ -101,7 +102,10 @@ abstract class Maintenance {
 	// Generic options which might or not be supported by the script
 	private $mDependantParameters = array();
 
-	// Used by getDD() / setDB()
+	/**
+	 * Used by getDD() / setDB()
+	 * @var DatabaseBase
+	 */
 	private $mDb = null;
 
 	/**
@@ -120,7 +124,7 @@ abstract class Maintenance {
 		global $IP;
 		$IP = strval( getenv( 'MW_INSTALL_PATH' ) ) !== ''
 			? getenv( 'MW_INSTALL_PATH' )
-			: realpath( dirname( __FILE__ ) . '/..' );
+			: realpath( __DIR__ . '/..' );
 
 		$this->addDefaultParams();
 		register_shutdown_function( array( $this, 'outputChanneled' ), false );
@@ -317,11 +321,7 @@ abstract class Maintenance {
 		}
 		if ( $channel === null ) {
 			$this->cleanupChanneled();
-			if( php_sapi_name() == 'cli' ) {
-				fwrite( STDOUT, $out );
-			} else {
-				print( $out );
-			}
+			print( $out );
 		} else {
 			$out = preg_replace( '/\n\z/', '', $out );
 			$this->outputChanneled( $out, $channel );
@@ -355,11 +355,7 @@ abstract class Maintenance {
 	 */
 	public function cleanupChanneled() {
 		if ( !$this->atLineStart ) {
-			if( php_sapi_name() == 'cli' ) {
-				fwrite( STDOUT, "\n" );
-			} else {
-				print "\n";
-			}
+			print "\n";
 			$this->atLineStart = true;
 		}
 	}
@@ -378,31 +374,17 @@ abstract class Maintenance {
 			return;
 		}
 
-		$cli = php_sapi_name() == 'cli';
-
 		// End the current line if necessary
 		if ( !$this->atLineStart && $channel !== $this->lastChannel ) {
-			if( $cli ) {
-				fwrite( STDOUT, "\n" );
-			} else {
-				print "\n";
-			}
+			print "\n";
 		}
 
-		if( $cli ) {
-			fwrite( STDOUT, $msg );
-		} else {
-			print $msg;
-		}
+		print $msg;
 
 		$this->atLineStart = false;
 		if ( $channel === null ) {
 			// For unchanneled messages, output trailing newline immediately
-			if( $cli ) {
-				fwrite( STDOUT, "\n" );
-			} else {
-				print "\n";
-			}
+			print "\n";
 			$this->atLineStart = true;
 		}
 		$this->lastChannel = $channel;
@@ -500,19 +482,11 @@ abstract class Maintenance {
 			$this->error( 'Cannot get command line arguments, register_argc_argv is set to false', true );
 		}
 
-		if ( version_compare( phpversion(), '5.2.4' ) >= 0 ) {
-			// Send PHP warnings and errors to stderr instead of stdout.
-			// This aids in diagnosing problems, while keeping messages
-			// out of redirected output.
-			if ( ini_get( 'display_errors' ) ) {
-				ini_set( 'display_errors', 'stderr' );
-			}
-
-			// Don't touch the setting on earlier versions of PHP,
-			// as setting it would disable output if you'd wanted it.
-
-			// Note that exceptions are also sent to stderr when
-			// command-line mode is on, regardless of PHP version.
+		// Send PHP warnings and errors to stderr instead of stdout.
+		// This aids in diagnosing problems, while keeping messages
+		// out of redirected output.
+		if ( ini_get( 'display_errors' ) ) {
+			ini_set( 'display_errors', 'stderr' );
 		}
 
 		$this->loadParamsAndArgs();
@@ -1007,7 +981,7 @@ abstract class Maintenance {
 	 * @return string
 	 */
 	protected function getDir() {
-		return dirname( __FILE__ );
+		return __DIR__;
 	}
 
 	/**
@@ -1028,9 +1002,9 @@ abstract class Maintenance {
 	protected static function getCoreScripts() {
 		if ( !self::$mCoreScripts ) {
 			$paths = array(
-				dirname( __FILE__ ),
-				dirname( __FILE__ ) . '/language',
-				dirname( __FILE__ ) . '/storage',
+				__DIR__,
+				__DIR__ . '/language',
+				__DIR__ . '/storage',
 			);
 			self::$mCoreScripts = array();
 			foreach ( $paths as $p ) {
@@ -1086,7 +1060,7 @@ abstract class Maintenance {
 	 */
 	private function lockSearchindex( &$db ) {
 		$write = array( 'searchindex' );
-		$read = array( 'page', 'revision', 'text', 'interwiki', 'l10n_cache' );
+		$read = array( 'page', 'revision', 'text', 'interwiki', 'l10n_cache', 'user' );
 		$db->lockTables( $read, $write, __CLASS__ . '::' . __METHOD__ );
 	}
 
@@ -1162,7 +1136,8 @@ abstract class Maintenance {
 			$title = $titleObj->getPrefixedDBkey();
 			$this->output( "$title..." );
 			# Update searchindex
-			$u = new SearchUpdate( $pageId, $titleObj->getText(), $rev->getText() );
+			# TODO: pass the Content object to SearchUpdate, let the search engine decide how to deal with it.
+			$u = new SearchUpdate( $pageId, $titleObj->getText(), $rev->getContent()->getTextForSearchIndex() );
 			$u->doUpdate();
 			$this->output( "\n" );
 		}

@@ -1,17 +1,13 @@
 <?php
 class TiffTest extends MediaWikiTestCase {
 
-	public function setUp() {
-		global $wgShowEXIF;
-		$this->showExif = $wgShowEXIF;
-		$wgShowEXIF = true;
-		$this->filePath = dirname( __FILE__ ) . '/../../data/media/';
-		$this->handler = new TiffHandler;
-	}
+	protected function setUp() {
+		parent::setUp();
 
-	public function tearDown() {
-		global $wgShowEXIF;
-		$wgShowEXIF = $this->showExif;
+		$this->setMwGlobals( 'wgShowEXIF', true );
+
+		$this->filePath = __DIR__ . '/../../data/media/';
+		$this->handler = new TiffHandler;
 	}
 
 	public function testInvalidFile() {

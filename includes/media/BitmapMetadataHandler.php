@@ -1,13 +1,36 @@
 <?php
 /**
-Class to deal with reconciling and extracting metadata from bitmap images.
-This is meant to comply with http://www.metadataworkinggroup.org/pdf/mwg_guidance.pdf
+ * Extraction of metadata from different bitmap image types.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @file
+ * @ingroup Media
+ */
 
-This sort of acts as an intermediary between MediaHandler::getMetadata
-and the various metadata extractors.
-
-@todo other image formats.
-*/
+/**
+ * Class to deal with reconciling and extracting metadata from bitmap images.
+ * This is meant to comply with http://www.metadataworkinggroup.org/pdf/mwg_guidance.pdf
+ *
+ * This sort of acts as an intermediary between MediaHandler::getMetadata
+ * and the various metadata extractors.
+ *
+ * @todo other image formats.
+ * @ingroup Media
+ */
 class BitmapMetadataHandler {
 
 	private $metadata = array();
@@ -217,7 +240,7 @@ class BitmapMetadataHandler {
 
 		unset( $baseArray['comment'] );
 		unset( $baseArray['xmp'] );
-	
+
 		$baseArray['metadata'] = $meta->getMetadataArray();
 		$baseArray['metadata']['_MW_GIF_VERSION'] = GIFMetadataExtractor::VERSION;
 		return $baseArray;
@@ -234,6 +257,7 @@ class BitmapMetadataHandler {
 	 *
 	 * The various exceptions this throws are caught later.
 	 * @param $filename String
+	 * @throws MWException
 	 * @return Array The metadata.
 	 */
 	static public function Tiff ( $filename ) {

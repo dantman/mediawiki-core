@@ -1,5 +1,7 @@
 <?php
 /**
+ * Extraction and validation of image metadata.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -102,6 +104,7 @@ class Exif {
 	 *
 	 * @param $file String: filename.
 	 * @param $byteOrder String Type of byte ordering either 'BE' (Big Endian) or 'LE' (Little Endian). Default ''.
+	 * @throws MWException
 	 * @todo FIXME: The following are broke:
 	 * SubjectArea. Need to test the more obscure tags.
 	 *
@@ -368,6 +371,12 @@ class Exif {
 		$this->exifGPStoNumber( 'GPSDestLongitude' );
 
 		if ( isset( $this->mFilteredExifData['GPSAltitude'] ) && isset( $this->mFilteredExifData['GPSAltitudeRef'] ) ) {
+
+			// We know altitude data is a <num>/<denom> from the validation functions ran earlier.
+			// But multiplying such a string by -1 doesn't work well, so convert.
+			list( $num, $denom ) = explode( '/', $this->mFilteredExifData['GPSAltitude'] );
+			$this->mFilteredExifData['GPSAltitude'] = $num / $denom;
+
 			if ( $this->mFilteredExifData['GPSAltitudeRef'] === "\1" ) {
 				$this->mFilteredExifData['GPSAltitude'] *= - 1;
 			}
@@ -380,7 +389,7 @@ class Exif {
 		$this->charCodeString( 'UserComment' );
 		$this->charCodeString( 'GPSProcessingMethod');
 		$this->charCodeString( 'GPSAreaInformation' );
-		
+
 		//ComponentsConfiguration should really be an array instead of a string...
 		//This turns a string of binary numbers into an array of numbers.
 
@@ -393,7 +402,7 @@ class Exif {
 			$ccVals['_type'] = 'ol'; //this is for formatting later.
 			$this->mFilteredExifData['ComponentsConfiguration'] = $ccVals;
 		}
-	
+
 		//GPSVersion(ID) is treated as the wrong type by php exif support.
 		//Go through each byte turning it into a version string.
 		//For example: "\x02\x02\x00\x00" -> "2.2.0.0"
@@ -442,8 +451,7 @@ class Exif {
 			}
 			$charCode = substr( $this->mFilteredExifData[$prop], 0, 8);
 			$val = substr( $this->mFilteredExifData[$prop], 8);
-			
-			
+
 			switch ($charCode) {
 				case "\x4A\x49\x53\x00\x00\x00\x00\x00":
 					//JIS
@@ -472,7 +480,7 @@ class Exif {
 					wfRestoreWarnings();
 				}
 			}
-			
+
 			//trim and check to make sure not only whitespace.
 			$val = trim($val);
 			if ( strlen( $val ) === 0 ) {
@@ -740,10 +748,10 @@ class Exif {
 			return false;
 		}
 		if( $count > 1 ) {
-			foreach( $val as $v ) { 
+			foreach( $val as $v ) {
 				if( !$this->validate( $section, $tag, $v, true ) ) {
-					return false; 
-				} 
+					return false;
+				}
 			}
 			return true;
 		}
