@@ -759,6 +759,8 @@ class Article implements Page {
 			}
 		}
 
+		$this->doViewGraphMetadata( $pOutput );
+
 		# Check for any __NOINDEX__ tags on the page using $pOutput
 		$policy = $this->getRobotPolicy( 'view', $pOutput );
 		$outputPage->setIndexPolicy( $policy['index'] );
@@ -782,6 +784,45 @@ class Article implements Page {
 		if ( strval( $titleText ) !== '' ) {
 			$this->getContext()->getOutput()->setPageTitle( $titleText );
 		}
+	}
+
+	/**
+	 * Add graph metadata such as OpenGraph and Schema.org for page views.
+	 * Should be overridden by subclassing implementing page types with different
+	 * purposes than Article.
+	 * @warning I really should finish the replacment of Article with PageView
+	 *   before I add this to something like Article only to be replaced.
+	 */
+	public function doViewGraphMetadata( ParserOutput $pOutput = null ) {
+		global $wgSitename;
+		$out = $this->getContext()->getOutput();
+
+		$rdfa = $out->getPrefixContext();
+		$og = $rdfa->prefix( 'og', 'http://ogp.me/ns#' );
+
+		if ( $this->getTitle()->isMainPage() ) {
+			# On the Main Page describe the wiki itself instead of the page
+			$out->addGraphProperty( $og->curie( 'title' ), $wgSitename );
+			$out->addGraphProperty( $og->curie( 'type' ), 'website' );
+			// og:image (Logo)
+		} else {
+			# Normal articles
+			$out->addGraphProperty( $og->curie( 'site_name' ), $wgSitename );
+			$out->addGraphProperty( $og->curie( 'title' ), Sanitizer::stripAllTags( $out->getPageTitle() ) );
+
+			$ogType = 'article';
+			wfRunHooks( 'ArticleOpenGraphType', array( $this, &$ogType, $pOutput ) );
+			$out->addGraphProperty( $og->curie( 'type' ), $ogType );
+			if ( $ogType === 'article' ) {
+				$ogArticle = $rdfa->prefix( 'og-article', 'http://ogp.me/ns/article#' );
+				$rev = $this->getRevisionFetched();
+				$out->addGraphProperty( $ogArticle->curie( 'modified_time' ),
+					wfTimestamp( TS_ISO_8601, $rev->getTimestamp() ) );
+			}
+
+		}
+
+		// $out->addGraphProperty( $og->curie( 'url' ),  );
 	}
 
 	/**

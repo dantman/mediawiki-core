@@ -217,6 +217,36 @@ class ImagePage extends Article {
 	}
 
 	/**
+	 * Add graph metadata such as OpenGraph and Schema.org for page views.
+	 * Should be overridden by subclassing implementing page types with different
+	 * purposes than Article.
+	 * @warning I really should finish the replacment of Article with PageView
+	 *   before I add this to something like Article only to be replaced.
+	 */
+	public function doViewGraphMetadata( ParserOutput $pOutput = null ) {
+		global $wgSitename;
+		$out = $this->getContext()->getOutput();
+
+		$rdfa = $out->getPrefixContext();
+		$og = $rdfa->prefix( 'og', 'http://ogp.me/ns#' );
+
+		$out->addGraphProperty( $og->curie( 'site_name' ), $wgSitename );
+		$out->addGraphProperty( $og->curie( 'title' ), Sanitizer::stripAllTags( $out->getPageTitle() ) );
+
+		# OpenGraph doesn't have a proper type for pages that define files or images
+		$out->addGraphProperty( $og->curie( 'type' ), 'article' );
+
+		# If it's an image and it exists then set the og:image to the type.
+		$img = $this->displayImg;
+		if ( $img->isVisible() && $img->isSafeFile() ) {
+			$out->addGraphProperty( $og->curie( 'image' ), $img->getUrl() );
+			$out->addGraphProperty( $og->curie( 'image:type' ), $img->getMimeType() );
+			$out->addGraphProperty( $og->curie( 'image:width' ), $img->getWidth( 1 ) );
+			$out->addGraphProperty( $og->curie( 'image:height' ), $img->getHeight( 1 ) );
+		}
+	}
+
+	/**
 	 * @return File
 	 */
 	public function getDisplayedFile() {
